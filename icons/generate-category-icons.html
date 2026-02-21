@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Category Icon Generator</title>
+  <style>
+    body {
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      margin: 10px;
+      display: block;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      background: #030213;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .status {
+      margin: 10px 0;
+      padding: 10px;
+      background: #f3f3f5;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Category Icon Generator</h1>
+  <p>Click the button below to generate and download the category icons (open and closed).</p>
+  <button onclick="generateIcons()">Generate Category Icons</button>
+  <div id="status" class="status"></div>
+  <div id="canvases"></div>
+  
+  <script>
+    function generateIcons() {
+      const statusDiv = document.getElementById('status');
+      const canvasesDiv = document.getElementById('canvases');
+      canvasesDiv.innerHTML = '';
+      
+      // Generate Open Icon (chevron down)
+      const openCanvas = document.createElement('canvas');
+      openCanvas.width = 12;
+      openCanvas.height = 12;
+      const openCtx = openCanvas.getContext('2d');
+      
+      // Draw chevron down (V shape pointing down)
+      openCtx.strokeStyle = 'rgba(113, 113, 130, 0.6)';
+      openCtx.lineWidth = 1.5;
+      openCtx.lineCap = 'round';
+      openCtx.lineJoin = 'round';
+      openCtx.beginPath();
+      openCtx.moveTo(2, 4);
+      openCtx.lineTo(6, 8);
+      openCtx.lineTo(10, 4);
+      openCtx.stroke();
+      
+      openCanvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'category-open-icon.png';
+        a.click();
+        URL.revokeObjectURL(url);
+        statusDiv.innerHTML += '<p>✓ category-open-icon.png downloaded</p>';
+      });
+      
+      canvasesDiv.appendChild(openCanvas);
+      
+      // Generate Closed Icon (chevron right)
+      setTimeout(() => {
+        const closedCanvas = document.createElement('canvas');
+        closedCanvas.width = 12;
+        closedCanvas.height = 12;
+        const closedCtx = closedCanvas.getContext('2d');
+        
+        // Draw chevron right (> shape pointing right)
+        closedCtx.strokeStyle = 'rgba(113, 113, 130, 0.6)';
+        closedCtx.lineWidth = 1.5;
+        closedCtx.lineCap = 'round';
+        closedCtx.lineJoin = 'round';
+        closedCtx.beginPath();
+        closedCtx.moveTo(4, 2);
+        closedCtx.lineTo(8, 6);
+        closedCtx.lineTo(4, 10);
+        closedCtx.stroke();
+        
+        closedCanvas.toBlob((blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'category-closed-icon.png';
+          a.click();
+          URL.revokeObjectURL(url);
+          statusDiv.innerHTML += '<p>✓ category-closed-icon.png downloaded</p>';
+        });
+        
+        canvasesDiv.appendChild(closedCanvas);
+      }, 500);
+    }
+  </script>
+</body>
+</html>

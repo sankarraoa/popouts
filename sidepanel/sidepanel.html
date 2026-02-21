@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popouts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <img src="icons/icon48.png" alt="Popouts" width="24" height="24">
+          </div>
+          <span class="logo-text">Popouts</span>
+        </div>
+        <div class="header-tabs">
+          <button class="tab-button active" data-tab="meetings">
+            <span class="tab-icon">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_meetings)">
+                  <path d="M7.5 1H3C2.73478 1 2.48043 1.10536 2.29289 1.29289C2.10536 1.48043 2 1.73478 2 2V10C2 10.2652 2.10536 10.5196 2.29289 10.7071C2.48043 10.8946 2.73478 11 3 11H9C9.26522 11 9.51957 10.8946 9.70711 10.7071C9.89464 10.5196 10 10.2652 10 10V3.5L7.5 1Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M7 1V3C7 3.26522 7.10536 3.51957 7.29289 3.70711C7.48043 3.89464 7.73478 4 8 4H10" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M5 4.5H4" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8 6.5H4" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8 8.5H4" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                </g>
+                <defs>
+                  <clipPath id="clip0_meetings">
+                    <rect width="12" height="12" fill="white"/>
+                  </clipPath>
+                </defs>
+              </svg>
+            </span>
+            <span class="tab-label">Meetings</span>
+            <span class="tab-count" id="meetings-count">0</span>
+          </button>
+          <button class="tab-button" data-tab="actions">
+            <span class="tab-icon">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 2.5H2C1.72386 2.5 1.5 2.72386 1.5 3V5C1.5 5.27614 1.72386 5.5 2 5.5H4C4.27614 5.5 4.5 5.27614 4.5 5V3C4.5 2.72386 4.27614 2.5 4 2.5Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M1.5 8.5L2.5 9.5L4.5 7.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.5 3H10.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.5 6H10.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.5 9H10.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="tab-label">Actions</span>
+            <span class="tab-count" id="actions-count">0</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-title">Meetings</span>
+        </div>
+        <div class="meeting-categories">
+          <!-- 1:1s Section -->
+          <div class="category-section">
+            <div class="category-header">
+              <button class="category-toggle active" data-category="1:1s">
+                <span class="category-icon"><img src="../icons/category-open-icon.png?v=1" alt="Open" width="12" height="12"></span>
+                <span class="category-dot" style="background-color: #2b7fff;"></span>
+                <span class="category-name">1:1s</span>
+                <span class="category-count">0</span>
+              </button>
+              <button class="add-button" data-category="1:1s">+ Add</button>
+            </div>
+            <div class="meeting-list" data-category="1:1s">
+              <!-- Empty state (shown when no meetings) -->
+              <div class="meeting-list-empty-state" data-category="1:1s" style="display: none;">
+                <div class="add-meeting-input-container">
+                  <input type="text" class="add-meeting-input" placeholder='1:1 with…' data-category="1:1s">
+                  <div class="add-meeting-helper">
+                    <span class="add-meeting-helper-text">Enter to add · Esc to cancel</span>
+                    <button class="add-meeting-cancel" data-category="1:1s" title="Cancel">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="rgba(113, 113, 130, 0.4)" stroke-width="0.833333" stroke-linecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <!-- Inline add input (hidden by default) -->
+              <div class="add-meeting-input-container" data-category="1:1s" style="display: none;">
+                <input type="text" class="add-meeting-input" placeholder='1:1 with…' data-category="1:1s">
+                <div class="add-meeting-helper">
+                  <span class="add-meeting-helper-text">Enter to add · Esc to cancel</span>
+                  <button class="add-meeting-cancel" data-category="1:1s" title="Cancel">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="rgba(113, 113, 130, 0.4)" stroke-width="0.833333" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <!-- Meetings will be inserted here -->
+            </div>
+          </div>
+
+          <!-- Recurring Section -->
+          <div class="category-section">
+            <div class="category-header">
+              <button class="category-toggle" data-category="recurring">
+                <span class="category-icon"><img src="../icons/category-closed-icon.png?v=1" alt="Closed" width="12" height="12"></span>
+                <span class="category-dot" style="background-color: #8e51ff;"></span>
+                <span class="category-name">Recurring</span>
+                <span class="category-count">0</span>
+              </button>
+              <button class="add-button" data-category="recurring">+ Add</button>
+            </div>
+            <div class="meeting-list" data-category="recurring">
+              <!-- Empty state (shown when no meetings) -->
+              <div class="meeting-list-empty-state" data-category="recurring" style="display: none;">
+                <div class="add-meeting-input-container">
+                  <input type="text" class="add-meeting-input" placeholder='Recurring meeting…' data-category="recurring">
+                  <div class="add-meeting-helper">
+                    <span class="add-meeting-helper-text">Enter to add · Esc to cancel</span>
+                    <button class="add-meeting-cancel" data-category="recurring" title="Cancel">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="rgba(113, 113, 130, 0.4)" stroke-width="0.833333" stroke-linecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <!-- Inline add input (hidden by default) -->
+              <div class="add-meeting-input-container" data-category="recurring" style="display: none;">
+                <input type="text" class="add-meeting-input" placeholder='Recurring meeting…' data-category="recurring">
+                <div class="add-meeting-helper">
+                  <span class="add-meeting-helper-text">Enter to add · Esc to cancel</span>
+                  <button class="add-meeting-cancel" data-category="recurring" title="Cancel">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="rgba(113, 113, 130, 0.4)" stroke-width="0.833333" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <!-- Meetings will be inserted here -->
+            </div>
+          </div>
+
+          <!-- Ad Hoc Section -->
+          <div class="category-section">
+            <div class="category-header">
+              <button class="category-toggle" data-category="adhoc">
+                <span class="category-icon"><img src="../icons/category-closed-icon.png?v=1" alt="Closed" width="12" height="12"></span>
+                <span class="category-dot" style="background-color: #fe9a00;"></span>
+                <span class="category-name">Ad Hoc</span>
+                <span class="category-count">0</span>
+              </button>
+              <button class="add-button" data-category="adhoc">+ Add</button>
+            </div>
+            <div class="meeting-list" data-category="adhoc">
+              <!-- Empty state (shown when no meetings) -->
+              <div class="meeting-list-empty-state" data-category="adhoc" style="display: none;">
+                <div class="add-meeting-input-container">
+                  <input type="text" class="add-meeting-input" placeholder='e.g. Vendor Review' data-category="adhoc">
+                  <div class="add-meeting-helper">
+                    <span class="add-meeting-helper-text">Enter to add · Esc to cancel</span>
+                    <button class="add-meeting-cancel" data-category="adhoc" title="Cancel">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="rgba(113, 113, 130, 0.4)" stroke-width="0.833333" stroke-linecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <!-- Inline add input (hidden by default) -->
+              <div class="add-meeting-input-container" data-category="adhoc" style="display: none;">
+                <input type="text" class="add-meeting-input" placeholder='Ad hoc meeting…' data-category="adhoc">
+                <div class="add-meeting-helper">
+                  <span class="add-meeting-helper-text">Enter to add · Esc to cancel</span>
+                  <button class="add-meeting-cancel" data-category="adhoc" title="Cancel">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="rgba(113, 113, 130, 0.4)" stroke-width="0.833333" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <!-- Meetings will be inserted here -->
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Panel -->
+      <main class="main-panel">
+        <!-- Consolidated Actions View (shown when Actions tab is active) -->
+        <div id="consolidated-actions-view" class="consolidated-actions-view" style="display: none;">
+          <div class="actions-header-controls-container">
+            <div class="actions-header">
+              <div class="actions-header-title">
+                <img src="../icons/action-icon-15px.png" alt="Actions" width="15" height="15" class="actions-header-icon">
+                <span class="actions-header-text">Consolidated Action Items</span>
+              </div>
+              <button class="actions-add-button" id="consolidated-actions-add-button">
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5.5 1V10M1 5.5H10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span>Add Action</span>
+              </button>
+            </div>
+            <div class="actions-controls">
+            <div class="actions-filters" id="consolidated-actions-filters">
+              <button class="filter-button active" data-filter="all">All <span class="filter-count">0</span></button>
+              <button class="filter-button" data-filter="open">Open <span class="filter-count">0</span></button>
+              <button class="filter-button" data-filter="closed">Closed <span class="filter-count">0</span></button>
+            </div>
+            <div class="actions-search-container">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" class="actions-search-icon">
+                <path d="M5.5 9.5C7.70914 9.5 9.5 7.70914 9.5 5.5C9.5 3.29086 7.70914 1.5 5.5 1.5C3.29086 1.5 1.5 3.29086 1.5 5.5C1.5 7.70914 3.29086 9.5 5.5 9.5Z" stroke="rgba(113, 113, 130, 0.5)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10.5 10.5L8.5 8.5" stroke="rgba(113, 113, 130, 0.5)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <input type="text" class="actions-search-input" placeholder="Search actions..." id="consolidated-actions-search-input">
+            </div>
+          </div>
+          </div>
+          <!-- Add Action Input Section (hidden by default) -->
+          <div id="add-action-container" class="add-action-container" style="display: none;">
+            <div class="add-action-input-wrapper">
+              <input type="text" class="add-action-input" id="add-action-input" placeholder="Enter what needs to be done and press Enter or Escape">
+              <div class="add-action-dropdown-button" id="add-action-dropdown-button">
+                <span class="add-action-dropdown-selected" id="add-action-dropdown-selected">Select meeting</span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" class="add-action-dropdown-chevron">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="rgba(113, 113, 130, 0.4)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="add-action-dropdown" id="add-action-dropdown" style="display: none;">
+                <!-- Meeting options will be inserted here -->
+              </div>
+            </div>
+          </div>
+          <div class="actions-list" id="consolidated-actions-list">
+            <!-- Consolidated action items will be inserted here -->
+          </div>
+          <div id="consolidated-actions-empty-state" class="actions-empty-state" style="display: none;">
+            <div class="actions-empty-icon">
+              <img src="../icons/Icon-action-empty-state.png" alt="Actions" width="24" height="24">
+            </div>
+            <p class="actions-empty-title">No action items yet</p>
+            <p class="actions-empty-description">Save meeting notes to auto-extract action items or create a new action item.</p>
+          </div>
+        </div>
+        
+        <div id="empty-state" class="empty-state">
+          <div class="empty-state-content">
+            <div class="empty-state-icon-container">
+              <svg class="empty-state-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 3L10.07 19.97L12.58 12.58L19.97 10.07L3 3Z" stroke="rgba(113, 113, 130, 0.4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="3" cy="3" r="1.5" fill="rgba(113, 113, 130, 0.4)"/>
+              </svg>
+            </div>
+            <h3 class="empty-state-title">Select a meeting</h3>
+            <p class="empty-state-description">Choose a meeting from the sidebar to view its agenda, notes, and action items.</p>
+          </div>
+        </div>
+        <div id="meeting-detail" class="meeting-detail" style="display: none;">
+          <div class="meeting-header">
+            <h2 class="meeting-title" id="meeting-title">1:1 with Alex</h2>
+            <div class="meeting-meta">
+              <span class="meeting-last">
+                <svg class="meeting-last-icon" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="0.8"/>
+                  <path d="M5 2.5V5L7 6.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/>
+                </svg>
+                <span>Last: <span id="meeting-last-date">Today at 6:05 PM</span></span>
+              </span>
+            </div>
+          </div>
+          <div class="meeting-tabs">
+            <button class="meeting-tab active" data-view="agenda">
+              <img src="../icons/tab-agenda.png" alt="Agenda" width="13" height="13">
+              <span class="tab-label">Agenda</span>
+              <span class="tab-badge" id="agenda-count">0</span>
+            </button>
+            <button class="meeting-tab" data-view="notes">
+              <img src="../icons/tab-notes.png" alt="Notes" width="13" height="13">
+              <span class="tab-label">Notes</span>
+              <span class="tab-badge" id="notes-count">0</span>
+            </button>
+            <button class="meeting-tab" data-view="actions">
+              <img src="../icons/tab-actions.png" alt="Actions" width="13" height="13">
+              <span class="tab-label">Actions</span>
+              <span class="tab-badge" id="actions-detail-count">0</span>
+            </button>
+          </div>
+          <div class="meeting-content">
+            <!-- Agenda View -->
+            <div id="agenda-view" class="view-content active">
+              <div class="agenda-filters">
+                <button class="filter-button active" data-filter="all">All <span class="filter-count">0</span></button>
+                <button class="filter-button" data-filter="open">Open <span class="filter-count">0</span></button>
+                <button class="filter-button" data-filter="closed">Closed <span class="filter-count">0</span></button>
+              </div>
+              <div class="agenda-input-container">
+                <div class="agenda-input-circle"></div>
+                <input type="text" class="agenda-input" placeholder="Type an agenda item, press Enter..." id="agenda-input">
+              </div>
+              <div class="agenda-list" id="agenda-list">
+                <!-- Agenda items will be inserted here -->
+              </div>
+              <div id="agenda-empty-state" class="agenda-empty-state" style="display: none;">
+                <div class="agenda-empty-icon">
+                  <img src="../icons/agenda-icon-empty-state.png" alt="Agenda" width="28" height="28">
+                </div>
+                <p class="agenda-empty-title">No agenda items yet</p>
+                <p class="agenda-empty-description">Start typing below to add your first item.</p>
+              </div>
+            </div>
+
+            <!-- Notes View -->
+            <div id="notes-view" class="view-content">
+              <div class="notes-container" id="notes-container">
+                <!-- Date cards will be inserted here -->
+              </div>
+              <div id="notes-empty-state" class="notes-empty-state" style="display: none;">
+                <div class="notes-empty-card">
+                  <div class="notes-empty-card-header">
+                    <svg class="notes-empty-calendar-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 2.5H9C9.27614 2.5 9.5 2.72386 9.5 3V9.5C9.5 9.77614 9.27614 10 9 10H3C2.72386 10 2.5 9.77614 2.5 9.5V3C2.5 2.72386 2.72386 2.5 3 2.5Z" stroke="rgba(3, 2, 19, 0.2)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M2.5 4.5H9.5" stroke="rgba(3, 2, 19, 0.2)" stroke-width="0.8" stroke-linecap="round"/>
+                      <path d="M4.5 2V3.5" stroke="rgba(3, 2, 19, 0.2)" stroke-width="0.8" stroke-linecap="round"/>
+                      <path d="M7.5 2V3.5" stroke="rgba(3, 2, 19, 0.2)" stroke-width="0.8" stroke-linecap="round"/>
+                    </svg>
+                    <span class="notes-empty-card-date">Today</span>
+                    <span class="notes-empty-card-count">0 notes</span>
+                  </div>
+                  <div class="notes-empty-content">
+                    <div class="notes-empty-input-row">
+                      <span class="notes-empty-bullet">1.</span>
+                      <span class="notes-empty-placeholder">Type a note, press Enter...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions View -->
+            <div id="actions-view" class="view-content">
+              <div class="actions-filters">
+                <button class="filter-button active" data-filter="all">All <span class="filter-count">0</span></button>
+                <button class="filter-button" data-filter="open">Open <span class="filter-count">0</span></button>
+                <button class="filter-button" data-filter="closed">Closed <span class="filter-count">0</span></button>
+              </div>
+              <div class="actions-input-container">
+                <div class="actions-input-circle"></div>
+                <input type="text" class="actions-input" placeholder="Type an action item, press Enter..." id="actions-input">
+              </div>
+              <div class="actions-list" id="actions-list">
+                <!-- Action items will be inserted here -->
+              </div>
+              <div id="actions-empty-state" class="actions-empty-state" style="display: none;">
+                <div class="actions-empty-icon">
+                  <img src="../icons/Icon-action-empty-state.png" alt="Actions" width="24" height="24">
+                </div>
+                <p class="actions-empty-title">No action items yet</p>
+                <p class="actions-empty-description">Start typing below to add your first item.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Add Meeting Modal -->
+  <div id="add-meeting-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">New 1:1 Meeting</h3>
+        <button class="modal-close" id="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" class="modal-input" id="meeting-name-input" placeholder='e.g., "1:1 with Alex"'>
+        <div class="modal-actions">
+          <button class="modal-button cancel" id="modal-cancel">Cancel</button>
+          <button class="modal-button primary" id="modal-submit" disabled>Add Meeting</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../lib/dexie.min.js"></script>
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>

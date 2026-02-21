@@ -1,0 +1,30 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Material Design style icon - Blue to dark blue -->
+  <defs>
+    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2196F3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1565C0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded square background (Material Design style) -->
+  <rect width="128" height="128" rx="20" fill="url(#blueGradient)"/>
+  
+  <!-- Main pop-out shape - folded corner effect -->
+  <path d="M32 32 L96 32 L96 96 L32 96 Z" fill="white" fill-opacity="0.95"/>
+  
+  <!-- Folded corner triangle -->
+  <path d="M80 32 L96 32 L96 48 Z" fill="white" fill-opacity="0.85"/>
+  
+  <!-- Inner shadow line for folded corner -->
+  <line x1="80" y1="32" x2="96" y2="48" stroke="rgba(21, 101, 192, 0.3)" stroke-width="1.5"/>
+  
+  <!-- Pop-out indicator lines (Material style) -->
+  <line x1="96" y1="32" x2="104" y2="24" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+  <line x1="96" y1="48" x2="104" y2="56" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+  
+  <!-- Simple geometric accent (Material style dot) -->
+  <circle cx="48" cy="48" r="4" fill="#1565C0" opacity="0.6"/>
+  <circle cx="64" cy="48" r="4" fill="#1565C0" opacity="0.6"/>
+  <circle cx="80" cy="48" r="4" fill="#1565C0" opacity="0.6"/>
+</svg>

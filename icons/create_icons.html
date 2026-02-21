@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Icon Generator</title>
+</head>
+<body>
+  <canvas id="canvas16" width="16" height="16"></canvas>
+  <canvas id="canvas48" width="48" height="48"></canvas>
+  <canvas id="canvas128" width="128" height="128"></canvas>
+  <script>
+    const svg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 8C0 3.58172 3.58172 0 8 0H16C20.4183 0 24 3.58172 24 8V16C24 20.4183 20.4183 24 16 24H8C3.58172 24 0 20.4183 0 16V8Z" fill="#030213"/>
+<g clip-path="url(#clip0_3_8)">
+<path d="M6.58334 8.75H8.75001" stroke="white" stroke-width="1.08333" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6.58334 10.9167H8.75001" stroke="white" stroke-width="1.08333" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6.58334 13.0833H8.75001" stroke="white" stroke-width="1.08333" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6.58334 15.25H8.75001" stroke="white" stroke-width="1.08333" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15.25 6.58333H8.74999C8.15168 6.58333 7.66666 7.06836 7.66666 7.66667V16.3333C7.66666 16.9316 8.15168 17.4167 8.74999 17.4167H15.25C15.8483 17.4167 16.3333 16.9316 16.3333 16.3333V7.66667C16.3333 7.06836 15.8483 6.58333 15.25 6.58333Z" stroke="white" stroke-width="1.08333" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.1667 6.58333V17.4167" stroke="white" stroke-width="1.08333" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<clipPath id="clip0_3_8">
+<rect width="13" height="13" fill="white" transform="translate(5.5 5.5)"/>
+</clipPath>
+</defs>
+</svg>`;
+    
+    function renderIcon(size, canvasId) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      const blob = new Blob([svg], {type: 'image/svg+xml'});
+      const url = URL.createObjectURL(blob);
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, size, size);
+        canvas.toBlob(blob => {
+          const a = document.createElement('a');
+          a.download = `icon${size}.png`;
+          a.href = URL.createObjectURL(blob);
+          a.click();
+        }, 'image/png');
+      };
+      img.src = url;
+    }
+    
+    setTimeout(() => {
+      renderIcon(16, 'canvas16');
+      setTimeout(() => renderIcon(48, 'canvas48'), 500);
+      setTimeout(() => renderIcon(128, 'canvas128'), 1000);
+    }, 100);
+  </script>
+</body>
+</html>
