@@ -1,6 +1,6 @@
-# Popouts Chrome Extension
+# Popouts
 
-A Chrome extension for productivity tools that pop out of your browser - like digital post-its. Start with meeting notes, expand to whatever you need.
+A productivity tool that pops out of your browser - like digital post-its. Start with meeting notes, expand to whatever you need.
 
 **Repository**: [https://github.com/sankarraoa/popouts.git](https://github.com/sankarraoa/popouts.git)
 
@@ -12,13 +12,39 @@ A Chrome extension for productivity tools that pop out of your browser - like di
 - **Action Tracking**: Track action items (manual for now, LLM extraction coming soon)
 - **100% Local**: All data stored locally in your browser using IndexedDB
 
+## Project Structure
+
+```
+popouts/
+├── chrome-extension/      # Chrome Extension (current)
+│   ├── manifest.json
+│   ├── sidepanel/
+│   ├── popup/
+│   ├── background/
+│   ├── js/
+│   ├── lib/
+│   └── icons/
+├── server/                # Server-side API (future)
+│   ├── api/
+│   │   ├── llm/          # LLM integration
+│   │   └── backup/       # Backup & sync
+│   └── server.js
+├── shared/                # Shared code
+│   ├── constants.js
+│   └── types.js
+├── safari-extension/       # Safari Extension (future)
+├── mobile-app/            # Mobile App (future)
+└── README.md
+```
+
 ## Installation
 
-### Development Setup
+### Chrome Extension
 
-1. **Clone or navigate to this directory**
+1. **Clone the repository**
    ```bash
-   cd meetingNotes
+   git clone https://github.com/sankarraoa/popouts.git
+   cd popouts
    ```
 
 2. **Load the extension in Chrome**
@@ -29,33 +55,10 @@ A Chrome extension for productivity tools that pop out of your browser - like di
 
 3. **Access the extension**
    - Click the extension icon in the toolbar to open the popup
-   - Or click "Open Meeting Notes" to open the side panel
+   - Or click "Open Popouts" to open the side panel
    - The side panel is the main interface
 
-## Project Structure
-
-```
-popouts/
-├── chrome-extension/       # Chrome Extension (current)
-│   ├── manifest.json
-│   ├── sidepanel/
-│   ├── popup/
-│   ├── background/
-│   ├── js/
-│   ├── lib/
-│   └── icons/
-├── server/                 # Server-side API (future)
-│   ├── api/
-│   │   ├── llm/
-│   │   └── backup/
-│   └── server.js
-├── shared/                 # Shared code
-│   ├── constants.js
-│   └── types.js
-├── safari-extension/        # Safari Extension (future)
-├── mobile-app/             # Mobile App (future)
-└── README.md
-```
+See [chrome-extension/README.md](chrome-extension/README.md) for more details.
 
 ## Usage
 
@@ -63,7 +66,7 @@ popouts/
 
 1. Click the "+ Add" button next to any category (1:1s, Recurring, Ad Hoc)
 2. Enter a meeting name (e.g., "1:1 with Alex")
-3. Click "Add Meeting"
+3. Press Enter to add
 
 ### Adding Agenda Items
 
@@ -77,20 +80,20 @@ popouts/
 1. Select a meeting
 2. Go to the "Notes" tab
 3. Type your free-form notes
-4. Notes are auto-saved when you click away
+4. Notes are auto-saved
 
 ### Managing Actions
 
 1. Select a meeting
 2. Go to the "Actions" tab
-3. View action items (manual creation coming soon)
+3. Add action items or view consolidated actions
 
 ## Development
 
 ### Tech Stack
 
 - **Vanilla JavaScript** - No frameworks, just plain JS
-- **Dexie.js** - IndexedDB wrapper (loaded from CDN)
+- **Dexie.js** - IndexedDB wrapper
 - **Chrome Extension Manifest V3**
 
 ### Data Storage
@@ -99,21 +102,21 @@ All data is stored locally using IndexedDB:
 - `meetingSeries` - Meeting series (1:1s, recurring, ad hoc)
 - `meetingInstances` - Individual meeting occurrences
 - `agendaItems` - Running agenda items
-- `actionItems` - Action items extracted from notes
+- `actionItems` - Action items
 
-### Next Steps
+### Future Platforms
+
+- **Safari Extension**: Planned in `safari-extension/` folder
+- **Mobile App**: Planned in `mobile-app/` folder
+- **Web App**: Planned in `web-app/` folder
+
+## Next Steps
 
 - [ ] Add LLM integration for automatic action extraction
-- [ ] Improve icon design
-- [ ] Add meeting instance creation UI
-- [ ] Add action item creation UI
-- [ ] Add export functionality
-
-## Notes
-
-- The extension uses Dexie.js loaded from CDN (unpkg.com)
-- All data is stored locally - no server required
-- The extension works offline once loaded
+- [ ] Cloud backup and sync
+- [ ] Safari extension
+- [ ] Mobile app
+- [ ] Multi-device synchronization
 
 ## License
 
