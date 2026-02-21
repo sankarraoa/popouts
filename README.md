@@ -25,7 +25,7 @@ A Chrome extension for productivity tools that pop out of your browser - like di
    - Open Chrome and navigate to `chrome://extensions/`
    - Enable "Developer mode" (toggle in top right)
    - Click "Load unpacked"
-   - Select the `meetingNotes` directory
+   - Select the `chrome-extension` directory
 
 3. **Access the extension**
    - Click the extension icon in the toolbar to open the popup
@@ -35,23 +35,25 @@ A Chrome extension for productivity tools that pop out of your browser - like di
 ## Project Structure
 
 ```
-meetingNotes/
-├── manifest.json          # Chrome Extension manifest
-├── sidepanel/             # Main UI (side panel)
-│   ├── sidepanel.html
-│   ├── sidepanel.css
-│   └── sidepanel.js
-├── popup/                  # Quick access popup
-│   ├── popup.html
-│   └── popup.js
-├── background/             # Service worker
-│   └── service-worker.js
-├── js/                     # Core logic
-│   ├── db.js              # Database setup (Dexie.js)
-│   ├── meetings.js        # Meeting series & instances
-│   ├── agenda.js          # Agenda items
-│   └── actions.js         # Action items
-├── icons/                  # Extension icons
+popouts/
+├── chrome-extension/       # Chrome Extension (current)
+│   ├── manifest.json
+│   ├── sidepanel/
+│   ├── popup/
+│   ├── background/
+│   ├── js/
+│   ├── lib/
+│   └── icons/
+├── server/                 # Server-side API (future)
+│   ├── api/
+│   │   ├── llm/
+│   │   └── backup/
+│   └── server.js
+├── shared/                 # Shared code
+│   ├── constants.js
+│   └── types.js
+├── safari-extension/        # Safari Extension (future)
+├── mobile-app/             # Mobile App (future)
 └── README.md
 ```
 

@@ -125,7 +125,7 @@ export async function loadMeetings(elements) {
   try {
     console.log('Loading meetings...');
     // Import db to ensure it's available
-    const { db } = await import('../../js/db.js');
+    const { db } = await import('../db.js');
     // Ensure database is ready
     await db.ensureReady();
     const allMeetings = await getAllMeetingSeries();

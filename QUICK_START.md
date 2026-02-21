@@ -13,9 +13,9 @@
 
 3. **Load the Extension**
    - Click the "Load unpacked" button (top-left)
-   - Navigate to and select the `meetingNotes` folder:
+   - Navigate to and select the `chrome-extension` folder:
      ```
-     /Users/sankar.amburkar/VSCode/meetingNotes
+     /Users/sankar.amburkar/VSCode/meetingNotes/chrome-extension
      ```
    - Click "Select" or "Open"
 
@@ -97,8 +97,8 @@
 ### Extension Won't Load
 
 **Error: "Manifest file is missing or unreadable"**
-- Make sure you selected the `meetingNotes` folder (not a subfolder)
-- Check that `manifest.json` exists in the root
+- Make sure you selected the `chrome-extension` folder (not the parent folder)
+- Check that `manifest.json` exists in the `chrome-extension` folder
 
 **Error: "Service worker registration failed"**
 - Check that `background/service-worker.js` exists

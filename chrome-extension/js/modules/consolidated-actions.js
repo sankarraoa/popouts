@@ -3,7 +3,7 @@ import { getAllActionItems, createActionItem } from '../actions.js';
 import { getAllMeetingSeries } from '../meetings.js';
 import { state } from './state.js';
 import { createActionItemElement } from './actions-tab.js';
-import { db } from '../db.js';
+import { db } from '../db.js'; // Correct path - modules/ is inside js/
 
 // Placeholder for elements object, will be passed from main orchestrator
 let elements = {};
