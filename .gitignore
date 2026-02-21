@@ -66,12 +66,14 @@ node_modules/
 package-lock.json
 yarn.lock
 
-# Server-side (future)
-server/
-api/
-.env
-.env.local
-config/secrets.json
+# Server-side
+server/node_modules/
+server/.env
+server/.env.local
+server/config/secrets.json
+server/logs/
+server/dist/
+server/build/
 
 # IDE
 .vscode/

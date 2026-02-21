@@ -2,6 +2,8 @@
 
 A Chrome extension for productivity tools that pop out of your browser - like digital post-its. Start with meeting notes, expand to whatever you need.
 
+**Repository**: [https://github.com/sankarraoa/popouts.git](https://github.com/sankarraoa/popouts.git)
+
 ## Features
 
 - **Meeting Management**: Organize meetings by type (1:1s, Recurring, Ad Hoc)
