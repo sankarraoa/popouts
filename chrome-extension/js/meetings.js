@@ -88,8 +88,38 @@ export async function getMeetingStats(seriesId) {
   const openAgendaItems = agendaItems.filter(item => item.status === 'open').length;
   const openActionItems = actionItems.filter(item => item.status === 'open').length;
 
-  const latestInstance = instances.length > 0 ? instances[instances.length - 1] : null;
-  const lastDate = latestInstance ? new Date(latestInstance.date) : null;
+  // Calculate lastDate based on most recent activity:
+  // - Agenda items: createdAt and closedAt
+  // - Notes: createdAt and updatedAt from meeting instances
+  // - Action items: createdAt and closedAt
+  const allDates = [];
+  
+  // Add agenda item dates
+  agendaItems.forEach(item => {
+    if (item.createdAt) allDates.push(new Date(item.createdAt));
+    if (item.closedAt) allDates.push(new Date(item.closedAt));
+  });
+  
+  // Add note dates from instances
+  instances.forEach(instance => {
+    if (instance.notes && Array.isArray(instance.notes)) {
+      instance.notes.forEach(note => {
+        if (note.createdAt) allDates.push(new Date(note.createdAt));
+        if (note.updatedAt) allDates.push(new Date(note.updatedAt));
+      });
+    }
+  });
+  
+  // Add action item dates
+  actionItems.forEach(item => {
+    if (item.createdAt) allDates.push(new Date(item.createdAt));
+    if (item.closedAt) allDates.push(new Date(item.closedAt));
+  });
+  
+  // Find the most recent date
+  const lastDate = allDates.length > 0 
+    ? new Date(Math.max(...allDates.map(d => d.getTime())))
+    : null;
 
   return {
     noteCount: instances.length,

@@ -2,11 +2,44 @@
 import { addNote, getNotesByDate } from '../notes.js';
 import { state } from './state.js';
 import { isToday } from './utils.js';
+import { actionExtractionService } from './action-extraction.js';
 
 // Placeholder for elements object, will be passed from main orchestrator
 let elements = {};
 // Placeholder for updateCounts callback
 let updateCountsCallback = null;
+
+// Helper function to safely set cursor position in contentEditable element
+function setCursorToEnd(element) {
+  if (!element || !element.isConnected) {
+    return false;
+  }
+  try {
+    element.focus();
+    const range = document.createRange();
+    const sel = window.getSelection();
+    range.selectNodeContents(element);
+    range.collapse(false); // Collapse to end
+    sel.removeAllRanges();
+    sel.addRange(range);
+    return true;
+  } catch (err) {
+    console.warn('Error setting cursor position:', err);
+    // Fallback: just focus
+    try {
+      element.focus();
+    } catch (focusErr) {
+      console.warn('Error focusing element:', focusErr);
+    }
+    return false;
+  }
+}
+
+// Pagination state - based on date cards, not individual notes
+const INITIAL_CARDS = 4; // Initial number of date cards to show
+const CARDS_PER_PAGE = 2; // Additional cards per "Show More" click
+let currentNotesPage = 1;
+let allNotesByDate = [];
 
 export function setNotesDependencies(els, updateCountsCb) {
   elements = els;
@@ -14,7 +47,7 @@ export function setNotesDependencies(els, updateCountsCb) {
 }
 
 // Load notes grouped by date
-export async function loadNotes() {
+export async function loadNotes(resetPagination = true) {
   try {
     console.log('=== loadNotes called ===');
     console.log('currentMeetingId:', state.currentMeetingId);
@@ -29,9 +62,17 @@ export async function loadNotes() {
       return;
     }
     
+    // Reset pagination when filter/search changes
+    if (resetPagination) {
+      currentNotesPage = 1;
+    }
+    
     const notesByDate = await getNotesByDate(state.currentMeetingId);
     console.log('notesByDate:', notesByDate);
     console.log('notesByDate.length:', notesByDate.length);
+    
+    // Store all notes for pagination
+    allNotesByDate = notesByDate;
     
     elements.notesContainer.innerHTML = '';
     
@@ -86,20 +127,102 @@ export async function loadNotes() {
             existingPlaceholder.remove();
           }
           
-          // Always create a fresh input field
-          const input = document.createElement('input');
-          input.type = 'text';
+          // Always create a fresh input field (textarea for multi-line)
+          const input = document.createElement('textarea');
           input.className = 'notes-input';
           input.placeholder = 'Type a note, press Enter...';
           input.value = ''; // Ensure it's empty
-          input.addEventListener('keypress', async (e) => {
-            if (e.key === 'Enter' && e.target.value.trim()) {
+          input.rows = 1;
+          
+          // Auto-resize textarea
+          const autoResize = (textarea) => {
+            textarea.style.height = 'auto';
+            const newHeight = Math.min(textarea.scrollHeight, 200); // Max height 200px
+            textarea.style.height = newHeight + 'px';
+          };
+          
+          input.addEventListener('input', () => {
+            autoResize(input);
+          });
+          
+          input.addEventListener('keydown', async (e) => {
+            // Enter submits and moves to next note
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              if (e.target.value.trim()) {
               await addNote(state.currentMeetingId, e.target.value.trim());
+                e.target.value = '';
+                e.target.style.height = 'auto';
               await loadNotes();
               if (updateCountsCallback) {
                 await updateCountsCallback();
               }
+                // Focus the next input FIRST, before any async operations that might interfere
+                // Use multiple timeouts to ensure DOM is fully updated and stable
+                setTimeout(() => {
+                  const focusNextInput = () => {
+                    const todayCard = document.querySelector('.notes-date-card-today');
+                    if (todayCard && todayCard.isConnected) {
+                      // Get the last input row (which is the new one created after adding the note)
+                      const allInputRows = todayCard.querySelectorAll('.notes-input-row');
+                      if (allInputRows.length > 0) {
+                        const lastInputRow = allInputRows[allInputRows.length - 1];
+                        const nextInput = lastInputRow.querySelector('.notes-input');
+                        if (nextInput && nextInput.isConnected) {
+                          // Ensure the input is visible and scroll into view if needed
+                          nextInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                          // Use requestAnimationFrame to ensure DOM is fully updated
+                          requestAnimationFrame(() => {
+                            // Double-check the input is still connected
+                            if (nextInput.isConnected) {
+                              // Focus and set cursor position
+                              nextInput.focus();
+                              // Set cursor to start of input - use setTimeout to ensure focus is complete
+                              setTimeout(() => {
+                                if (nextInput.isConnected && nextInput.setSelectionRange) {
+                                  nextInput.setSelectionRange(0, 0);
+                                }
+                                // Force focus again to ensure cursor is visible
+                                if (nextInput.isConnected) {
+                                  nextInput.focus();
+                                  autoResize(nextInput);
+                                }
+                              }, 10);
+                            }
+                          });
+                          return true;
+                        }
+                      }
+                    }
+                    return false;
+                  };
+                  
+                  // Try to focus immediately
+                  if (!focusNextInput()) {
+                    // If not found, try again after a short delay
+                    setTimeout(() => {
+                      focusNextInput();
+                    }, 50);
+                  }
+                }, 150);
+                
+                // Schedule action extraction AFTER focusing (fire-and-forget, don't await)
+                if (state.currentMeetingId) {
+                  console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (empty state)`);
+                  // Don't await - let it run in background
+                  actionExtractionService.scheduleExtraction(state.currentMeetingId).catch(err => {
+                    console.error('[NotesTab] Error scheduling extraction:', err);
+                  });
+                  
+                  // Also check all meetings for unprocessed notes (fire-and-forget)
+                  console.log(`[NotesTab] Checking all meetings for unprocessed notes...`);
+                  actionExtractionService.checkAllMeetingsForExtraction().catch(err => {
+                    console.error('[NotesTab] Error checking all meetings:', err);
+                  });
+                }
+              }
             }
+            // Shift+Enter creates new line within the same note (default textarea behavior)
           });
           
           // Focus the input when empty state is shown
@@ -139,15 +262,89 @@ export async function loadNotes() {
       console.log('Today card already exists, not creating duplicate');
     }
     
-    // Render existing date cards (these will appear after the Today card if it was just created)
-    console.log('Rendering', notesByDate.length, 'date cards');
-    notesByDate.forEach((dateGroup, index) => {
-      console.log(`Rendering card ${index + 1}:`, dateGroup.date, 'with', dateGroup.notes.length, 'notes');
+    // Calculate pagination based on date cards
+    const totalCards = notesByDate.length;
+    const cardsToShow = INITIAL_CARDS + (currentNotesPage - 1) * CARDS_PER_PAGE;
+    
+    // Render date cards with pagination
+    let cardsRendered = 0;
+    
+    console.log('Rendering notes with pagination. Total cards:', totalCards, 'Cards to show:', cardsToShow);
+    
+    // Get Show More container - try multiple ways to find it BEFORE removing
+    let showMoreContainer = document.getElementById('notes-show-more');
+    if (!showMoreContainer && elements.notesContainer) {
+      // Try finding it relative to notes container
+      const notesView = elements.notesContainer.closest('#notes-view');
+      if (notesView) {
+        showMoreContainer = notesView.querySelector('#notes-show-more');
+      }
+    }
+    if (!showMoreContainer) {
+      // Try finding it anywhere in the document
+      showMoreContainer = document.querySelector('#notes-show-more');
+    }
+    
+    // Remove existing "Show More" button from container if it's already there
+    // But preserve the reference if we found it
+    const existingShowMore = elements.notesContainer.querySelector('#notes-show-more');
+    if (existingShowMore) {
+      // If we already have a reference, use it; otherwise use the one we found
+      if (!showMoreContainer) {
+        showMoreContainer = existingShowMore;
+      }
+      existingShowMore.remove();
+    }
+    
+    // If still not found, try one more time after removal
+    if (!showMoreContainer) {
+      showMoreContainer = document.getElementById('notes-show-more');
+    }
+    
+    for (let i = 0; i < notesByDate.length && i < cardsToShow; i++) {
+      const dateGroup = notesByDate[i];
+      const cardNotesCount = dateGroup.notes.length;
+      
+      console.log(`Rendering card ${cardsRendered + 1}:`, dateGroup.date, 'with', cardNotesCount, 'notes');
       const card = createDateCard(dateGroup);
       elements.notesContainer.appendChild(card);
-    });
+      cardsRendered++;
+    }
     
-    console.log('Notes loaded successfully');
+    // Append "Show More" button right after the last card if there are more cards
+    console.log('Show More check: cardsRendered =', cardsRendered, 'totalCards =', totalCards, 'showMoreContainer =', showMoreContainer);
+    if (cardsRendered < totalCards) {
+      if (!showMoreContainer && elements.notesContainer) {
+        // Create the Show More container if it doesn't exist
+        showMoreContainer = document.createElement('div');
+        showMoreContainer.id = 'notes-show-more';
+        showMoreContainer.className = 'notes-show-more';
+        const button = document.createElement('button');
+        button.className = 'notes-show-more-button';
+        button.textContent = 'Show More';
+        showMoreContainer.appendChild(button);
+        console.log('Created Show More container dynamically');
+      }
+      
+      if (showMoreContainer && elements.notesContainer) {
+        console.log('Showing Show More button');
+        showMoreContainer.style.display = 'flex';
+        // Append to notes container so it scrolls with content and appears right after last card
+        elements.notesContainer.appendChild(showMoreContainer);
+      } else {
+        console.warn('Show More container or notes container not found!', {
+          showMoreContainer: !!showMoreContainer,
+          notesContainer: !!elements.notesContainer
+        });
+      }
+    } else {
+      console.log('All cards rendered, hiding Show More button');
+      if (showMoreContainer) {
+        showMoreContainer.style.display = 'none';
+      }
+    }
+    
+    console.log('Notes loaded successfully. Rendered:', cardsRendered, 'of', totalCards, 'date cards');
   } catch (error) {
     console.error('Error loading notes:', error);
     console.error('Stack:', error.stack);
@@ -263,24 +460,235 @@ function createNoteRow(note, displayIndex, originalIndex, date, isEditable) {
     text.contentEditable = true;
     text.addEventListener('blur', async () => {
       const newText = text.textContent.trim();
-      if (newText !== note.text && newText) {
-        // Update note
-        const { updateNote } = await import('../notes.js');
+      const { updateNote, deleteNote } = await import('../notes.js');
+      
+      if (!newText) {
+        // Delete note if empty
+        await deleteNote(state.currentMeetingId, originalIndex, date);
+        await loadNotes();
+        if (updateCountsCallback) {
+          await updateCountsCallback();
+        }
+        // Schedule action extraction for this meeting AND check all meetings
+        if (state.currentMeetingId) {
+          console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (note deleted)`);
+          actionExtractionService.scheduleExtraction(state.currentMeetingId).catch(err => {
+            console.error('[NotesTab] Error scheduling extraction:', err);
+          });
+          actionExtractionService.checkAllMeetingsForExtraction().catch(err => {
+            console.error('[NotesTab] Error checking all meetings:', err);
+          });
+        }
+      } else if (newText !== note.text) {
+        // Update note if text changed
         await updateNote(state.currentMeetingId, originalIndex, newText, date);
         await loadNotes();
         if (updateCountsCallback) {
           await updateCountsCallback();
         }
-      } else if (!newText) {
-        // Restore original text if empty
-        text.textContent = note.text;
+        // Schedule action extraction for this meeting AND check all meetings
+        if (state.currentMeetingId) {
+          console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (note updated)`);
+          actionExtractionService.scheduleExtraction(state.currentMeetingId).catch(err => {
+            console.error('[NotesTab] Error scheduling extraction:', err);
+          });
+          actionExtractionService.checkAllMeetingsForExtraction().catch(err => {
+            console.error('[NotesTab] Error checking all meetings:', err);
+          });
+        }
       }
     });
     
-    text.addEventListener('keypress', async (e) => {
+    text.addEventListener('keydown', async (e) => {
+      // Enter key - move to next note or input row
       if (e.key === 'Enter') {
         e.preventDefault();
-        text.blur();
+        
+        // Save current note first
+        const currentText = text.textContent.trim();
+        if (currentText !== note.text) {
+          const { updateNote } = await import('../notes.js');
+          await updateNote(state.currentMeetingId, originalIndex, currentText, date);
+          await loadNotes();
+          if (updateCountsCallback) {
+            await updateCountsCallback();
+          }
+        }
+        
+        // Find next note or input row
+        const todayCard = row.closest('.notes-date-card-today');
+        if (todayCard) {
+          const allRows = todayCard.querySelectorAll('.notes-note-row, .notes-input-row');
+          let nextRow = null;
+          
+          for (let i = 0; i < allRows.length; i++) {
+            if (allRows[i] === row && i < allRows.length - 1) {
+              nextRow = allRows[i + 1];
+              break;
+            }
+          }
+          
+          if (nextRow) {
+            // Focus next note or input
+            const nextNoteText = nextRow.querySelector('.notes-note-text');
+            const nextInput = nextRow.querySelector('.notes-input');
+            
+            setTimeout(() => {
+              if (nextNoteText && nextNoteText.isConnected) {
+                try {
+                  nextNoteText.focus();
+                  const range = document.createRange();
+                  const sel = window.getSelection();
+                  range.selectNodeContents(nextNoteText);
+                  range.collapse(false); // Collapse to end
+                  sel.removeAllRanges();
+                  sel.addRange(range);
+                } catch (err) {
+                  console.warn('Error setting cursor position:', err);
+                  // Fallback: just focus
+                  nextNoteText.focus();
+                }
+              } else if (nextInput && nextInput.isConnected) {
+                nextInput.focus();
+                if (nextInput.setSelectionRange) {
+                  nextInput.setSelectionRange(0, 0);
+                }
+              }
+            }, 50);
+          }
+        }
+        return;
+      }
+      
+      // Arrow Up - move to previous note
+      if (e.key === 'ArrowUp') {
+        const todayCard = row.closest('.notes-date-card-today');
+        if (todayCard) {
+          const allRows = todayCard.querySelectorAll('.notes-note-row, .notes-input-row');
+          let prevRow = null;
+          
+          for (let i = 0; i < allRows.length; i++) {
+            if (allRows[i] === row && i > 0) {
+              prevRow = allRows[i - 1];
+              break;
+            }
+          }
+          
+          if (prevRow) {
+            e.preventDefault();
+            const prevNoteText = prevRow.querySelector('.notes-note-text');
+            const prevInput = prevRow.querySelector('.notes-input');
+            
+            setTimeout(() => {
+              if (prevNoteText && prevNoteText.isConnected) {
+                setCursorToEnd(prevNoteText);
+              } else if (prevInput && prevInput.isConnected) {
+                prevInput.focus();
+                if (prevInput.setSelectionRange) {
+                  const textLength = prevInput.value.length;
+                  prevInput.setSelectionRange(textLength, textLength);
+                }
+              }
+            }, 10);
+          }
+        }
+        return;
+      }
+      
+      // Arrow Down - move to next note
+      if (e.key === 'ArrowDown') {
+        const todayCard = row.closest('.notes-date-card-today');
+        if (todayCard) {
+          const allRows = todayCard.querySelectorAll('.notes-note-row, .notes-input-row');
+          let nextRow = null;
+          
+          for (let i = 0; i < allRows.length; i++) {
+            if (allRows[i] === row && i < allRows.length - 1) {
+              nextRow = allRows[i + 1];
+              break;
+            }
+          }
+          
+          if (nextRow) {
+            e.preventDefault();
+            const nextNoteText = nextRow.querySelector('.notes-note-text');
+            const nextInput = nextRow.querySelector('.notes-input');
+            
+            setTimeout(() => {
+              if (nextNoteText && nextNoteText.isConnected) {
+                setCursorToEnd(nextNoteText);
+              } else if (nextInput && nextInput.isConnected) {
+                nextInput.focus();
+                if (nextInput.setSelectionRange) {
+                  nextInput.setSelectionRange(0, 0);
+                }
+              }
+            }, 10);
+          }
+        }
+        return;
+      }
+      
+      // Backspace at start of empty note - delete the note
+      if (e.key === 'Backspace') {
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const isAtStart = range.startOffset === 0 && range.endOffset === 0;
+          const isEmpty = text.textContent.trim() === '';
+          
+          if (isAtStart && isEmpty) {
+            e.preventDefault();
+            const { deleteNote } = await import('../notes.js');
+            await deleteNote(state.currentMeetingId, originalIndex, date);
+            await loadNotes();
+            if (updateCountsCallback) {
+              await updateCountsCallback();
+            }
+            
+            // Focus previous note or input
+            const todayCard = row.closest('.notes-date-card-today');
+            if (todayCard) {
+              const allRows = todayCard.querySelectorAll('.notes-note-row, .notes-input-row');
+              let prevRow = null;
+              
+              for (let i = 0; i < allRows.length; i++) {
+                if (allRows[i] === row && i > 0) {
+                  prevRow = allRows[i - 1];
+                  break;
+                }
+              }
+              
+              if (prevRow) {
+                setTimeout(() => {
+                  const prevNoteText = prevRow.querySelector('.notes-note-text');
+                  const prevInput = prevRow.querySelector('.notes-input');
+                  
+                  if (prevNoteText && prevNoteText.isConnected) {
+                    setCursorToEnd(prevNoteText);
+                  } else if (prevInput && prevInput.isConnected) {
+                    prevInput.focus();
+                    if (prevInput.setSelectionRange) {
+                      const textLength = prevInput.value.length;
+                      prevInput.setSelectionRange(textLength, textLength);
+                    }
+                  }
+                }, 50);
+              }
+            }
+            
+            // Schedule action extraction
+            if (state.currentMeetingId) {
+              actionExtractionService.scheduleExtraction(state.currentMeetingId).catch(err => {
+                console.error('[NotesTab] Error scheduling extraction:', err);
+              });
+              actionExtractionService.checkAllMeetingsForExtraction().catch(err => {
+                console.error('[NotesTab] Error checking all meetings:', err);
+              });
+            }
+            return;
+          }
+        }
       }
     });
   }
@@ -300,25 +708,231 @@ function createNoteInputRow(nextNumber) {
   bullet.className = 'notes-input-bullet';
   bullet.textContent = `${nextNumber}.`;
   
-  const input = document.createElement('input');
-  input.type = 'text';
+  const input = document.createElement('textarea');
   input.className = 'notes-input';
   input.placeholder = 'Type a note, press Enter...';
+  input.rows = 1;
   
-  input.addEventListener('keypress', async (e) => {
-    if (e.key === 'Enter' && e.target.value.trim()) {
+  // Auto-resize textarea
+  const autoResize = (textarea) => {
+    textarea.style.height = 'auto';
+    const newHeight = Math.min(textarea.scrollHeight, 200); // Max height 200px
+    textarea.style.height = newHeight + 'px';
+  };
+  
+  input.addEventListener('input', () => {
+    autoResize(input);
+  });
+  
+  input.addEventListener('keydown', async (e) => {
+    // Arrow Up - move to previous note
+    if (e.key === 'ArrowUp') {
+      const currentRow = e.target.closest('.notes-input-row');
+      const todayCard = currentRow?.closest('.notes-date-card-today');
+      if (todayCard) {
+        const allRows = todayCard.querySelectorAll('.notes-note-row, .notes-input-row');
+        let prevRow = null;
+        
+        for (let i = 0; i < allRows.length; i++) {
+          if (allRows[i] === currentRow && i > 0) {
+            prevRow = allRows[i - 1];
+            break;
+          }
+        }
+        
+        if (prevRow) {
+          e.preventDefault();
+          const prevNoteText = prevRow.querySelector('.notes-note-text');
+          const prevInput = prevRow.querySelector('.notes-input');
+          
+          setTimeout(() => {
+            if (prevNoteText && prevNoteText.isConnected) {
+              setCursorToEnd(prevNoteText);
+            } else if (prevInput && prevInput.isConnected) {
+              prevInput.focus();
+              if (prevInput.setSelectionRange) {
+                const textLength = prevInput.value.length;
+                prevInput.setSelectionRange(textLength, textLength);
+              }
+            }
+          }, 10);
+        }
+      }
+      return;
+    }
+    
+    // Arrow Down - move to next note (shouldn't happen in input row, but handle it)
+    if (e.key === 'ArrowDown') {
+      const currentRow = e.target.closest('.notes-input-row');
+      const todayCard = currentRow?.closest('.notes-date-card-today');
+      if (todayCard) {
+        const allRows = todayCard.querySelectorAll('.notes-note-row, .notes-input-row');
+        let nextRow = null;
+        
+        for (let i = 0; i < allRows.length; i++) {
+          if (allRows[i] === currentRow && i < allRows.length - 1) {
+            nextRow = allRows[i + 1];
+            break;
+          }
+        }
+        
+        if (nextRow) {
+          e.preventDefault();
+          const nextNoteText = nextRow.querySelector('.notes-note-text');
+          const nextInput = nextRow.querySelector('.notes-input');
+          
+          setTimeout(() => {
+            if (nextNoteText && nextNoteText.isConnected) {
+              setCursorToEnd(nextNoteText);
+            } else if (nextInput && nextInput.isConnected) {
+              nextInput.focus();
+              if (nextInput.setSelectionRange) {
+                nextInput.setSelectionRange(0, 0);
+              }
+            }
+          }, 10);
+        }
+      }
+      return;
+    }
+    
+    // Backspace at start of empty input - delete this note row and move to previous note
+    if (e.key === 'Backspace' && e.target.value === '' && e.target.selectionStart === 0 && e.target.selectionEnd === 0) {
+      e.preventDefault();
+      
+      // Find the current input row
+      const currentRow = e.target.closest('.notes-input-row');
+      if (currentRow) {
+        const currentBullet = currentRow.querySelector('.notes-input-bullet');
+        const currentNumber = currentBullet ? parseInt(currentBullet.textContent.replace('.', '')) : null;
+        
+        // Find the previous note row (not input row)
+        const todayCard = currentRow.closest('.notes-date-card-today');
+        if (todayCard && currentNumber !== null && currentNumber > 1) {
+          const allRows = todayCard.querySelectorAll('.notes-note-row, .notes-input-row');
+          let previousNoteRow = null;
+          
+          // Find the note row that comes before this input row
+          for (let i = 0; i < allRows.length; i++) {
+            if (allRows[i] === currentRow && i > 0) {
+              // Check if previous row is a note row
+              const prevRow = allRows[i - 1];
+              if (prevRow.classList.contains('notes-note-row')) {
+                previousNoteRow = prevRow;
+                break;
+              }
+            }
+          }
+          
+          if (previousNoteRow) {
+            // Get the note text element from previous row
+            const previousNoteText = previousNoteRow.querySelector('.notes-note-text');
+            if (previousNoteText) {
+              // Remove the current input row
+              currentRow.remove();
+              
+              // Focus the previous note and move cursor to end
+              setTimeout(() => {
+                if (previousNoteText && previousNoteText.isConnected) {
+                  setCursorToEnd(previousNoteText);
+                }
+              }, 10);
+            }
+          }
+        }
+      }
+      return;
+    }
+    
+    // Enter submits and moves to next note
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (e.target.value.trim()) {
       const noteText = e.target.value.trim();
       e.target.value = '';
+        e.target.style.height = 'auto';
       await addNote(state.currentMeetingId, noteText);
       await loadNotes();
       if (updateCountsCallback) {
         await updateCountsCallback();
       }
+        
+        // Focus the next input FIRST, before any async operations that might interfere
+        // Use multiple timeouts to ensure DOM is fully updated and stable
+        setTimeout(() => {
+          const focusNextInput = () => {
+            const todayCard = document.querySelector('.notes-date-card-today');
+            if (todayCard && todayCard.isConnected) {
+              // Get the last input row (which is the new one created after adding the note)
+              const allInputRows = todayCard.querySelectorAll('.notes-input-row');
+              if (allInputRows.length > 0) {
+                const lastInputRow = allInputRows[allInputRows.length - 1];
+                const nextInput = lastInputRow.querySelector('.notes-input');
+                if (nextInput && nextInput.isConnected) {
+                  // Ensure the input is visible and scroll into view if needed
+                  nextInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  // Use requestAnimationFrame to ensure DOM is fully updated
+                  requestAnimationFrame(() => {
+                    // Double-check the input is still connected
+                    if (nextInput.isConnected) {
+                      // Focus and set cursor position
+                      nextInput.focus();
+                      // Set cursor to start of input - use setTimeout to ensure focus is complete
+                      setTimeout(() => {
+                        if (nextInput.isConnected && nextInput.setSelectionRange) {
+                          nextInput.setSelectionRange(0, 0);
+                        }
+                        // Force focus again to ensure cursor is visible
+                        if (nextInput.isConnected) {
+                          nextInput.focus();
+                          autoResize(nextInput);
+                        }
+                      }, 10);
+                    }
+                  });
+                  return true;
+                }
+              }
+            }
+            return false;
+          };
+          
+          // Try to focus immediately
+          if (!focusNextInput()) {
+            // If not found, try again after a short delay
+            setTimeout(() => {
+              focusNextInput();
+            }, 50);
+          }
+        }, 150);
+        
+        // Schedule action extraction AFTER focusing (fire-and-forget, don't await)
+        if (state.currentMeetingId) {
+          console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (note edit)`);
+          // Don't await - let it run in background
+          actionExtractionService.scheduleExtraction(state.currentMeetingId).catch(err => {
+            console.error('[NotesTab] Error scheduling extraction:', err);
+          });
+          
+          // Also check all meetings for unprocessed notes (fire-and-forget)
+          console.log(`[NotesTab] Checking all meetings for unprocessed notes...`);
+          actionExtractionService.checkAllMeetingsForExtraction().catch(err => {
+            console.error('[NotesTab] Error checking all meetings:', err);
+          });
+        }
+      }
     }
+    // Shift+Enter creates new line within the same note (default textarea behavior)
   });
   
   row.appendChild(bullet);
   row.appendChild(input);
   
   return row;
+}
+
+// Handle "Show More" button click
+export async function handleShowMoreNotes() {
+  currentNotesPage++;
+  await loadNotes(false); // Don't reset pagination
 }

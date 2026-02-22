@@ -3,6 +3,7 @@
 import { state } from './state.js';
 import { formatDate, updateCounts } from './utils.js';
 import { getAllMeetingSeries, deleteMeetingSeries, createMeetingSeries, getMeetingStats } from '../meetings.js';
+import { actionExtractionService } from './action-extraction.js';
 
 // Initialize sidebar module
 export function initSidebar(elements, callbacks) {
@@ -71,15 +72,32 @@ export function initSidebar(elements, callbacks) {
   
   // Setup add meeting input handlers (event delegation)
   function setupAddMeetingInputHandlers() {
+    // Auto-resize function for textarea
+    function autoResizeTextarea(textarea) {
+      textarea.style.height = 'auto';
+      const scrollHeight = textarea.scrollHeight;
+      const maxHeight = 48; // max-height from CSS
+      textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+    }
+    
+    // Setup auto-resize on input for all add-meeting inputs
+    document.addEventListener('input', (e) => {
+      if (e.target.classList.contains('add-meeting-input')) {
+        autoResizeTextarea(e.target);
+      }
+    });
+    
     // Enter/Escape key handlers
     document.addEventListener('keydown', (e) => {
       if (e.target.classList.contains('add-meeting-input')) {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
           const category = e.target.dataset.category;
           const name = e.target.value.trim();
         if (name) {
           handleAddMeetingInline(category, name, callbacks);
+          // Reset height after submission
+          e.target.style.height = 'auto';
         }
         } else if (e.key === 'Escape') {
           e.preventDefault();
@@ -131,7 +149,7 @@ export async function loadMeetings(elements) {
     const allMeetings = await getAllMeetingSeries();
     console.log('All meetings loaded:', allMeetings);
     
-    // Group by type
+    // Group by type and sort by creation time (newest first)
     const meetingsByType = {
       '1:1s': [],
       'recurring': [],
@@ -142,6 +160,15 @@ export async function loadMeetings(elements) {
       if (meetingsByType[meeting.type]) {
         meetingsByType[meeting.type].push(meeting);
       }
+    });
+    
+    // Sort each category by creation time (newest first)
+    Object.keys(meetingsByType).forEach(type => {
+      meetingsByType[type].sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeB - timeA; // Descending order (newest first)
+      });
     });
     
     console.log('Meetings grouped by type:', meetingsByType);
@@ -298,9 +325,15 @@ function createMeetingItem(meeting, stats, elements) {
     meta.appendChild(notes);
   }
   
+  // Extraction status indicator (will be updated by extraction service)
+  // This will be populated when extraction status is checked
+  
   content.appendChild(name);
   content.appendChild(meta);
   item.appendChild(content);
+  
+  // Load and display extraction status
+  actionExtractionService.loadExtractionStatusIndicator(meeting.id, meta);
   
   // Delete button (shown on hover)
   const deleteButton = document.createElement('button');
@@ -335,6 +368,39 @@ function createMeetingItem(meeting, stats, elements) {
   });
   
   return item;
+}
+
+// Update meeting badge for a specific meeting
+export async function updateMeetingBadge(meetingId) {
+  const meetingItem = document.querySelector(`.meeting-item[data-meeting-id="${meetingId}"]`);
+  if (!meetingItem) return;
+  
+  const stats = await getMeetingStats(meetingId);
+  const meta = meetingItem.querySelector('.meeting-item-meta');
+  if (!meta) return;
+  
+  // Remove existing badge
+  const existingBadge = meta.querySelector('.meeting-item-badge');
+  if (existingBadge) {
+    existingBadge.remove();
+  }
+  
+  // Add new badge if there are open agenda items
+  if (stats.openAgendaCount > 0) {
+    const badge = document.createElement('div');
+    badge.className = 'meeting-item-badge';
+    const badgeText = document.createElement('span');
+    badgeText.textContent = `${stats.openAgendaCount} open`;
+    badge.appendChild(badgeText);
+    
+    // Insert badge after date container (if exists) or at the beginning
+    const dateContainer = meta.querySelector('.meeting-item-date-container');
+    if (dateContainer) {
+      dateContainer.insertAdjacentElement('afterend', badge);
+    } else {
+      meta.insertBefore(badge, meta.firstChild);
+    }
+  }
 }
 
 // Show inline add meeting input

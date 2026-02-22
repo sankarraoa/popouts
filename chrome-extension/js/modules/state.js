@@ -4,8 +4,8 @@
 export const state = {
   currentMeetingId: null,
   currentView: 'agenda',
-  currentAgendaFilter: 'all',
-  currentActionFilter: 'all',
+  currentAgendaFilter: 'open', // Default to 'open' instead of 'all'
+  currentActionFilter: 'open', // Default to 'open' instead of 'all' (only used on first load)
   currentActionSearchQuery: '',
   selectedMeetingForAction: null,
   actionInputValues: {} // Store action input values per meeting
@@ -46,24 +46,79 @@ export async function restoreState(elements) {
     if (!savedState) {
       // First time - set default state
       console.log('No saved state, using defaults');
-      // Expand 1:1s category by default
-      const categoryToggle = document.querySelector('.category-toggle[data-category="1:1s"]');
-      if (categoryToggle) {
-        categoryToggle.classList.add('active');
-        const list = document.querySelector('.meeting-list[data-category="1:1s"]');
-        const icon = categoryToggle.querySelector('.category-icon');
-        if (list) list.style.display = 'flex';
-        if (icon) {
-          icon.innerHTML = '<img src="../icons/category-open-icon.png?v=' + Date.now() + '" alt="Open" width="12" height="12">';
+      
+      // Expand 1:1s category by default, collapse others
+      const categoryToggle1 = document.querySelector('.category-toggle[data-category="1:1s"]');
+      const categoryToggle2 = document.querySelector('.category-toggle[data-category="recurring"]');
+      const categoryToggle3 = document.querySelector('.category-toggle[data-category="adhoc"]');
+      
+      // Expand 1:1s
+      if (categoryToggle1) {
+        categoryToggle1.classList.add('active');
+        const list1 = document.querySelector('.meeting-list[data-category="1:1s"]');
+        const icon1 = categoryToggle1.querySelector('.category-icon');
+        if (list1) list1.style.display = 'flex';
+        if (icon1) {
+          icon1.innerHTML = '<img src="../icons/category-open-icon.png?v=' + Date.now() + '" alt="Open" width="12" height="12">';
         }
         
-        // Show empty state if no meetings
-        const meetingItems = list.querySelectorAll('.meeting-item');
-        const emptyState = list.querySelector('.meeting-list-empty-state');
+        // Show empty state if no meetings and focus input
+        const meetingItems = list1.querySelectorAll('.meeting-item');
+        const emptyState = list1.querySelector('.meeting-list-empty-state');
         if (meetingItems.length === 0 && emptyState) {
           emptyState.style.display = 'block';
+          // Focus the input in empty state
+          const emptyInput = emptyState.querySelector('.add-meeting-input');
+          if (emptyInput) {
+            setTimeout(() => emptyInput.focus(), 200);
         }
       }
+      }
+      
+      // Collapse Recurring
+      if (categoryToggle2) {
+        categoryToggle2.classList.remove('active');
+        const list2 = document.querySelector('.meeting-list[data-category="recurring"]');
+        const icon2 = categoryToggle2.querySelector('.category-icon');
+        if (list2) list2.style.display = 'none';
+        if (icon2) {
+          icon2.innerHTML = '<img src="../icons/category-closed-icon.png?v=' + Date.now() + '" alt="Closed" width="12" height="12">';
+        }
+      }
+      
+      // Collapse Ad Hoc
+      if (categoryToggle3) {
+        categoryToggle3.classList.remove('active');
+        const list3 = document.querySelector('.meeting-list[data-category="adhoc"]');
+        const icon3 = categoryToggle3.querySelector('.category-icon');
+        if (list3) list3.style.display = 'none';
+        if (icon3) {
+          icon3.innerHTML = '<img src="../icons/category-closed-icon.png?v=' + Date.now() + '" alt="Closed" width="12" height="12">';
+        }
+      }
+      
+      // Set default agenda filter to 'open'
+      state.currentAgendaFilter = 'open';
+      if (elements.agendaFilters && elements.agendaFilters.length > 0) {
+        elements.agendaFilters.forEach(f => {
+          f.classList.remove('active');
+          if (f.dataset.filter === 'open') {
+            f.classList.add('active');
+          }
+        });
+      }
+      
+      // Set default action filter to 'open' (only on first load)
+      state.currentActionFilter = 'open';
+      if (elements.actionsFilters && elements.actionsFilters.length > 0) {
+        elements.actionsFilters.forEach(f => {
+          f.classList.remove('active');
+          if (f.dataset.filter === 'open') {
+            f.classList.add('active');
+          }
+        });
+      }
+      
       return;
     }
     
@@ -110,6 +165,18 @@ export async function restoreState(elements) {
         elements.actionsFilters.forEach(f => {
           f.classList.remove('active');
           if (f.dataset.filter === savedState.currentActionFilter) {
+            f.classList.add('active');
+          }
+        });
+      }
+    } else {
+      // No saved filter, use default 'open' (but only if this is first load, which we already handled above)
+      // This else block is for cases where savedState exists but currentActionFilter is missing
+      state.currentActionFilter = 'open';
+      if (elements.actionsFilters && elements.actionsFilters.length > 0) {
+        elements.actionsFilters.forEach(f => {
+          f.classList.remove('active');
+          if (f.dataset.filter === 'open') {
             f.classList.add('active');
           }
         });

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Action Extraction - Test Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .config-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .config-section h2 {
+            margin-bottom: 15px;
+            color: #34495e;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .json-editor {
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            min-height: 400px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .response-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .response-section h2 {
+            margin-bottom: 15px;
+            color: #34495e;
+            font-size: 18px;
+        }
+
+        .response-content {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .error {
+            color: #e74c3c;
+            background: #fadbd8;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #e74c3c;
+        }
+
+        .success {
+            color: #27ae60;
+            background: #d5f4e6;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #27ae60;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .prompt-section {
+            margin-top: 15px;
+        }
+
+        .prompt-toggle {
+            margin-bottom: 10px;
+        }
+
+        .prompt-editor {
+            min-height: 200px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #27ae60;
+        }
+
+        .status-offline {
+            background: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 LLM Action Extraction - Test Page</h1>
+
+        <div class="config-section">
+            <h2>⚙️ Configuration</h2>
+            <div class="form-group">
+                <label for="apiUrl">API URL:</label>
+                <input type="text" id="apiUrl" value="http://localhost:8000" placeholder="http://localhost:8000">
+            </div>
+            <div class="form-group">
+                <label for="provider">LLM Provider:</label>
+                <select id="provider">
+                    <option value="auto">Auto (use server default)</option>
+                    <option value="toqan">Toqan</option>
+                    <option value="openai">OpenAI</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button class="btn-secondary" onclick="checkHealth()">Check Health</button>
+                <span id="healthStatus"></span>
+            </div>
+        </div>
+
+        <div class="two-column">
+            <div class="config-section">
+                <h2>📝 Request JSON</h2>
+                <div class="form-group">
+                    <button class="btn-secondary" onclick="loadSampleData()">Load Sample Data</button>
+                    <button class="btn-secondary" onclick="formatJSON()">Format JSON</button>
+                    <button class="btn-secondary" onclick="validateJSON()">Validate JSON</button>
+                </div>
+                <textarea id="requestJson" class="json-editor" placeholder='Enter your JSON request here...'></textarea>
+                
+                <div class="prompt-section">
+                    <div class="prompt-toggle">
+                        <label>
+                            <input type="checkbox" id="useCustomPrompt" onchange="togglePromptEditor()">
+                            Use Custom Prompt (for testing different prompt variations)
+                        </label>
+                    </div>
+                    <div id="promptEditorContainer" style="display: none;">
+                        <label for="customPrompt">Custom Prompt:</label>
+                        <textarea id="customPrompt" class="prompt-editor" placeholder="Enter custom prompt for LLM..."></textarea>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="sendRequest()">Send Request</button>
+                    <button class="btn-secondary" onclick="clearResponse()">Clear Response</button>
+                </div>
+            </div>
+
+            <div class="response-section">
+                <h2>📤 Response</h2>
+                <div id="responseContent" class="response-content">
+                    Response will appear here...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        const sampleData = {
+            "meeting_details": {
+                "meeting_series": {
+                    "id": "meeting-123",
+                    "name": "1:1 with Alex",
+                    "type": "1:1s",
+                    "created_at": null
+                },
+                "meeting_instance": {
+                    "id": "instance-456",
+                    "series_id": "meeting-123",
+                    "date": null,
+                    "notes": [
+                        {
+                            "text": "Discussed Q1 goals and budget approval. Need to follow up on budget by end of week.",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        {
+                            "text": "Alex mentioned the project timeline looks good.",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        {
+                            "text": "Schedule review meeting for next sprint. Also need to update documentation.",
+                            "created_at": null,
+                            "updated_at": null
+                        }
+                    ],
+                    "created_at": null
+                },
+                "agenda_items": [],
+                "existing_actions": []
+            }
+        };
+
+        function loadSampleData() {
+            document.getElementById('requestJson').value = JSON.stringify(sampleData, null, 2);
+        }
+
+        function formatJSON() {
+            const textarea = document.getElementById('requestJson');
+            try {
+                const json = JSON.parse(textarea.value);
+                textarea.value = JSON.stringify(json, null, 2);
+                showMessage('JSON formatted successfully!', 'success');
+            } catch (e) {
+                showMessage('Invalid JSON: ' + e.message, 'error');
+            }
+        }
+
+        function validateJSON() {
+            const textarea = document.getElementById('requestJson');
+            try {
+                JSON.parse(textarea.value);
+                showMessage('JSON is valid!', 'success');
+            } catch (e) {
+                showMessage('Invalid JSON: ' + e.message, 'error');
+            }
+        }
+
+        function togglePromptEditor() {
+            const container = document.getElementById('promptEditorContainer');
+            const checkbox = document.getElementById('useCustomPrompt');
+            container.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        async function checkHealth() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const statusEl = document.getElementById('healthStatus');
+            
+            statusEl.innerHTML = '<span class="loading"></span>Checking...';
+            
+            try {
+                const response = await fetch(`${apiUrl}/api/v1/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusEl.innerHTML = `<span class="status-indicator status-online"></span>Online - ${data.service} v${data.version}`;
+                } else {
+                    statusEl.innerHTML = `<span class="status-indicator status-offline"></span>Error: ${data.detail || 'Unknown error'}`;
+                }
+            } catch (error) {
+                statusEl.innerHTML = `<span class="status-indicator status-offline"></span>Offline - ${error.message}`;
+            }
+        }
+
+        async function sendRequest() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const textarea = document.getElementById('requestJson');
+            const responseContent = document.getElementById('responseContent');
+            
+            // Validate JSON
+            let requestData;
+            try {
+                requestData = JSON.parse(textarea.value);
+            } catch (e) {
+                responseContent.innerHTML = `<div class="error">Invalid JSON: ${e.message}</div>`;
+                return;
+            }
+
+            // Show loading
+            responseContent.innerHTML = '<div class="loading"></div>Sending request...';
+
+            try {
+                const response = await fetch(`${apiUrl}/api/v1/extract-actions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    responseContent.innerHTML = `<div class="success">✅ Success!</div><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    responseContent.innerHTML = `<div class="error">❌ Error: ${data.detail || 'Unknown error'}</div><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                responseContent.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+
+        function clearResponse() {
+            document.getElementById('responseContent').innerHTML = 'Response will appear here...';
+        }
+
+        function showMessage(message, type) {
+            const responseContent = document.getElementById('responseContent');
+            const className = type === 'error' ? 'error' : 'success';
+            responseContent.innerHTML = `<div class="${className}">${message}</div>`;
+            setTimeout(() => {
+                if (responseContent.innerHTML.includes(message)) {
+                    responseContent.innerHTML = 'Response will appear here...';
+                }
+            }, 3000);
+        }
+
+        // Load sample data on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSampleData();
+            checkHealth();
+        });
+    </script>
+</body>
+</html>

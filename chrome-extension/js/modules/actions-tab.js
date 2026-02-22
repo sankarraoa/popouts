@@ -8,6 +8,13 @@ let elements = {};
 let updateCountsCallback = null;
 let loadConsolidatedActionsCallback = null;
 
+// Pagination state
+const INITIAL_SCROLLS = 2; // Initial number of scrolls worth of data
+const SCROLLS_PER_PAGE = 2; // Additional scrolls per "Show More" click
+const ESTIMATED_ITEMS_PER_SCROLL = 8; // Estimated items visible per scroll
+let currentActionsPage = 1;
+let allActionItems = [];
+
 export function setActionsDependencies(els, updateCountsCb, loadConsolidatedActionsCb) {
   elements = els;
   updateCountsCallback = updateCountsCb;
@@ -15,10 +22,16 @@ export function setActionsDependencies(els, updateCountsCb, loadConsolidatedActi
 }
 
 // Load action items for a specific meeting
-export async function loadActions() {
+export async function loadActions(resetPagination = true) {
   if (!state.currentMeetingId) return;
   
+  // Reset pagination when filter changes
+  if (resetPagination) {
+    currentActionsPage = 1;
+  }
+  
   const items = await getActionItems(state.currentMeetingId, state.currentActionFilter);
+  allActionItems = items;
   elements.actionsList.innerHTML = '';
   
   // Update filter counts
@@ -44,6 +57,12 @@ export async function loadActions() {
       actionsInputContainer.style.display = 'none';
     } else {
       actionsInputContainer.style.display = 'flex';
+      // Auto-focus action input when filter is 'all' or 'open'
+      if (elements.actionsInput && (state.currentActionFilter === 'all' || state.currentActionFilter === 'open')) {
+        setTimeout(() => {
+          elements.actionsInput.focus();
+        }, 100);
+      }
     }
   }
   
@@ -51,6 +70,10 @@ export async function loadActions() {
   if (elements.actionsInput) {
     elements.actionsInput.value = state.actionInputValues[state.currentMeetingId] || '';
   }
+  
+  // Calculate pagination
+  const totalItems = items.length;
+  const itemsToShow = INITIAL_SCROLLS * ESTIMATED_ITEMS_PER_SCROLL + (currentActionsPage - 1) * SCROLLS_PER_PAGE * ESTIMATED_ITEMS_PER_SCROLL;
   
   // Show/hide empty state and update message
   const actionsEmptyState = document.getElementById('actions-empty-state');
@@ -79,13 +102,55 @@ export async function loadActions() {
         actionsEmptyDescription.style.display = 'block';
       }
     }
+    
+    // Hide Show More button when empty
+    const showMoreContainer = elements.actionsList.querySelector('#actions-show-more');
+    if (showMoreContainer) {
+      showMoreContainer.style.display = 'none';
+    }
   } else {
     if (actionsEmptyState) actionsEmptyState.style.display = 'none';
-    for (const item of items) {
+    
+    // Remove existing Show More button if present
+    const existingShowMore = elements.actionsList.querySelector('#actions-show-more');
+    if (existingShowMore) {
+      existingShowMore.remove();
+    }
+    
+    // Render items with pagination
+    const itemsToRender = items.slice(0, itemsToShow);
+    for (const item of itemsToRender) {
       const element = await createActionItemElement(item, true); // true = meeting-specific view
       elements.actionsList.appendChild(element);
     }
+    
+    // Add Show More button if there are more items
+    if (itemsToRender.length < totalItems) {
+      let showMoreContainer = document.getElementById('actions-show-more');
+      if (!showMoreContainer) {
+        showMoreContainer = document.createElement('div');
+        showMoreContainer.id = 'actions-show-more';
+        showMoreContainer.className = 'actions-show-more';
+        const button = document.createElement('button');
+        button.className = 'actions-show-more-button';
+        button.textContent = 'Show More';
+        showMoreContainer.appendChild(button);
+      }
+      showMoreContainer.style.display = 'flex';
+      elements.actionsList.appendChild(showMoreContainer);
+    } else {
+      const showMoreContainer = elements.actionsList.querySelector('#actions-show-more');
+      if (showMoreContainer) {
+        showMoreContainer.style.display = 'none';
+      }
+    }
   }
+}
+
+// Handle "Show More" button click for actions
+export async function handleShowMoreActions() {
+  currentActionsPage++;
+  await loadActions(false); // Don't reset pagination
 }
 
 // Create action item element

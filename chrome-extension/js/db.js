@@ -19,11 +19,5 @@ db.version(1).stores({
   actionItems: '++id, seriesId, instanceId, text, assignee, dueDate, status, createdAt, closedAt'
 });
 
-// Ensure database is initialized and store properties are set up
-(async () => {
-  try {
-    await db.ensureReady();
-  } catch (error) {
-    console.error('Error initializing database:', error);
-  }
-})();
+// Database will be initialized when ensureReady() is called
+// No need to initialize here - let the main init() handle it

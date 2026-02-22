@@ -25,7 +25,7 @@ async function safeUpdateCounts() {
 
 // Select a meeting and load its details
 export async function selectMeeting(meetingId) {
-  console.log('=== selectMeeting called ===', meetingId);
+  console.log('[MeetingView] selectMeeting called for meetingId:', meetingId);
   
   if (!meetingId) {
     // Clear selection
@@ -39,8 +39,14 @@ export async function selectMeeting(meetingId) {
     if (elements.actionsView) elements.actionsView.classList.remove('active');
     
     // Remove selected class from all meeting items
-    document.querySelectorAll('.meeting-item').forEach(item => {
+    const allItems = document.querySelectorAll('.meeting-item');
+    console.log('[MeetingView] Clearing selection from', allItems.length, 'meeting items');
+    allItems.forEach(item => {
+      const hadSelected = item.classList.contains('selected');
       item.classList.remove('selected');
+      if (hadSelected) {
+        console.log('[MeetingView] Removed selected class from item:', item.dataset.meetingId);
+      }
     });
     
     return;
@@ -53,10 +59,16 @@ export async function selectMeeting(meetingId) {
   if (elements.meetingDetail) elements.meetingDetail.style.display = 'flex';
   
   // Update selected meeting item
-  document.querySelectorAll('.meeting-item').forEach(item => {
+  const allItems = document.querySelectorAll('.meeting-item');
+  console.log('[MeetingView] Updating selection for', allItems.length, 'meeting items, selecting:', meetingId);
+  allItems.forEach(item => {
+    const wasSelected = item.classList.contains('selected');
     item.classList.remove('selected');
     if (item.dataset.meetingId === meetingId) {
       item.classList.add('selected');
+      console.log('[MeetingView] Added selected class to item:', meetingId, 'Element:', item, 'Computed background:', window.getComputedStyle(item).backgroundColor);
+    } else if (wasSelected) {
+      console.log('[MeetingView] Removed selected class from item:', item.dataset.meetingId);
     }
   });
   
@@ -64,7 +76,7 @@ export async function selectMeeting(meetingId) {
   const { getMeetingSeries } = await import('../meetings.js');
   const meeting = await getMeetingSeries(meetingId);
   if (!meeting) {
-    console.error('Meeting not found:', meetingId);
+    console.error('[MeetingView] Meeting not found:', meetingId);
     return;
   }
   
@@ -77,9 +89,9 @@ export async function selectMeeting(meetingId) {
   const stats = await getMeetingStats(meetingId);
   if (elements.meetingLastDate) {
     if (stats.lastDate) {
-      elements.meetingLastDate.textContent = `Last: ${formatLastDate(stats.lastDate)}`;
+      elements.meetingLastDate.textContent = formatLastDate(stats.lastDate);
     } else {
-      elements.meetingLastDate.textContent = 'Last: Never';
+      elements.meetingLastDate.textContent = 'Never';
     }
   }
   
@@ -108,10 +120,7 @@ export async function selectMeeting(meetingId) {
 
 // Switch between tabs (agenda, notes, actions)
 export async function switchView(view) {
-  console.log('=== switchView called ===', view);
-  
   if (!state.currentMeetingId) {
-    console.log('No meeting selected, cannot switch view');
     return;
   }
   
@@ -136,6 +145,16 @@ export async function switchView(view) {
       const agendaTab = document.querySelector('.meeting-tab[data-view="agenda"]');
       if (agendaTab) agendaTab.classList.add('active');
       await loadAgenda();
+      
+      // Auto-focus agenda input when agenda view is shown (if filter is 'all' or 'open')
+      if (state.currentAgendaFilter === 'all' || state.currentAgendaFilter === 'open') {
+        const agendaInput = document.getElementById('agenda-input');
+        if (agendaInput) {
+          setTimeout(() => {
+            agendaInput.focus();
+          }, 150);
+        }
+      }
       break;
       
     case 'notes':
@@ -150,6 +169,16 @@ export async function switchView(view) {
       const actionsTab = document.querySelector('.meeting-tab[data-view="actions"]');
       if (actionsTab) actionsTab.classList.add('active');
       await loadActions();
+      
+      // Auto-focus action input when actions view is shown (if filter is 'all' or 'open')
+      if (state.currentActionFilter === 'all' || state.currentActionFilter === 'open') {
+        const actionsInput = document.getElementById('actions-input');
+        if (actionsInput) {
+          setTimeout(() => {
+            actionsInput.focus();
+          }, 150);
+        }
+      }
       break;
   }
   

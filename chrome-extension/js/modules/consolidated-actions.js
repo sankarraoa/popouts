@@ -10,24 +10,39 @@ let elements = {};
 // Placeholder for callbacks
 let updateCountsCallback = null;
 
+// Pagination state
+const ITEMS_PER_PAGE = 30; // Approximately 3 pages worth (assuming ~10 items per page visible)
+let currentPage = 1;
+let allFilteredItems = [];
+
 export function setConsolidatedActionsDependencies(els, updateCountsCb) {
   elements = els;
   updateCountsCallback = updateCountsCb;
 }
 
 // Load consolidated action items (all meetings)
-export async function loadConsolidatedActions() {
+export async function loadConsolidatedActions(resetPagination = true) {
   console.log('=== loadConsolidatedActions called ===');
   const filter = state.currentActionFilter || 'all';
+  
+  // Reset pagination when filter/search changes
+  if (resetPagination) {
+    currentPage = 1;
+  }
+  
+  // First get items filtered by the current tab (All/Open/Closed)
   let items = await getAllActionItems(filter);
   
-  // Apply search filter if query exists
+  // Then apply search filter ONLY within the current filter tab
   if (state.currentActionSearchQuery && state.currentActionSearchQuery.trim()) {
     const searchLower = state.currentActionSearchQuery.toLowerCase().trim();
     items = items.filter(item => 
       item.text.toLowerCase().includes(searchLower)
     );
   }
+  
+  // Store all filtered items for pagination
+  allFilteredItems = items;
   
   console.log('Items found:', items.length, 'Filter:', filter, 'Search:', state.currentActionSearchQuery);
   
@@ -36,6 +51,7 @@ export async function loadConsolidatedActions() {
     return;
   }
   
+  // Clear the list
   elements.consolidatedActionsList.innerHTML = '';
   
   // Update filter counts
@@ -63,10 +79,17 @@ export async function loadConsolidatedActions() {
   
   // Show/hide empty state
   const emptyState = document.getElementById('consolidated-actions-empty-state');
+  
   console.log('Empty state element:', emptyState);
   
   const emptyTitle = emptyState ? emptyState.querySelector('.actions-empty-title') : null;
   const emptyDescription = emptyState ? emptyState.querySelector('.actions-empty-description') : null;
+  
+  // Remove existing Show More button from list if present
+  const existingShowMore = elements.consolidatedActionsList.querySelector('#consolidated-actions-show-more');
+  if (existingShowMore) {
+    existingShowMore.remove();
+  }
   
   if (items.length === 0) {
     console.log('No items, showing empty state');
@@ -95,11 +118,59 @@ export async function loadConsolidatedActions() {
   } else {
     console.log('Items found, hiding empty state and rendering items');
     if (emptyState) emptyState.style.display = 'none';
-    for (const item of items) {
+    
+    // Calculate pagination
+    const itemsToShow = currentPage * ITEMS_PER_PAGE;
+    const itemsToRender = items.slice(0, itemsToShow);
+    const hasMore = items.length > itemsToShow;
+    
+    console.log('Pagination: currentPage =', currentPage, 'itemsToShow =', itemsToShow, 'totalItems =', items.length, 'hasMore =', hasMore);
+    
+    // Render items
+    for (const item of itemsToRender) {
       const element = await createActionItemElement(item, false); // false = consolidated view
       elements.consolidatedActionsList.appendChild(element);
     }
+    
+    // Append "Show More" button to list container if there are more items
+    if (hasMore) {
+      // Check if button already exists in the list (shouldn't, but just in case)
+      let showMoreContainer = elements.consolidatedActionsList.querySelector('#consolidated-actions-show-more');
+      
+      // If not in list, check if it exists elsewhere and remove it
+      if (!showMoreContainer) {
+        const existingButton = document.getElementById('consolidated-actions-show-more');
+        if (existingButton && existingButton.parentNode !== elements.consolidatedActionsList) {
+          existingButton.remove();
+        }
+      }
+      
+      // Create new button if needed
+      if (!showMoreContainer) {
+        showMoreContainer = document.createElement('div');
+        showMoreContainer.id = 'consolidated-actions-show-more';
+        showMoreContainer.className = 'actions-show-more';
+        const button = document.createElement('button');
+        button.className = 'actions-show-more-button';
+        button.textContent = 'Show More';
+        showMoreContainer.appendChild(button);
+      }
+      showMoreContainer.style.display = 'flex';
+      // Append to list container so it scrolls with content
+      elements.consolidatedActionsList.appendChild(showMoreContainer);
+      console.log('Show More button displayed, currentPage:', currentPage, 'itemsToShow:', itemsToShow, 'totalItems:', items.length);
+    } else {
+      console.log('All items shown, no Show More button needed');
+    }
   }
+}
+
+// Handle "Show More" button click
+export async function handleShowMore() {
+  console.log('handleShowMore called, currentPage before:', currentPage, 'filter:', state.currentActionFilter);
+  currentPage++;
+  console.log('handleShowMore called, currentPage after:', currentPage);
+  await loadConsolidatedActions(false); // Don't reset pagination
 }
 
 // Show add action section
