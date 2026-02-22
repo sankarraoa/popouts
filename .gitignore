@@ -85,3 +85,9 @@ server/build/
 # Build outputs
 dist/
 build/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+services/data/
