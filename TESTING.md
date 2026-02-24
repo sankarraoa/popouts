@@ -89,3 +89,16 @@ All data is stored in IndexedDB. To verify:
 **Data not persisting:**
 - Check IndexedDB in DevTools
 - Check console for database errors
+
+
+
+
+
+
+// Set install date to 8 days ago (so trial is expired with 7-day trial)
+const pastDate = new Date();
+pastDate.setDate(pastDate.getDate() - 8);
+chrome.storage.local.set({ install_date: pastDate.toISOString() }, () => {
+  console.log('Install date set to:', pastDate.toISOString());
+  // Reload the extension or refresh Settings page
+});

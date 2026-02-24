@@ -141,13 +141,7 @@ export function initSidebar(elements, callbacks) {
 // Load and display meetings
 export async function loadMeetings(elements) {
   try {
-    console.log('Loading meetings...');
-    // Import db to ensure it's available
-    const { db } = await import('../db.js');
-    // Ensure database is ready
-    await db.ensureReady();
     const allMeetings = await getAllMeetingSeries();
-    console.log('All meetings loaded:', allMeetings);
     
     // Group by type and sort by creation time (newest first)
     const meetingsByType = {
@@ -171,7 +165,7 @@ export async function loadMeetings(elements) {
       });
     });
     
-    console.log('Meetings grouped by type:', meetingsByType);
+    
     
     // Update counts
     const count1 = meetingsByType['1:1s'].length;
@@ -188,7 +182,7 @@ export async function loadMeetings(elements) {
     
     // Render meetings for each category
     for (const [type, meetingList] of Object.entries(meetingsByType)) {
-      console.log(`Rendering ${type} meetings:`, meetingList.length);
+      
       await renderMeetingList(type, meetingList, elements);
     }
     
@@ -204,7 +198,7 @@ export async function loadMeetings(elements) {
       }
     });
     
-    console.log('Meetings loaded and rendered successfully');
+    
   } catch (error) {
     console.error('Error loading meetings:', error);
   }

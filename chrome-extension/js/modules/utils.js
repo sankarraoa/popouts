@@ -89,11 +89,6 @@ export function isToday(date) {
 
 // Update counts in header
 export async function updateCounts(elements) {
-  // Ensure database is ready
-  const { db } = await import('../db.js');
-  await db.ensureReady();
-  
-  // Check if elements is provided and has required properties
   if (!elements) {
     console.warn('updateCounts called without elements object');
     return;

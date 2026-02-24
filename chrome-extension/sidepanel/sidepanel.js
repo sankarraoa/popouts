@@ -12,11 +12,11 @@ import { selectMeeting, switchView, setMeetingViewDependencies } from '../js/mod
 import { createAgendaItem } from '../js/agenda.js';
 import { updateMeetingBadge } from '../js/modules/sidebar.js';
 import { createActionItem } from '../js/actions.js';
-import { addNote } from '../js/notes.js';
 import { getAllMeetingSeries } from '../js/meetings.js';
 import { db } from '../js/db.js';
 import { actionExtractionService } from '../js/modules/action-extraction.js';
 import * as licenseManager from '../js/modules/license.js';
+import { getEnv, setEnv } from '../js/config.js';
 
 // Make state available globally for extraction service
 window.state = state;
@@ -26,6 +26,9 @@ window.showSettingsView = showSettingsView;
 
 // DOM Elements - will be populated after DOM is ready
 const elements = {};
+let deferredHydrationScheduled = false;
+let settingsHydrated = false;
+const PERF_DEBUG = false;
 
 // Initialize DOM elements
 function initializeElements() {
@@ -76,6 +79,7 @@ function initializeElements() {
   elements.addActionDropdownButton = document.getElementById('add-action-dropdown-button');
   elements.addActionDropdownSelected = document.getElementById('add-action-dropdown-selected');
   
+  elements.sidebarSearchInput = document.getElementById('sidebar-search-input');
   elements.extractionStatusBar = document.getElementById('extraction-status-bar');
   elements.settingsButton = document.getElementById('settings-button');
   elements.helpButton = document.getElementById('help-button');
@@ -83,6 +87,10 @@ function initializeElements() {
   elements.settingsBackButton = document.getElementById('settings-back-button');
   elements.settingsNameInput = document.getElementById('settings-name-input');
   elements.settingsProductKeyInput = document.getElementById('settings-product-key-input');
+  elements.settingsExportDataButton = document.getElementById('settings-export-data-button');
+  elements.settingsImportDataButton = document.getElementById('settings-import-data-button');
+  elements.settingsImportFileInput = document.getElementById('settings-import-file-input');
+  elements.settingsDataTransferStatus = document.getElementById('settings-data-transfer-status');
   // License status elements - will be initialized when Settings view is shown
   // (they might not exist in DOM until Settings view is displayed)
   elements.licenseStatusActive = document.getElementById('license-status-active');
@@ -93,17 +101,23 @@ function initializeElements() {
 
 // Initialize
 async function init() {
+  const t0 = performance.now();
+  const mark = (label) => {
+    if (PERF_DEBUG) {
+      console.log(`[Perf] ${label}: ${Math.round(performance.now() - t0)}ms`);
+    }
+  };
+  
   try {
-    // Initialize elements first (synchronous, fast)
     initializeElements();
+    mark('Elements initialized');
     
-    // Setup event listeners early (non-blocking UI interactions)
-    setupEventListeners();
+    setupCriticalEventListeners();
+    mark('Critical listeners setup');
     
-    // Ensure database is ready
     await db.ensureReady();
+    mark('Database ready');
     
-    // Set up module dependencies
     const updateCountsWithElements = async () => await updateCounts(elements);
     setAgendaDependencies(elements, updateCountsWithElements);
     setNotesDependencies(elements, updateCountsWithElements);
@@ -112,166 +126,61 @@ async function init() {
     setMeetingViewDependencies(elements, updateCountsWithElements);
     initSidebar(elements, { 
       selectMeeting, 
-      updateCounts: async () => await updateCounts(elements), 
+      updateCounts: updateCountsWithElements, 
       saveState: async () => await saveState(elements), 
       loadMeetings: async () => await loadMeetings(elements) 
     });
+    mark('Dependencies wired');
     
-    // Restore state (needed for UI)
-    await restoreState(elements);
-    
-    // Update counts (needed for UI)
-    await updateCounts(elements);
-    
-    // Load meetings (needed for UI)
+    // Load meetings first so UI has content to show
     await loadMeetings(elements);
+    mark('Meetings loaded');
     
-    // Initialize action extraction service (non-blocking, deferred operations)
-    // Don't await - let it initialize in background
+    // Restore state (re-selects meeting, switches view)
+    await restoreState(elements);
+    mark('State restored');
+    
+    // Update header counts
+    await updateCounts(elements);
+    mark('Counts updated');
+    
+    if (PERF_DEBUG) {
+      console.log(`[Perf] UI ready: ${Math.round(performance.now() - t0)}ms`);
+    }
+    scheduleDeferredHydration();
+    
+    // Everything below is non-blocking — UI is already visible
     actionExtractionService.init(elements.extractionStatusBar).then(() => {
-      // Defer extraction check to after UI is loaded
-      // Use setTimeout to ensure UI is fully rendered first
+      mark('Extraction service initialized');
       setTimeout(async () => {
         try {
-          // Quick check: skip if no meetings
           const allMeetings = await getAllMeetingSeries();
           if (allMeetings.length > 0) {
             await actionExtractionService.checkAllMeetingsForExtraction();
+            mark('Extraction check complete');
           }
         } catch (err) {
           console.error('Error checking meetings for extraction:', err);
         }
-      }, 500); // 500ms delay to let UI render first
+      }, 500);
     }).catch(err => {
       console.error('Error initializing action extraction service:', err);
     });
-    
-    // Add sample notes for testing (deferred)
-    setTimeout(() => {
-      addSampleNotesIfNeeded().catch(err => {
-        console.error('Error adding sample notes:', err);
-      });
-    }, 100);
     
   } catch (error) {
     console.error('Error in init():', error);
   }
 }
 
-// Add sample notes for testing
-async function addSampleNotesIfNeeded() {
-  try {
-    const allMeetings = await getAllMeetingSeries();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    const dayBeforeYesterday = new Date(today);
-    dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
-    
-    // Check for "1:1 with Aarti" meeting - create extensive sample data
-    const artiMeeting = allMeetings.find(m => m.name.toLowerCase().includes('arti') || m.name.toLowerCase().includes('aarti'));
-    if (artiMeeting) {
-      const { getNotesByDate } = await import('../js/notes.js');
-      const artiNotesByDate = await getNotesByDate(artiMeeting.id);
-      
-      // Create notes for 10 days if we have fewer than 10 days of notes
-      if (artiNotesByDate.length < 10) {
-        // Create notes for 10 days starting from yesterday
-        const sampleNotes = [
-          // Yesterday (Day 1)
-          ['Discussed project timeline and deliverables. Need to follow up on budget approval.', 'Reviewed Q1 goals and progress. Arti is on track with all milestones.', 'Covered sprint planning and resource allocation. Arti to lead the next standup.', 'Discussed team dynamics and collaboration improvements. We need to schedule a team building session next month.', 'Arti shared concerns about the current sprint velocity. We agreed to review and adjust the sprint planning process.'],
-          // Day 2
-          ['Followed up on yesterday\'s action items. Budget approval is pending from finance team.', 'Discussed the new feature requirements for the mobile app. Arti will create a detailed spec document.', 'Reviewed the performance metrics from last quarter. We\'re exceeding targets in most areas.', 'Arti mentioned some technical debt that needs attention. We should prioritize this in the next sprint.'],
-          // Day 3
-          ['Had a deep dive into the architecture changes needed for scalability.', 'Discussed the hiring plan for the next quarter. We need to fill two senior developer positions.', 'Arti presented the results from the user research study. Key insights will inform our product roadmap.', 'We reviewed the security audit findings and prioritized the critical issues.', 'Discussed the team\'s learning and development goals. Arti wants to focus on cloud architecture.'],
-          // Day 4
-          ['Budget approval came through! We can now proceed with the infrastructure upgrades.', 'Discussed the integration challenges with the third-party API. Need to schedule a technical review.', 'Arti shared feedback from the stakeholder meeting. They\'re happy with our progress but want faster delivery.'],
-          // Day 5
-          ['Reviewed the sprint retrospective outcomes. Team identified several process improvements.', 'Discussed the upcoming product launch. Arti will coordinate with marketing and sales teams.', 'We talked about work-life balance and team burnout. Need to implement better guardrails.', 'Arti raised concerns about the code review process. We agreed to streamline it.', 'Discussed the quarterly business review preparation. Arti will prepare the technical metrics.'],
-          // Day 6
-          ['Had a strategic discussion about the product roadmap for next year.', 'Discussed the technical feasibility of the new feature requests from customers.', 'Arti presented a proposal for improving our CI/CD pipeline. Looks promising.', 'We reviewed the team\'s performance and discussed promotion opportunities.'],
-          // Day 7
-          ['Followed up on the infrastructure upgrade project. Timeline looks good.', 'Discussed the API rate limiting issues we\'ve been experiencing. Need to implement better caching.', 'Arti shared updates from the architecture review meeting. Some changes needed.', 'We talked about the team\'s career development plans. Arti wants to explore leadership opportunities.', 'Discussed the quarterly planning process. We need to align better with other teams.'],
-          // Day 8
-          ['Reviewed the security audit remediation progress. On track for completion.', 'Discussed the new tooling we need for better monitoring and observability.', 'Arti presented the results from the performance testing. Some optimizations needed.', 'We talked about improving our documentation practices. Team will focus on this.'],
-          // Day 9
-          ['Had a discussion about the upcoming team offsite. Planning activities and agenda.', 'Discussed the technical debt prioritization. We agreed on the top items to tackle.', 'Arti shared insights from the industry conference she attended. Good learnings.', 'We reviewed the team\'s OKRs and progress. Most are on track.', 'Discussed the hiring process improvements. Need to reduce time-to-hire.'],
-          // Day 10
-          ['Followed up on last week\'s action items. Most are completed.', 'Discussed the new project proposal. Arti will evaluate technical feasibility.', 'We reviewed the team\'s velocity trends. Need to investigate the recent dip.', 'Arti shared feedback from the customer advisory board meeting. Important insights.', 'Discussed the upcoming performance review cycle. Need to prepare documentation.']
-        ];
-        
-        // Get existing dates to avoid duplicates
-        const existingDates = new Set();
-        artiNotesByDate.forEach(dateGroup => {
-          const date = new Date(dateGroup.date);
-          date.setHours(0, 0, 0, 0);
-          existingDates.add(date.toISOString());
-        });
-        
-        // Create dates for 10 days starting from yesterday, but only for missing days
-        for (let dayOffset = 1; dayOffset <= 10; dayOffset++) {
-          const noteDate = new Date(yesterday);
-          noteDate.setDate(noteDate.getDate() + (dayOffset - 1));
-          noteDate.setHours(0, 0, 0, 0);
-          const dateKey = noteDate.toISOString();
-          
-          // Skip if this date already has notes
-          if (existingDates.has(dateKey)) {
-            continue;
-          }
-          
-          const dayNotes = sampleNotes[dayOffset - 1] || [];
-          
-          // Randomly select 3-5 notes for each day
-          const numNotes = Math.floor(Math.random() * 3) + 3; // 3-5 notes
-          const selectedNotes = dayNotes.slice(0, numNotes);
-          
-          for (const noteText of selectedNotes) {
-            await addNote(artiMeeting.id, noteText, noteDate);
-          }
-        }
-      }
-    }
-    
-    // Check for "with Harshita" meeting
-    const harishitaMeeting = allMeetings.find(m => m.name.toLowerCase().includes('harshita') || m.name.toLowerCase().includes('harishita'));
-    if (harishitaMeeting) {
-      const { getNotesByDate } = await import('../js/notes.js');
-      const harishitaNotesByDate = await getNotesByDate(harishitaMeeting.id);
-      
-      if (harishitaNotesByDate.length === 0) {
-        await addNote(harishitaMeeting.id, 'Discussed quarterly planning and team goals.', today);
-        await addNote(harishitaMeeting.id, 'Harishita will follow up on budget allocation next week.', today);
-      }
-    }
-    
-    // Check for "Meeting with M2P" meeting
-    const m2pMeeting = allMeetings.find(m => m.name.toLowerCase().includes('m2p'));
-    if (m2pMeeting) {
-      const { getNotesByDate } = await import('../js/notes.js');
-      const m2pNotesByDate = await getNotesByDate(m2pMeeting.id);
-      
-      if (m2pNotesByDate.length === 0) {
-        await addNote(m2pMeeting.id, 'Reviewed integration requirements and API specifications.', today);
-        await addNote(m2pMeeting.id, 'M2P team will provide updated documentation by end of week.', today);
-        await addNote(m2pMeeting.id, 'Scheduled follow-up meeting to discuss implementation timeline.', yesterday);
-      }
-    }
-  } catch (error) {
-    console.error('Error adding sample notes:', error);
-  }
-}
-
 // Setup event listeners
-function setupEventListeners() {
+function setupCriticalEventListeners() {
   // Help button
   if (elements.helpButton) {
     elements.helpButton.addEventListener('click', () => {
       // TODO: Open help modal/page
-      console.log('Help clicked');
+      if (PERF_DEBUG) {
+        console.log('Help clicked');
+      }
     });
   }
   
@@ -289,43 +198,6 @@ function setupEventListeners() {
     });
   }
   
-  // Settings license key input
-  if (elements.settingsProductKeyInput) {
-    // Load existing license
-    (async () => {
-      const license = await licenseManager.loadLicense();
-      if (license && license.license_key) {
-        elements.settingsProductKeyInput.value = license.license_key;
-      }
-      await updateLicenseStatusDisplay();
-    })();
-    
-    // Save on blur/enter
-    elements.settingsProductKeyInput.addEventListener('blur', () => {
-      handleLicenseKeyChange();
-    });
-    
-    elements.settingsProductKeyInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        handleLicenseKeyChange();
-      }
-    });
-  }
-  
-  // Settings name input
-  if (elements.settingsNameInput) {
-    (async () => {
-      const saved = await chrome.storage.local.get('user_name');
-      if (saved.user_name) {
-        elements.settingsNameInput.value = saved.user_name;
-      }
-    })();
-    
-    elements.settingsNameInput.addEventListener('blur', () => {
-      chrome.storage.local.set({ user_name: elements.settingsNameInput.value });
-    });
-  }
-
   // Header tabs
   if (elements.meetingsTab) {
     elements.meetingsTab.addEventListener('click', () => {
@@ -355,15 +227,11 @@ function setupEventListeners() {
         hideSettingsView();
       }
       
-      console.log('=== Actions tab clicked ===');
       elements.actionsTab.classList.add('active');
       elements.meetingsTab.classList.remove('active');
       // Show consolidated actions view
       if (elements.consolidatedActionsView) {
-        console.log('Showing consolidated actions view');
         elements.consolidatedActionsView.style.display = 'flex';
-      } else {
-        console.error('consolidatedActionsView not found!');
       }
       if (elements.emptyState) elements.emptyState.style.display = 'none';
       if (elements.meetingDetail) elements.meetingDetail.style.display = 'none';
@@ -372,7 +240,47 @@ function setupEventListeners() {
       await loadConsolidatedActions();
     });
   }
-  
+}
+
+function scheduleDeferredHydration() {
+  if (deferredHydrationScheduled) return;
+  deferredHydrationScheduled = true;
+
+  // Let first paint happen before binding non-critical listeners and data reads.
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      setupDeferredEventListeners();
+    }, 0);
+  });
+}
+
+function setupDeferredEventListeners() {
+  // Sidebar meeting search
+  if (elements.sidebarSearchInput) {
+    elements.sidebarSearchInput.addEventListener('input', () => {
+      filterMeetingsBySearch(elements.sidebarSearchInput.value);
+    });
+  }
+
+  // Developer mode: tap Settings title 5 times to reveal environment selector
+  const settingsTitle = document.querySelector('.settings-title');
+  if (settingsTitle) {
+    let devTapCount = 0;
+    let devTapTimer = null;
+    settingsTitle.addEventListener('click', () => {
+      devTapCount++;
+      clearTimeout(devTapTimer);
+      devTapTimer = setTimeout(() => { devTapCount = 0; }, 2000);
+      if (devTapCount >= 5) {
+        devTapCount = 0;
+        const envField = document.getElementById('settings-env-field');
+        if (envField) {
+          const isHidden = envField.style.display === 'none';
+          envField.style.display = isHidden ? 'flex' : 'none';
+        }
+      }
+    });
+  }
   // Meeting tabs
   elements.meetingTabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -770,8 +678,37 @@ window.addEventListener('beforeunload', async () => {
   await saveState(elements);
 });
 
+// Filter meeting items in sidebar by search query
+function filterMeetingsBySearch(query) {
+  const q = (query || '').trim().toLowerCase();
+  const meetingItems = document.querySelectorAll('.meeting-item');
+  const categorySections = document.querySelectorAll('.category-section');
+
+  meetingItems.forEach(item => {
+    const nameEl = item.querySelector('.meeting-item-name');
+    const name = nameEl ? nameEl.textContent.toLowerCase() : '';
+    item.style.display = (!q || name.includes(q)) ? '' : 'none';
+  });
+
+  // Show/hide entire category sections based on whether any visible items remain
+  categorySections.forEach(section => {
+    const visibleItems = section.querySelectorAll('.meeting-item:not([style*="display: none"])');
+    const categoryHeader = section.querySelector('.category-header');
+    const meetingList = section.querySelector('.meeting-list');
+
+    if (q && visibleItems.length === 0) {
+      if (categoryHeader) categoryHeader.style.display = 'none';
+      if (meetingList) meetingList.style.display = 'none';
+    } else {
+      if (categoryHeader) categoryHeader.style.display = '';
+      if (meetingList) meetingList.style.display = '';
+    }
+  });
+}
+
 // Show settings view
 async function showSettingsView() {
+  await hydrateSettingsView();
   if (elements.settingsView) {
     elements.settingsView.style.display = 'flex';
   }
@@ -789,11 +726,8 @@ async function showSettingsView() {
     if (selectedIcon) selectedIcon.style.display = 'block';
   }
   
-  // Small delay to ensure DOM is ready
-  setTimeout(async () => {
-    // Update license status display
-    await updateLicenseStatusDisplay();
-  }, 100);
+  // Refresh status whenever settings opens (license/trial could have changed).
+  await updateLicenseStatusDisplay();
 }
 
 // Hide settings view
@@ -890,8 +824,6 @@ function showLicenseError(message) {
 // Update license status display
 async function updateLicenseStatusDisplay() {
   try {
-    console.log('[Settings] updateLicenseStatusDisplay called');
-    
     // Always re-initialize elements when Settings view is shown (in case DOM wasn't ready before)
     elements.licenseStatusActive = document.getElementById('license-status-active');
     elements.licenseStatusExpired = document.getElementById('license-status-expired');
@@ -902,23 +834,12 @@ async function updateLicenseStatusDisplay() {
     elements.freeTrialActiveText = document.getElementById('free-trial-active-text');
     elements.freeTrialExpiredText = document.getElementById('free-trial-expired-text');
     
-    console.log('[Settings] Elements found:', {
-      licenseStatusActive: !!elements.licenseStatusActive,
-      licenseStatusExpired: !!elements.licenseStatusExpired,
-      freeTrialStatusActive: !!elements.freeTrialStatusActive,
-      freeTrialStatusExpired: !!elements.freeTrialStatusExpired,
-      freeTrialActiveText: !!elements.freeTrialActiveText,
-      freeTrialExpiredText: !!elements.freeTrialExpiredText
-    });
-    
     // If elements still don't exist, skip (Settings view might not be in DOM)
     if (!elements.licenseStatusActive || !elements.licenseStatusExpired) {
-      console.warn('[Settings] Required elements not found, skipping status display');
       return;
     }
     
     const status = await licenseManager.getLicenseStatus();
-    console.log('[Settings] License status:', status);
     
     // Hide all status boxes initially
     elements.licenseStatusActive.style.display = 'none';
@@ -933,35 +854,25 @@ async function updateLicenseStatusDisplay() {
     // Show appropriate status box
     if (status.status === 'active') {
       // Paid license active
-      console.log('[Settings] Showing paid license active');
       if (elements.licenseExpiryText) {
         elements.licenseExpiryText.textContent = status.message;
       }
       elements.licenseStatusActive.style.display = 'block';
     } else if (status.status === 'expired') {
       // Paid license expired
-      console.log('[Settings] Showing paid license expired');
       if (elements.licenseExpiredText) {
         elements.licenseExpiredText.textContent = status.message;
       }
       elements.licenseStatusExpired.style.display = 'block';
     } else if (status.status === 'free_trial') {
       // Free trial active
-      console.log('[Settings] Showing free trial active - Days remaining:', status.daysRemaining);
       if (elements.freeTrialStatusActive && elements.freeTrialActiveText) {
         // Use the message from getLicenseStatus which includes expiry date
         elements.freeTrialActiveText.textContent = status.message;
         elements.freeTrialStatusActive.style.display = 'block';
-        console.log('[Settings] Free trial box displayed with message:', status.message);
-      } else {
-        console.warn('[Settings] Free trial elements not found:', {
-          freeTrialStatusActive: !!elements.freeTrialStatusActive,
-          freeTrialActiveText: !!elements.freeTrialActiveText
-        });
       }
     } else if (status.status === 'none') {
       // Free trial expired, no license
-      console.log('[Settings] Showing free trial expired');
       if (elements.freeTrialStatusExpired && elements.freeTrialExpiredText) {
         // Calculate when trial expired
         const installDate = await licenseManager.getInstallDate();
@@ -983,17 +894,307 @@ async function updateLicenseStatusDisplay() {
           elements.freeTrialExpiredText.textContent = `Free trial expired. Enter a license key to continue.`;
         }
         elements.freeTrialStatusExpired.style.display = 'block';
-        console.log('[Settings] Free trial expired box displayed - Install date:', installDate.toISOString(), 'Trial ended:', formattedDate, 'Days expired:', daysExpired);
-      } else {
-        console.warn('[Settings] Free trial expired elements not found');
       }
-    } else {
-      console.warn('[Settings] Unknown status:', status.status);
     }
   } catch (error) {
     console.error('[Settings] Error updating license status display:', error);
-    console.error('[Settings] Error stack:', error.stack);
   }
+}
+
+async function hydrateSettingsView() {
+  if (settingsHydrated) {
+    return;
+  }
+
+  if (elements.settingsProductKeyInput) {
+    const license = await licenseManager.loadLicense();
+    if (license && license.license_key) {
+      elements.settingsProductKeyInput.value = license.license_key;
+    }
+
+    elements.settingsProductKeyInput.addEventListener('blur', () => {
+      handleLicenseKeyChange();
+    });
+
+    elements.settingsProductKeyInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleLicenseKeyChange();
+      }
+    });
+  }
+
+  if (elements.settingsNameInput) {
+    const saved = await chrome.storage.local.get('user_name');
+    if (saved.user_name) {
+      elements.settingsNameInput.value = saved.user_name;
+    }
+
+    elements.settingsNameInput.addEventListener('blur', () => {
+      chrome.storage.local.set({ user_name: elements.settingsNameInput.value });
+    });
+  }
+
+  const envSelect = document.getElementById('settings-env-select');
+  if (envSelect) {
+    const currentEnv = await getEnv();
+    envSelect.value = currentEnv;
+
+    envSelect.addEventListener('change', async () => {
+      await setEnv(envSelect.value);
+      if (PERF_DEBUG) {
+        console.log(`[Settings] Environment switched to: ${envSelect.value}`);
+      }
+    });
+  }
+
+  if (elements.settingsExportDataButton) {
+    elements.settingsExportDataButton.addEventListener('click', () => {
+      handleExportData();
+    });
+  }
+
+  if (elements.settingsImportDataButton) {
+    elements.settingsImportDataButton.addEventListener('click', () => {
+      handleImportDataClick();
+    });
+  }
+
+  if (elements.settingsImportFileInput) {
+    elements.settingsImportFileInput.addEventListener('change', () => {
+      handleImportDataFileSelected();
+    });
+  }
+
+  settingsHydrated = true;
+}
+
+function setDataTransferStatus(message, type = 'info') {
+  if (!elements.settingsDataTransferStatus) {
+    return;
+  }
+
+  elements.settingsDataTransferStatus.textContent = message;
+  elements.settingsDataTransferStatus.classList.remove('success', 'error');
+  if (type === 'success' || type === 'error') {
+    elements.settingsDataTransferStatus.classList.add(type);
+  }
+  elements.settingsDataTransferStatus.style.display = message ? 'block' : 'none';
+}
+
+function setDataTransferBusy(isBusy) {
+  if (elements.settingsExportDataButton) {
+    elements.settingsExportDataButton.disabled = isBusy;
+  }
+  if (elements.settingsImportDataButton) {
+    elements.settingsImportDataButton.disabled = isBusy;
+  }
+}
+
+async function handleExportData() {
+  try {
+    setDataTransferBusy(true);
+    setDataTransferStatus('Preparing export...', 'info');
+
+    await db.ensureReady();
+    const [meetingSeries, meetingInstances, agendaItems, actionItems] = await Promise.all([
+      db.meetingSeries.toArray(),
+      db.meetingInstances.toArray(),
+      db.agendaItems.toArray(),
+      db.actionItems.toArray()
+    ]);
+
+    const payload = {
+      schemaVersion: 1,
+      exportedAt: new Date().toISOString(),
+      source: 'popouts-sidepanel',
+      data: {
+        meetingSeries,
+        meetingInstances,
+        agendaItems,
+        actionItems
+      }
+    };
+
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+    const downloadLink = document.createElement('a');
+    downloadLink.href = url;
+    downloadLink.download = `popouts-export-${stamp}.json`;
+    downloadLink.click();
+    URL.revokeObjectURL(url);
+
+    setDataTransferStatus(
+      `Exported ${meetingSeries.length} meetings, ${meetingInstances.length} instances, ${agendaItems.length} agenda items, and ${actionItems.length} action items.`,
+      'success'
+    );
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    setDataTransferStatus('Export failed. Please try again.', 'error');
+  } finally {
+    setDataTransferBusy(false);
+  }
+}
+
+function handleImportDataClick() {
+  if (!elements.settingsImportFileInput) {
+    setDataTransferStatus('Import input not available.', 'error');
+    return;
+  }
+
+  elements.settingsImportFileInput.value = '';
+  elements.settingsImportFileInput.click();
+}
+
+async function handleImportDataFileSelected() {
+  const fileInput = elements.settingsImportFileInput;
+  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+    return;
+  }
+
+  const [file] = fileInput.files;
+  if (!file.name.toLowerCase().endsWith('.json')) {
+    setDataTransferStatus('Please select a valid JSON file.', 'error');
+    return;
+  }
+
+  try {
+    setDataTransferBusy(true);
+    setDataTransferStatus('Importing data...', 'info');
+
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const result = await importDataPayload(parsed);
+
+    await loadMeetings(elements);
+    await updateCounts(elements);
+
+    setDataTransferStatus(
+      `Imported ${result.meetingSeries} meetings, ${result.meetingInstances} instances, ${result.agendaItems} agenda items, and ${result.actionItems} action items.`,
+      'success'
+    );
+  } catch (error) {
+    console.error('Error importing data:', error);
+    setDataTransferStatus('Import failed. Ensure the JSON format matches a Popouts export.', 'error');
+  } finally {
+    setDataTransferBusy(false);
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  }
+}
+
+function normalizeDateValue(value) {
+  if (value === undefined || value === null || value === '') {
+    return value;
+  }
+
+  if (value instanceof Date) {
+    return value;
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed;
+}
+
+function normalizeRecordDates(record, dateFields) {
+  const normalized = { ...record };
+  for (const field of dateFields) {
+    if (field in normalized) {
+      normalized[field] = normalizeDateValue(normalized[field]);
+    }
+  }
+  return normalized;
+}
+
+async function importDataPayload(payload) {
+  const data = payload?.data || payload || {};
+  const meetingSeries = Array.isArray(data.meetingSeries) ? data.meetingSeries : [];
+  const meetingInstances = Array.isArray(data.meetingInstances) ? data.meetingInstances : [];
+  const agendaItems = Array.isArray(data.agendaItems) ? data.agendaItems : [];
+  const actionItems = Array.isArray(data.actionItems) ? data.actionItems : [];
+
+  const seriesIdMap = new Map();
+  const instanceIdMap = new Map();
+  const importedCounts = {
+    meetingSeries: 0,
+    meetingInstances: 0,
+    agendaItems: 0,
+    actionItems: 0
+  };
+
+  await db.ensureReady();
+  await db.transaction('rw', db.meetingSeries, db.meetingInstances, db.agendaItems, db.actionItems, async () => {
+    for (const rawSeries of meetingSeries) {
+      const { id: originalSeriesId, ...seriesWithoutId } = rawSeries || {};
+      const seriesToInsert = normalizeRecordDates(seriesWithoutId, ['createdAt']);
+      const newSeriesId = await db.meetingSeries.add(seriesToInsert);
+      if (originalSeriesId !== undefined && originalSeriesId !== null) {
+        seriesIdMap.set(originalSeriesId, newSeriesId);
+      }
+      importedCounts.meetingSeries += 1;
+    }
+
+    for (const rawInstance of meetingInstances) {
+      const { id: originalInstanceId, ...instanceWithoutId } = rawInstance || {};
+      const mappedSeriesId = seriesIdMap.get(instanceWithoutId.seriesId);
+      if (mappedSeriesId === undefined) {
+        continue;
+      }
+
+      const instanceToInsert = normalizeRecordDates(
+        { ...instanceWithoutId, seriesId: mappedSeriesId },
+        ['date', 'createdAt', 'extractedAt']
+      );
+      const newInstanceId = await db.meetingInstances.add(instanceToInsert);
+      if (originalInstanceId !== undefined && originalInstanceId !== null) {
+        instanceIdMap.set(originalInstanceId, newInstanceId);
+      }
+      importedCounts.meetingInstances += 1;
+    }
+
+    for (const rawAgenda of agendaItems) {
+      const { id: _unusedAgendaId, ...agendaWithoutId } = rawAgenda || {};
+      const mappedSeriesId = seriesIdMap.get(agendaWithoutId.seriesId);
+      if (mappedSeriesId === undefined) {
+        continue;
+      }
+
+      const agendaToInsert = normalizeRecordDates(
+        { ...agendaWithoutId, seriesId: mappedSeriesId },
+        ['createdAt', 'closedAt']
+      );
+      await db.agendaItems.add(agendaToInsert);
+      importedCounts.agendaItems += 1;
+    }
+
+    for (const rawAction of actionItems) {
+      const { id: _unusedActionId, ...actionWithoutId } = rawAction || {};
+      const mappedSeriesId = seriesIdMap.get(actionWithoutId.seriesId);
+      if (mappedSeriesId === undefined) {
+        continue;
+      }
+
+      const mappedInstanceId = actionWithoutId.instanceId
+        ? instanceIdMap.get(actionWithoutId.instanceId) || null
+        : null;
+
+      const actionToInsert = normalizeRecordDates(
+        {
+          ...actionWithoutId,
+          seriesId: mappedSeriesId,
+          instanceId: mappedInstanceId
+        },
+        ['dueDate', 'createdAt', 'closedAt']
+      );
+      await db.actionItems.add(actionToInsert);
+      importedCounts.actionItems += 1;
+    }
+  });
+
+  return importedCounts;
 }
 
 // Initialize on load

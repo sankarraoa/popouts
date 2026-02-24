@@ -1,13 +1,22 @@
 // License Management Module
 // Handles license validation, activation, and status display
 
+import { getConfig, onEnvChange } from '../config.js';
+
 const LICENSE_STORAGE_KEY = 'user_license';
 const INSTALLATION_ID_KEY = 'installation_id';
 const INSTALL_DATE_KEY = 'install_date';
-const FREE_TRIAL_DAYS = 7; // Set to 0 for testing expired trial message
+const FREE_TRIAL_DAYS = 30;
 
-// API endpoint (should match your server URL)
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+let _apiBaseUrl = null;
+async function getApiBaseUrl() {
+  if (!_apiBaseUrl) {
+    const cfg = await getConfig();
+    _apiBaseUrl = `${cfg.LICENSE_SERVICE_URL}/api/v1`;
+  }
+  return _apiBaseUrl;
+}
+onEnvChange(() => { _apiBaseUrl = null; });
 
 // Generate or get installation ID (device fingerprint)
 async function getInstallationId() {
@@ -108,8 +117,9 @@ function formatDate(date) {
 async function activateLicense(email, licenseKey) {
   try {
     const installationId = await getInstallationId();
+    const apiBase = await getApiBaseUrl();
     
-    const response = await fetch(`${API_BASE_URL}/license/activate`, {
+    const response = await fetch(`${apiBase}/license/activate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -157,11 +167,10 @@ async function activateLicense(email, licenseKey) {
     }
   } catch (error) {
     console.error('Error activating license:', error);
-    // Handle network errors
-    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+    if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
       return { 
         success: false, 
-        error: 'Cannot connect to license server. Make sure the server is running at http://localhost:8000' 
+        error: 'Cannot connect to license server. Please check your network connection.' 
       };
     }
     return { success: false, error: error.message || 'License activation failed' };
@@ -177,9 +186,10 @@ async function validateInstallation() {
     }
     
     const installationId = await getInstallationId();
+    const apiBase = await getApiBaseUrl();
     
     const response = await fetch(
-      `${API_BASE_URL}/license/validate?email=${encodeURIComponent(license.email)}&installation_id=${installationId}`
+      `${apiBase}/license/validate?email=${encodeURIComponent(license.email)}&installation_id=${installationId}`
     );
     
     if (!response.ok) {

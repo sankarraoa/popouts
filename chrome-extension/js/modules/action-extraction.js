@@ -5,14 +5,23 @@ import { db } from '../db.js';
 import { getAllMeetingSeries } from '../meetings.js';
 import { getNotesByDate } from '../notes.js';
 import { getAgendaItems } from '../agenda.js';
-import { getActionItems, createActionItem } from '../actions.js';
+import { getActionItems, createActionItem, updateActionItem, deleteActionItem } from '../actions.js';
 import * as licenseManager from './license.js';
+import { getConfig, onEnvChange } from '../config.js';
 
-const DEBOUNCE_DELAY = 0; // 0 milliseconds for immediate extraction (testing mode)
-// TODO: Change back to 5 * 60 * 1000 (5 minutes) for production
-const RETRY_DELAYS = [10000, 30000]; // 10 seconds, 30 seconds
+const DEBOUNCE_DELAY = 5 * 60 * 1000; // 5 minutes
+const RETRY_DELAYS = [10000, 30000];
 const MAX_RETRIES = 3;
-const API_URL = 'http://localhost:8000/api/v1/extract-actions';
+
+let _apiUrl = null;
+async function getApiUrl() {
+  if (!_apiUrl) {
+    const cfg = await getConfig();
+    _apiUrl = `${cfg.LLM_SERVICE_URL}/api/v1/extract-actions`;
+  }
+  return _apiUrl;
+}
+onEnvChange(() => { _apiUrl = null; });
 
 // Storage keys
 const EXTRACTION_STATUS_KEY = 'extraction_status';
@@ -158,14 +167,14 @@ class ActionExtractionService {
         return;
       }
       
-      // Process each meeting sequentially to avoid concurrent API calls
-      // But don't block - process in background
+      // Process each meeting sequentially — await each one to avoid
+      // concurrent DB writes that cause "Key already exists" errors
       for (const { meeting, notesToExtract } of meetingsWithNotes) {
-        // Extract actions (this may make network calls, but it's deferred)
-        // Don't await - let them process in parallel but sequentially
-        this.extractActions(meeting.id).catch(err => {
+        try {
+          await this.extractActions(meeting.id);
+        } catch (err) {
           console.error(`[ActionExtraction] Error extracting actions for meeting ${meeting.id}:`, err);
-        });
+        }
       }
     } catch (error) {
       console.error(`[ActionExtraction] Error checking all meetings:`, error);
@@ -189,6 +198,8 @@ class ActionExtractionService {
 
   // Extract actions for a meeting
   async extractActions(meetingId) {
+    // Dexie auto-increment keys are numbers; coerce string IDs from chrome.storage
+    meetingId = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
     console.log(`[ActionExtraction] extractActions called for meeting ${meetingId}`);
     
     // Check license access
@@ -297,12 +308,19 @@ class ActionExtractionService {
         await this.clearPendingExtraction(meetingId);
 
       } catch (error) {
-        console.error('Error in extractActions:', error);
-        // Mark notes as action_failed on error
-        const notesToExtract = await this.getNotesToExtract(meetingId);
-        await this.markNotesStatus(meetingId, notesToExtract, 'action_failed');
+        const errorMsg = (error && (error.message || error.name)) || String(error);
+        console.error('Error in extractActions:', errorMsg, error);
         
-        await this.updateExtractionStatus(meetingId, 'failed', null, error.message);
+        try {
+          const notesToExtract = await this.getNotesToExtract(meetingId);
+          if (notesToExtract.length > 0) {
+            await this.markNotesStatus(meetingId, notesToExtract, 'action_failed');
+          }
+        } catch (innerErr) {
+          console.error('Error marking notes as failed:', innerErr);
+        }
+        
+        await this.updateExtractionStatus(meetingId, 'failed', null, errorMsg);
         await this.showStatusBar('failed', meetingId);
         setTimeout(() => {
           this.hideStatusBar();
@@ -404,10 +422,9 @@ class ActionExtractionService {
   // Extract with retry logic
   async extractWithRetry(meetingId, meetingDetails, retryCount = 0) {
     try {
-      console.log(`[ActionExtraction] API call attempt ${retryCount + 1} to ${API_URL}`);
-      console.log(`[ActionExtraction] Request payload:`, JSON.stringify({ meeting_details: meetingDetails }, null, 2));
+      const apiUrl = await getApiUrl();
       
-      const response = await fetch(API_URL, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -547,39 +564,44 @@ class ActionExtractionService {
     };
   }
 
-  // Save extracted actions to database
+  // Save extracted actions to database.
+  // Only adds new action items from newly processed notes.
+  // Never touches existing action items (they were created from earlier notes).
   async saveExtractedActions(meetingId, notesWithActions) {
     const processedNoteIds = [];
+    const notesByDate = await getNotesByDate(meetingId);
+    const existingActions = await getActionItems(meetingId);
+    const existingTexts = new Set(existingActions.map(a => a.text));
+    let created = 0;
+    let skipped = 0;
 
     for (const noteWithActions of notesWithActions) {
-      // Track processed notes
       const noteId = this.getNoteId(noteWithActions.note);
       processedNoteIds.push(noteId);
 
-      // Save action items
-      for (const actionItem of noteWithActions.action_items) {
-        // Find the instance ID for this note
-        const notesByDate = await getNotesByDate(meetingId);
-        let instanceId = null;
-        
-        for (const dateGroup of notesByDate) {
-          const note = dateGroup.notes.find(n => 
-            this.getNoteId(n) === noteId
-          );
-          if (note) {
-            instanceId = dateGroup.instanceId;
-            break;
-          }
+      // Find the instanceId for this note
+      let instanceId = null;
+      for (const dateGroup of notesByDate) {
+        const note = dateGroup.notes.find(n => this.getNoteId(n) === noteId);
+        if (note) {
+          instanceId = dateGroup.instanceId;
+          break;
         }
+      }
 
-        // Create action item
-        await createActionItem(
-          meetingId,
-          instanceId,
-          actionItem.text
-        );
+      for (const actionItem of noteWithActions.action_items) {
+        // Skip if an action item with the exact same text already exists
+        if (existingTexts.has(actionItem.text)) {
+          skipped++;
+          continue;
+        }
+        await createActionItem(meetingId, instanceId, actionItem.text);
+        existingTexts.add(actionItem.text);
+        created++;
       }
     }
+
+    console.log(`[ActionExtraction] Saved actions: created=${created}, skipped=${skipped} (duplicates)`);
 
     return processedNoteIds;
   }

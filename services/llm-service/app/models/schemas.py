@@ -34,21 +34,18 @@ class AgendaItem(BaseModel):
 
 
 class ActionItem(BaseModel):
-    """Simplified action item - just the text"""
-    text: str = Field(..., description="Action item text (can be same as note or structured)")
+    text: str = Field(..., description="Action item text")
 
 
 class NoteWithActions(BaseModel):
-    """A meeting note with its extracted action items"""
     note: MeetingNote = Field(..., description="The original meeting note")
     action_items: List[ActionItem] = Field(
         default_factory=list,
-        description="Action items extracted from this note (can be 0, 1, or multiple)"
+        description="Action items extracted from this note",
     )
 
 
 class MeetingDetails(BaseModel):
-    """Complete meeting details for LLM processing"""
     meeting_series: MeetingSeries
     meeting_instance: MeetingInstance
     agenda_items: List[AgendaItem] = Field(default_factory=list)
@@ -56,55 +53,12 @@ class MeetingDetails(BaseModel):
 
 
 class ActionExtractionRequest(BaseModel):
-    """Request model for action extraction"""
     meeting_details: MeetingDetails
 
 
 class ActionExtractionResponse(BaseModel):
-    """Response model with extracted actions mapped to notes"""
     series_id: str = Field(..., description="Meeting series ID")
     meeting_id: str = Field(..., description="Meeting instance ID")
     notes_with_actions: List[NoteWithActions] = Field(
-        ...,
-        description="Meeting notes with their associated extracted action items"
+        ..., description="Meeting notes with their associated extracted action items"
     )
-
-
-# License Management Schemas
-
-class LicenseActivationRequest(BaseModel):
-    """Request model for license activation"""
-    email: str = Field(..., description="User's email address")
-    installation_id: str = Field(..., description="Unique installation/device ID")
-    license_key: str = Field(..., description="License key to activate")
-
-
-class LicenseActivationResponse(BaseModel):
-    """Response model for license activation"""
-    valid: bool = Field(..., description="Whether activation was successful")
-    expiry: Optional[str] = Field(None, description="License expiry date (ISO format)")
-    active_count: Optional[int] = Field(None, description="Number of active installations")
-    replaced: Optional[str] = Field(None, description="Installation ID that was replaced (if at limit)")
-    reason: Optional[str] = Field(None, description="Reason if activation failed")
-    message: str = Field(..., description="Human-readable message")
-
-
-class LicenseValidationRequest(BaseModel):
-    """Request model for installation validation"""
-    email: str = Field(..., description="User's email address")
-    installation_id: str = Field(..., description="Installation ID to validate")
-
-
-class LicenseValidationResponse(BaseModel):
-    """Response model for installation validation"""
-    valid: bool = Field(..., description="Whether installation is valid")
-    expiry: Optional[str] = Field(None, description="License expiry date (ISO format)")
-    reason: Optional[str] = Field(None, description="Reason if validation failed")
-    message: str = Field(..., description="Human-readable message")
-
-
-class CreateLicenseRequest(BaseModel):
-    """Request model for creating a license (admin)"""
-    email: str = Field(..., description="User's email address")
-    license_key: str = Field(..., description="License key to create")
-    days: int = Field(365, description="Number of days until expiry", ge=1, le=3650)

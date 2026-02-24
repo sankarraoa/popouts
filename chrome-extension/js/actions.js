@@ -3,17 +3,37 @@ import { db } from './db.js';
 
 // Create an action item
 export async function createActionItem(seriesId, instanceId, text, assignee = null, dueDate = null) {
-  const id = await db.actionItems.add({
-    seriesId,
-    instanceId,
-    text,
-    assignee,
-    dueDate,
-    status: 'open',
-    createdAt: new Date(),
-    closedAt: null
-  });
-  return id;
+  try {
+    const id = await db.actionItems.add({
+      seriesId,
+      instanceId,
+      text,
+      assignee,
+      dueDate,
+      status: 'open',
+      createdAt: new Date(),
+      closedAt: null
+    });
+    return id;
+  } catch (error) {
+    // Handle "Key already exists" from concurrent writes — retry once
+    if (error.name === 'ConstraintError') {
+      // Small delay to let the other write finish, then retry add
+      await new Promise(r => setTimeout(r, 50));
+      const id = await db.actionItems.add({
+        seriesId,
+        instanceId,
+        text,
+        assignee,
+        dueDate,
+        status: 'open',
+        createdAt: new Date(),
+        closedAt: null
+      });
+      return id;
+    }
+    throw error;
+  }
 }
 
 // Get all action items for a meeting series
@@ -43,7 +63,7 @@ export async function getAllActionItems(filter = 'all') {
 }
 
 // Update action item
-async function updateActionItem(id, updates) {
+export async function updateActionItem(id, updates) {
   await db.actionItems.update(id, updates);
 }
 
@@ -59,6 +79,6 @@ export async function toggleActionItem(id) {
 }
 
 // Delete action item
-async function deleteActionItem(id) {
+export async function deleteActionItem(id) {
   await db.actionItems.delete(id);
 }

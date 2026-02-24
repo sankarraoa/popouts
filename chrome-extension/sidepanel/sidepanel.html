@@ -6,7 +6,8 @@
   <title>Popouts</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
@@ -73,6 +74,15 @@
       <aside class="sidebar">
         <div class="sidebar-header">
           <span class="sidebar-title">Meetings</span>
+        </div>
+        <div class="sidebar-search">
+          <div class="sidebar-search-container">
+            <svg class="sidebar-search-icon" width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 9C7.20914 9 9 7.20914 9 5C9 2.79086 7.20914 1 5 1C2.79086 1 1 2.79086 1 5C1 7.20914 2.79086 9 5 9Z" stroke="rgba(113,113,130,0.4)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M10 10L8 8" stroke="rgba(113,113,130,0.4)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <input type="text" class="sidebar-search-input" id="sidebar-search-input" placeholder="Search meetings…">
+          </div>
         </div>
         <div class="meeting-categories">
           <!-- 1:1s Section -->
@@ -413,8 +423,18 @@
             </svg>
           </button>
           <h2 class="settings-title">Settings</h2>
+          <div class="settings-header-right">
+            <button class="settings-icon-button" id="settings-export-data-button" type="button" title="Export data as JSON">
+              <img src="../icons/icon-export.png" alt="Export" width="13" height="13">
+            </button>
+            <button class="settings-icon-button" id="settings-import-data-button" type="button" title="Import data from JSON">
+              <img src="../icons/icon-import.png" alt="Import" width="13" height="13">
+            </button>
+          </div>
         </div>
         <p class="settings-description">Configure your Popouts account.</p>
+        <input type="file" id="settings-import-file-input" accept="application/json,.json" style="display: none;">
+        <p id="settings-data-transfer-status" class="settings-field-help" style="display: none;"></p>
         
         <div class="settings-field">
           <label class="settings-label">
@@ -424,6 +444,21 @@
           <input type="text" class="settings-input" id="settings-name-input" placeholder="Enter your name">
         </div>
         
+        <!-- Developer-only: hidden by default, activate by clicking Settings title 5 times -->
+        <div class="settings-field" id="settings-env-field" style="display: none;">
+          <label class="settings-label">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" class="settings-label-icon">
+              <path d="M6 1L7.545 4.13L11 4.635L8.5 7.07L9.09 10.515L6 8.885L2.91 10.515L3.5 7.07L1 4.635L4.455 4.13L6 1Z" stroke="#717182" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            Environment
+          </label>
+          <select class="settings-input" id="settings-env-select">
+            <option value="production">Production (Railway)</option>
+            <option value="development">Development (localhost)</option>
+          </select>
+          <p class="settings-field-help">Switch to Development when testing locally.</p>
+        </div>
+
         <div class="settings-field">
           <label class="settings-label">
             <img src="https://www.figma.com/api/mcp/asset/05543402-2a1d-4f48-85ec-2a068b4a51ae" alt="" class="settings-label-icon" width="12" height="12">

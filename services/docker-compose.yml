@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  llm-service:
+    build: ./llm-service
+    ports:
+      - "${LLM_PORT:-8000}:${LLM_PORT:-8000}"
+    environment:
+      - PORT=${LLM_PORT:-8000}
+    env_file:
+      - ./llm-service/.env
+    volumes:
+      - ./llm-service/app:/app/app
+    restart: unless-stopped
+
+  license-service:
+    build: ./license-service
+    ports:
+      - "${LICENSE_PORT:-8001}:${LICENSE_PORT:-8001}"
+    environment:
+      - PORT=${LICENSE_PORT:-8001}
+    volumes:
+      - ./license-service/app:/app/app
+      - ./data:/data
+    restart: unless-stopped

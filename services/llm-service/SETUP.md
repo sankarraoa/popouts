@@ -1,82 +1,39 @@
-# Quick Setup Guide
+# LLM Action Extraction Service
 
-## Step 1: Navigate to the service directory
+Extracts action items from meeting notes using an LLM provider (OpenAI or Toqan).
 
-```bash
-cd services/llm-service
-```
+## Running
 
-## Step 2: Create .env file
-
-Create a `.env` file with your API keys:
+All services are started from the `services/` directory:
 
 ```bash
-# Create .env file
-cat > .env << 'EOF'
-# LLM Provider Configuration
-LLM_PROVIDER=toqan  # or "openai"
-
-# Toqan Configuration
-TOQAN_API_KEY=sk_your_toqan_api_key_here
-
-# OpenAI Configuration (if using OpenAI)
-OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-4
-
-# Server Configuration
-HOST=0.0.0.0
-PORT=8000
-EOF
-```
-
-**Important:** Replace `sk_your_toqan_api_key_here` with your actual Toqan API key.
-
-## Step 3: Run the service
-
-### Option A: Using the start script (recommended)
-
-```bash
-./start.sh
-```
-
-### Option B: Manual setup
-
-```bash
-# Create virtual environment
-python3 -m venv venv
-
-# Activate virtual environment
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the service
-python -m app.main
-```
-
-### Option C: Using Docker
-
-```bash
+cd services
 docker-compose up --build
 ```
 
-## Step 4: Test the service
+This starts the LLM service on **http://localhost:8000**.
 
-1. Open `test.html` in your browser (double-click the file)
-2. Or visit `http://localhost:8000/test` once the server is running
-3. The test page will load sample data automatically
-4. Click "Send Request" to test
+### For local development without Docker
 
-## Troubleshooting
+```bash
+cd services/llm-service
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
 
-### "externally-managed-environment" error
-This means you need to use a virtual environment. The `start.sh` script handles this automatically.
+## Configuration
 
-### "No such file or directory: ./start.sh"
-Make sure you're in the `services/llm-service` directory, not the root `meetingNotes` directory.
+Create `services/llm-service/.env`:
 
-### Service won't start
-- Check that your `.env` file exists and has valid API keys
-- Make sure port 8000 is not already in use
-- Check the terminal output for error messages
+```
+LLM_PROVIDER=openai
+OPENAI_API_KEY=your_key_here
+OPENAI_MODEL=gpt-4
+```
+
+## Endpoints
+
+- `POST /api/v1/extract-actions` — Extract action items from meeting notes
+- `GET  /api/v1/health` — Health check
+- `GET  /test` — Test page
