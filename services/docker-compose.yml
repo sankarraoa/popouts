@@ -23,3 +23,13 @@ services:
       - ./license-service/app:/app/app
       - ./data:/data
     restart: unless-stopped
+
+  website:
+    build: ./website
+    ports:
+      - "${WEBSITE_PORT:-8080}:8080"
+    environment:
+      - PORT=8080
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - NOTIFY_EMAIL=${NOTIFY_EMAIL:-asankarrao@gmail.com}
+    restart: unless-stopped

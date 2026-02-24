@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popouts — Two things. Done right.</title>
+  <meta name="description" content="Know what you want from a meeting. Know what to do after it. Popouts makes both ridiculously easy — right from your browser.">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">
+        <img src="assets/logo.png" alt="Popouts" class="nav-logo-img">
+        <span class="nav-logo-text">Popouts</span>
+      </a>
+      <div class="nav-right">
+        <a href="#features" class="nav-link">features</a>
+        <a href="#how-it-works" class="nav-link">how it works</a>
+        <a href="#pricing" class="nav-link">pricing</a>
+        <a href="https://chromewebstore.google.com" class="btn btn-dark btn-sm" target="_blank" rel="noopener">Add to Chrome</a>
+      </div>
+      <button class="nav-mobile-toggle" aria-label="Toggle menu" id="mobile-toggle">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav-mobile" id="mobile-menu">
+      <a href="#features" class="nav-mobile-link">Features</a>
+      <a href="#how-it-works" class="nav-mobile-link">How it works</a>
+      <a href="#pricing" class="nav-mobile-link">Pricing</a>
+      <a href="https://chromewebstore.google.com" class="btn btn-dark" target="_blank" rel="noopener">Add to Chrome</a>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          Free to use during beta
+        </div>
+        <h1 class="hero-title">Two things. <span class="text-muted">Done right.</span></h1>
+        <p class="hero-subtitle">
+          Know what you want from a meeting. Know what to do after it. Popouts makes both ridiculously easy — right from your browser.
+        </p>
+        <div class="hero-actions">
+          <a href="https://chromewebstore.google.com" class="btn btn-dark btn-lg" target="_blank" rel="noopener">
+            <img src="assets/icon-chrome.svg" alt="" class="btn-icon">
+            Add to Chrome — It's Free
+          </a>
+          <a href="#how-it-works" class="btn btn-ghost btn-lg">See how it works ↓</a>
+        </div>
+        <div class="hero-image-wrapper">
+          <img src="assets/hero-screenshot.png" alt="Popouts Chrome extension — Meetings and Agenda view" class="hero-image">
+        </div>
+      </div>
+    </section>
+
+    <!-- Video Section -->
+    <section class="section section-alt" id="how-it-works">
+      <div class="container">
+        <p class="section-label">See it in action</p>
+        <h2 class="section-title">Two minutes. <span class="text-muted">That's all you need.</span></h2>
+        <div class="video-placeholder">
+          <div class="video-grid-overlay"></div>
+          <div class="video-play">
+            <div class="video-play-btn">
+              <img src="assets/icon-play.svg" alt="Play">
+            </div>
+            <span class="video-play-text">Video coming soon</span>
+          </div>
+        </div>
+        <p class="section-caption">A quick walkthrough of how Popouts helps you prep, capture, and act — all from your browser.</p>
+      </div>
+    </section>
+
+    <!-- Quote Section -->
+    <section class="section section-alt">
+      <div class="container container-narrow">
+        <p class="section-label">The truth</p>
+        <blockquote class="quote">
+          "Every meeting tool tries to do everything — transcribe, summarize, integrate, automate. But busy people don't need more features. <strong>They need two answers</strong>: what are we here to do, and what do I need to do next? <span class="text-muted">Everything else is noise.</span>"
+        </blockquote>
+        <div class="quote-attribution">
+          <span class="quote-line"></span>
+          <p class="quote-source"><em>Popouts gives you just those two answers. Nothing more, nothing less.</em></p>
+          <span class="quote-line"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+      <div class="container">
+        <p class="section-label">What it does</p>
+        <h2 class="section-title">Agenda in. Notes down. <span class="text-muted">Actions out.</span></h2>
+        <p class="section-subtitle">That's the entire workflow. No learning curve, no setup, no 47-feature onboarding tour.</p>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon feature-icon-indigo">
+              <img src="assets/icon-agenda.svg" alt="">
+            </div>
+            <h3 class="feature-title">Set your agenda.</h3>
+            <p class="feature-desc">Before the meeting starts, write down what you want to achieve. Three meeting types — standup, one-on-one, and review — keep things structured without overthinking it.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon feature-icon-cyan">
+              <img src="assets/icon-notes.svg" alt="">
+            </div>
+            <h3 class="feature-title">Capture your notes.</h3>
+            <p class="feature-desc">During or after the meeting, jot down what happened. No templates, no formatting rules — just write. It's as fast as scribbling on a napkin, but you won't lose it.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon feature-icon-amber">
+              <img src="assets/icon-actions.svg" alt="">
+            </div>
+            <h3 class="feature-title">Get your action items.</h3>
+            <p class="feature-desc">Popouts reads your notes and pulls out the action items automatically. Clear tasks, assigned owners, due dates — ready for you to knock out before the next meeting.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Section -->
+    <section class="section section-alt" id="why">
+      <div class="container">
+        <p class="section-label">Why just two things</p>
+        <h2 class="section-title">Meetings are simple. <span class="text-muted">Your tool should be too.</span></h2>
+
+        <div class="why-cards">
+          <div class="why-card">
+            <div class="why-card-illustration">
+              <img src="assets/illustration-before.png" alt="Person preparing for meeting">
+            </div>
+            <p class="why-card-label">Before the meeting</p>
+            <h3 class="why-card-title">"What do I want to achieve?"</h3>
+            <p class="why-card-desc">Define your agenda. Pick a meeting type — standup, one-on-one, or review — and write down your goals. Walk in prepared. No more "so... what are we talking about?" moments.</p>
+            <div class="mini-agenda">
+              <div class="mini-agenda-item">
+                <span class="mini-agenda-circle"></span>
+                <span>Review Q1 goals progress</span>
+              </div>
+              <div class="mini-agenda-item">
+                <span class="mini-agenda-circle"></span>
+                <span>Discuss promotion timeline</span>
+              </div>
+              <div class="mini-agenda-item mini-agenda-done">
+                <span class="mini-agenda-circle mini-agenda-circle-done">
+                  <img src="assets/icon-check-white.svg" alt="">
+                </span>
+                <span class="mini-agenda-strikethrough">Feedback on design review</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="why-card">
+            <div class="why-card-illustration">
+              <img src="assets/illustration-after.png" alt="Person capturing notes on laptop">
+            </div>
+            <p class="why-card-label">After the meeting</p>
+            <h3 class="why-card-title">"What do I need to do next?"</h3>
+            <p class="why-card-desc">Jot down notes from the meeting. Popouts extracts the action items automatically — who needs to do what, by when. Complete them before the next meeting. Rinse, repeat.</p>
+            <div class="mini-notes">
+              <div class="mini-notes-tabs">
+                <span class="mini-notes-tab">Agenda <span class="mini-notes-count">2</span></span>
+                <span class="mini-notes-tab mini-notes-tab-active">Notes <span class="mini-notes-count mini-notes-count-active">4</span></span>
+                <span class="mini-notes-tab">Actions <span class="mini-notes-count">2</span></span>
+              </div>
+              <div class="mini-notes-body">
+                <div class="mini-notes-today">
+                  <div class="mini-notes-today-header">
+                    <img src="assets/icon-calendar.svg" alt="" class="mini-notes-cal-icon">
+                    <span class="mini-notes-date-label">Today</span>
+                  </div>
+                  <p class="mini-notes-placeholder">Type a note, press Enter...</p>
+                </div>
+                <div class="mini-notes-group">
+                  <div class="mini-notes-group-header">
+                    <div class="mini-notes-group-left">
+                      <img src="assets/icon-calendar.svg" alt="" class="mini-notes-cal-icon">
+                      <span>Wed, Feb 18, 2026</span>
+                    </div>
+                    <span class="mini-notes-group-count">2 notes</span>
+                  </div>
+                  <div class="mini-note-item">
+                    <span class="mini-note-num">1.</span>
+                    <span>Alex is on track with Q1 goals. Discussed career growth path and next steps for the design system migration.</span>
+                  </div>
+                  <div class="mini-note-item">
+                    <span class="mini-note-num">2.</span>
+                    <span>Follow-up note: Need to get budget approval from finance before end of sprint. Alex to draft the request.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Items Table -->
+        <div class="actions-panel">
+          <div class="actions-panel-header">
+            <p class="actions-panel-label">Across all meetings</p>
+            <h3 class="actions-panel-title">All your action items, one place.</h3>
+            <p class="actions-panel-desc">Every action item from every meeting, consolidated. Filter by status, see where each came from, and check them off as you go.</p>
+          </div>
+          <div class="actions-table">
+            <div class="actions-table-header">
+              <div class="actions-table-header-left">
+                <img src="assets/icon-list.svg" alt="" class="actions-table-icon">
+                <span class="actions-table-label">Consolidated Action Items</span>
+              </div>
+              <button class="btn-add-action">
+                <img src="assets/icon-sparkle.svg" alt="">
+                Add Action
+              </button>
+            </div>
+            <div class="actions-table-filters">
+              <div class="actions-filter-tabs">
+                <span class="actions-filter-tab actions-filter-tab-active">All <span class="actions-filter-num">8</span></span>
+                <span class="actions-filter-tab">Open <span class="actions-filter-num">7</span></span>
+                <span class="actions-filter-tab">Closed <span class="actions-filter-num">1</span></span>
+              </div>
+              <div class="actions-search">
+                <img src="assets/icon-search.svg" alt="">
+                <span>Search actions...</span>
+              </div>
+            </div>
+            <div class="actions-list">
+              <div class="action-row">
+                <img src="assets/icon-circle-open.svg" alt="" class="action-status-icon">
+                <div class="action-content">
+                  <p class="action-text">Follow up on budget approval for design system</p>
+                  <div class="action-meta">
+                    <span class="action-source">1:1 with Alex</span>
+                    <span class="action-date">Feb 18</span>
+                  </div>
+                </div>
+                <span class="action-badge action-badge-open">Open</span>
+              </div>
+              <div class="action-row">
+                <img src="assets/icon-circle-open.svg" alt="" class="action-status-icon">
+                <div class="action-content">
+                  <p class="action-text">Prepare promotion case document</p>
+                  <div class="action-meta">
+                    <span class="action-source">1:1 with Alex</span>
+                    <span class="action-date">Feb 18</span>
+                  </div>
+                </div>
+                <span class="action-badge action-badge-open">Open</span>
+              </div>
+              <div class="action-row">
+                <div class="action-status-done">
+                  <img src="assets/icon-circle-check.svg" alt="">
+                </div>
+                <div class="action-content">
+                  <p class="action-text action-text-done">Set up shadowing schedule with Jamie for Priya</p>
+                  <div class="action-meta">
+                    <span class="action-source">1:1 with Priya</span>
+                    <span class="action-date">Feb 17</span>
+                  </div>
+                </div>
+                <span class="action-badge action-badge-closed">Closed</span>
+              </div>
+              <div class="action-row">
+                <img src="assets/icon-circle-open.svg" alt="" class="action-status-icon">
+                <div class="action-content">
+                  <p class="action-text">Escalate API rate limiting issue to platform team</p>
+                  <div class="action-meta">
+                    <span class="action-source">Weekly Status</span>
+                    <span class="action-date">Feb 19</span>
+                  </div>
+                </div>
+                <span class="action-badge action-badge-open">Open</span>
+              </div>
+              <div class="action-row">
+                <img src="assets/icon-circle-open.svg" alt="" class="action-status-icon">
+                <div class="action-content">
+                  <p class="action-text">Fix staging environment instability</p>
+                  <div class="action-meta">
+                    <span class="action-source">Weekly Status</span>
+                    <span class="action-date">Feb 19</span>
+                  </div>
+                </div>
+                <span class="action-badge action-badge-open">Open</span>
+              </div>
+              <div class="action-row">
+                <img src="assets/icon-circle-open.svg" alt="" class="action-status-icon">
+                <div class="action-content">
+                  <p class="action-text">Respond to investor questions about ARR</p>
+                  <div class="action-meta">
+                    <span class="action-source">Board Review</span>
+                    <span class="action-date">Feb 14</span>
+                  </div>
+                </div>
+                <span class="action-badge action-badge-open">Open</span>
+              </div>
+              <div class="action-row action-row-last">
+                <img src="assets/icon-circle-open.svg" alt="" class="action-status-icon">
+                <div class="action-content">
+                  <p class="action-text">Evaluate alternative vendors and prepare comparison</p>
+                  <div class="action-meta">
+                    <span class="action-source">Vendor Review</span>
+                    <span class="action-date">Feb 16</span>
+                  </div>
+                </div>
+                <span class="action-badge action-badge-open">Open</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="section-closing-italic">That's it. Agenda → Notes → Actions. The entire meeting lifecycle in one simple tool.</p>
+      </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="section" id="pricing">
+      <div class="container">
+        <p class="section-label">Pricing</p>
+        <h2 class="section-title">Simple tool. <span class="text-muted">Simple pricing.</span></h2>
+        <div class="pricing-card">
+          <div class="pricing-top">
+            <div class="pricing-badge">
+              <span class="pricing-badge-dot"></span>
+              Beta — Free access
+            </div>
+            <div class="pricing-amount">
+              <span class="pricing-price">$0</span>
+              <span class="pricing-period">/ during beta</span>
+            </div>
+            <p class="pricing-note">Everything included. No limits, no catches.</p>
+          </div>
+          <div class="pricing-divider"></div>
+          <div class="pricing-features">
+            <ul class="pricing-list">
+              <li><img src="assets/icon-checkmark.svg" alt="">Define agendas for every meeting</li>
+              <li><img src="assets/icon-checkmark.svg" alt="">Three structured meeting types</li>
+              <li><img src="assets/icon-checkmark.svg" alt="">Quick note capture from your browser</li>
+              <li><img src="assets/icon-checkmark.svg" alt="">Automatic action item extraction</li>
+              <li><img src="assets/icon-checkmark.svg" alt="">Always one click away</li>
+            </ul>
+            <a href="https://chromewebstore.google.com" class="btn btn-dark btn-lg btn-full" target="_blank" rel="noopener">
+              <img src="assets/icon-chrome-white.svg" alt="" class="btn-icon">
+              Add to Chrome
+            </a>
+          </div>
+          <div class="pricing-divider"></div>
+          <div class="pricing-bottom">
+            <button class="pricing-bottom-cta" id="open-modal-btn" type="button">
+              <img src="assets/icon-mail.svg" alt="" class="pricing-mail-icon">
+              Want to keep using Popouts after beta?
+            </button>
+            <p class="pricing-bottom-note">Drop your email and we'll make sure you're covered.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <a href="#" class="footer-logo">
+          <img src="assets/logo.png" alt="Popouts" class="footer-logo-img">
+          <span class="footer-logo-text">Popouts</span>
+        </a>
+        <div class="footer-links">
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#pricing">Pricing</a>
+          <a href="mailto:hello@popouts.app">Contact</a>
+        </div>
+        <p class="footer-copyright">© 2026 Popouts</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Email Capture Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-header-text">
+          <h3 class="modal-title">Stay on Popouts</h3>
+          <p class="modal-desc">Enter your email and we'll set you up after the beta.</p>
+        </div>
+        <button class="modal-close" id="modal-close" type="button" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M15 5L5 15M5 5l10 10" stroke="#71717a" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <form class="modal-form" id="access-form">
+        <label class="modal-label" for="email-input">Email address</label>
+        <input class="modal-input" id="email-input" type="email" placeholder="you@company.com" required>
+        <button class="modal-submit" id="modal-submit" type="submit" disabled>
+          <img src="assets/icon-send.svg" alt="" class="modal-submit-icon">
+          Request Access
+        </button>
+        <p class="modal-fine-print">We'll only use this to send you access details. No spam, ever.</p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('mobile-toggle').addEventListener('click', function() {
+      document.getElementById('mobile-menu').classList.toggle('open');
+      this.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.nav-mobile-link').forEach(function(link) {
+      link.addEventListener('click', function() {
+        document.getElementById('mobile-menu').classList.remove('open');
+        document.getElementById('mobile-toggle').classList.remove('active');
+      });
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+      anchor.addEventListener('click', function(e) {
+        var target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    var overlay = document.getElementById('modal-overlay');
+    var emailInput = document.getElementById('email-input');
+    var submitBtn = document.getElementById('modal-submit');
+    var form = document.getElementById('access-form');
+
+    document.getElementById('open-modal-btn').addEventListener('click', function() {
+      overlay.classList.add('open');
+      emailInput.value = '';
+      submitBtn.disabled = true;
+      submitBtn.classList.remove('modal-submit-success');
+      submitBtn.innerHTML = '<img src="assets/icon-send.svg" alt="" class="modal-submit-icon"> Request Access';
+      setTimeout(function() { emailInput.focus(); }, 100);
+    });
+
+    function closeModal() {
+      overlay.classList.remove('open');
+    }
+
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closeModal();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    emailInput.addEventListener('input', function() {
+      submitBtn.disabled = !emailInput.validity.valid || !emailInput.value.trim();
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = emailInput.value.trim();
+      if (!email) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+
+      fetch('/api/request-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Failed');
+        submitBtn.classList.add('modal-submit-success');
+        submitBtn.innerHTML = '&#10003; Request Sent!';
+        setTimeout(closeModal, 2000);
+      })
+      .catch(function() {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<img src="assets/icon-send.svg" alt="" class="modal-submit-icon"> Request Access';
+        alert('Something went wrong. Please try again.');
+      });
+    });
+  </script>
+</body>
+</html>
