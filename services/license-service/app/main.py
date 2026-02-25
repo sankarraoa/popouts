@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router
 from app.config import settings
@@ -56,6 +57,9 @@ async def admin():
     if not index_path.exists():
         return {"error": "Admin UI not found"}
     return FileResponse(index_path)
+
+
+app.mount("/admin-assets", StaticFiles(directory=str(PUBLIC_DIR)), name="admin-assets")
 
 
 if __name__ == "__main__":
