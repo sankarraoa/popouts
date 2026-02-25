@@ -1065,7 +1065,8 @@ async function handleImportDataFileSelected() {
     );
   } catch (error) {
     console.error('Error importing data:', error);
-    setDataTransferStatus('Import failed. Ensure the JSON format matches a Popouts export.', 'error');
+    const msg = error?.message || error?.name || String(error);
+    setDataTransferStatus(`Import failed: ${msg}. Ensure the JSON format matches a Popouts export.`, 'error');
   } finally {
     setDataTransferBusy(false);
     if (fileInput) {

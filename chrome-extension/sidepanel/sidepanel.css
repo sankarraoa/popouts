@@ -1318,7 +1318,7 @@ body {
 
 .agenda-input-container {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   padding: 4px 10px;
   margin-bottom: 8px;
@@ -1334,7 +1334,8 @@ body {
   height: 16px;
   position: absolute;
   left: 6px;
-  top: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   flex-shrink: 0;
   background-image: url('../icons/icon-cirlce-not-completed.png');
   background-size: contain;
@@ -1453,7 +1454,7 @@ body {
 
 .agenda-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   padding: 7px 6px;
   border-radius: 8px;
@@ -1473,7 +1474,8 @@ body {
   height: 16px;
   position: absolute;
   left: 6px;
-  top: 7px;
+  top: 50%;
+  transform: translateY(-50%);
   flex-shrink: 0;
   background-image: url('../icons/icon-cirlce-not-completed.png');
   background-size: contain;
@@ -2062,7 +2064,7 @@ body {
 /* Actions Input (for meeting-specific actions view) - matches agenda styling */
 .actions-input-container {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   padding: 4px 10px;
   margin-bottom: 8px;
@@ -2078,7 +2080,8 @@ body {
   height: 16px;
   position: absolute;
   left: 6px;
-  top: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   flex-shrink: 0;
   background-image: url('../icons/icon-cirlce-not-completed.png');
   background-size: contain;
@@ -2391,7 +2394,7 @@ body {
 
 .action-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   padding: 8px 10px;
   border-radius: 10px;
@@ -2401,7 +2404,7 @@ body {
 }
 
 .action-item-meeting-specific {
-  align-items: flex-start;
+  align-items: center;
   padding: 7px 6px;
   border-radius: 8px;
   min-height: 28px;
@@ -2454,7 +2457,8 @@ body {
 .action-item-meeting-specific .action-item-checkbox {
   position: absolute;
   left: 6px;
-  top: 7px;
+  top: 50%;
+  transform: translateY(-50%);
   flex-shrink: 0;
 }
 

@@ -16,7 +16,7 @@ import { getActionItems, createActionItem, updateActionItem, deleteActionItem } 
 import * as licenseManager from './license.js';
 import { getConfig, onEnvChange } from '../config.js';
 
-const DEBOUNCE_DELAY = 0; // 5 * 60 * 1000; // Set to 0 for testing; use 5 min for production
+const DEBOUNCE_DELAY = 100; // 5 * 60 * 1000; // Set to 0 for testing; use 5 min for production
 
 const RETRY_DELAYS = [10000, 30000];
 const MAX_RETRIES = 3;
