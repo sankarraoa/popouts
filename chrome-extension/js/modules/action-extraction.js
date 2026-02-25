@@ -34,6 +34,7 @@ onEnvChange(() => { _apiUrl = null; });
 // Storage keys
 const EXTRACTION_STATUS_KEY = 'extraction_status';
 const PENDING_EXTRACTIONS_KEY = 'pending_extractions';
+const PENDING_EXTRACTION_RESULTS_KEY = 'pending_extraction_results';
 
 class ActionExtractionService {
   constructor() {
@@ -55,17 +56,46 @@ class ActionExtractionService {
     }
   }
 
-  // Run on popup/sidepanel load: migrate stuck notes, then extract for ALL meetings
+  // Run on popup/sidepanel load: migrate stuck notes, process any stored results, then extract for ALL meetings
   async runExtractionOnLoad() {
     try {
       console.log('[ActionExtraction] runExtractionOnLoad starting');
       await db.ensureReady();
       await this.migrateActionInProgressToCompleted();
+      await this.processPendingExtractionResults();
       await this.checkPendingExtractions();
       await this.checkAllMeetingsForExtraction();
       console.log('[ActionExtraction] runExtractionOnLoad complete');
     } catch (err) {
       console.error('[ActionExtraction] Error on load extraction check:', err);
+    }
+  }
+
+  // Apply extraction results that were stored by the background when the popup closed before the API returned
+  async processPendingExtractionResults() {
+    try {
+      const stored = await chrome.storage.local.get(PENDING_EXTRACTION_RESULTS_KEY);
+      const pending = stored[PENDING_EXTRACTION_RESULTS_KEY] || {};
+      if (Object.keys(pending).length === 0) return;
+
+      for (const [meetingIdStr, entry] of Object.entries(pending)) {
+        const meetingId = parseInt(meetingIdStr, 10);
+        const { result, timestamp } = entry;
+        if (!result?.success || !result.data?.notes_with_actions) continue;
+
+        try {
+          await this.saveExtractedActions(meetingId, result.data.notes_with_actions);
+          await this.markProcessedNotesStatus(meetingId, result.data.notes_with_actions, 'action_completed');
+          await this.updateExtractionStatus(meetingId, 'completed', result.data);
+          console.log(`[ActionExtraction] Applied stored extraction result for meeting ${meetingId}`);
+        } catch (err) {
+          console.error(`[ActionExtraction] Error applying stored result for meeting ${meetingId}:`, err);
+        }
+      }
+
+      await chrome.storage.local.set({ [PENDING_EXTRACTION_RESULTS_KEY]: {} });
+    } catch (err) {
+      console.error('[ActionExtraction] Error processing pending extraction results:', err);
     }
   }
 
@@ -330,6 +360,12 @@ class ActionExtractionService {
           // Mark processed notes as action_completed
           await this.markProcessedNotesStatus(meetingId, result.data.notes_with_actions, 'action_completed');
           
+          // Clear any stored result for this meeting (we processed it in this session)
+          const stored = await chrome.storage.local.get(PENDING_EXTRACTION_RESULTS_KEY);
+          const pending = stored[PENDING_EXTRACTION_RESULTS_KEY] || {};
+          delete pending[String(meetingId)];
+          await chrome.storage.local.set({ [PENDING_EXTRACTION_RESULTS_KEY]: pending });
+          
           // Update status
           await this.updateExtractionStatus(meetingId, 'completed', result.data);
           
@@ -460,12 +496,14 @@ class ActionExtractionService {
       .equals(meetingId)
       .toArray();
 
-    // Create a set of note texts that were processed (match by text and created_at)
+    // Build keys for matching: exact (text + created_at) and text-only fallback
     const processedNoteKeys = new Set();
+    const processedNoteTexts = new Set();
     notesWithActions.forEach(nwa => {
       if (nwa.note && nwa.note.text) {
-        const noteKey = `${nwa.note.text}_${nwa.note.created_at || ''}`;
-        processedNoteKeys.add(noteKey);
+        const createdAt = nwa.note.created_at || '';
+        processedNoteKeys.add(`${nwa.note.text}_${createdAt}`);
+        processedNoteTexts.add(nwa.note.text.trim());
       }
     });
 
@@ -475,7 +513,10 @@ class ActionExtractionService {
       let updated = false;
       const updatedNotes = instance.notes.map(note => {
         const noteKey = `${note.text}_${note.createdAt ? new Date(note.createdAt).toISOString() : ''}`;
-        if (processedNoteKeys.has(noteKey)) {
+        const exactMatch = processedNoteKeys.has(noteKey);
+        const textOnlyMatch = processedNoteTexts.has((note.text || '').trim()) && note.actionStatus === 'action_in_progress';
+        // Match by exact key, or by text only for action_in_progress notes (handles created_at format differences)
+        if (exactMatch || textOnlyMatch) {
           updated = true;
           return { ...note, actionStatus: status };
         }
@@ -488,41 +529,37 @@ class ActionExtractionService {
     }
   }
 
-  // Extract with retry logic
+  // Extract with retry logic - uses background script so extraction completes even if popup closes
   async extractWithRetry(meetingId, meetingDetails, retryCount = 0) {
     try {
       const apiUrl = await getApiUrl();
-      
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ meeting_details: meetingDetails })
+
+      const result = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+          {
+            type: 'EXTRACT_ACTIONS',
+            meetingId,
+            meetingDetails,
+            apiUrl: `${apiUrl}`
+          },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+              return;
+            }
+            resolve(response);
+          }
+        );
       });
 
-      console.log(`[ActionExtraction] API response status: ${response.status}`);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        const isServerError = response.status >= 500;
-        if (isServerError) {
-          console.warn(`[ActionExtraction] LLM service unavailable (${response.status}):`, errorText);
-        } else {
-          console.error(`[ActionExtraction] API error response:`, errorText);
-        }
-        const friendlyMessage = isServerError
-          ? 'LLM service temporarily unavailable. Please try again later.'
-          : `API error: ${response.status} ${response.statusText}`;
-        const err = new Error(friendlyMessage);
-        err.status = response.status;
-        err.isServerError = isServerError;
-        throw err;
+      if (result.success) {
+        console.log(`[ActionExtraction] API response success, ${result.data?.notes_with_actions?.length ?? 0} notes processed`);
+        return { success: true, data: result.data };
       }
 
-      const data = await response.json();
-      console.log(`[ActionExtraction] API response data:`, data);
-      return { success: true, data };
+      const error = new Error(result.error || 'Unknown error');
+      error.isServerError = (result.error || '').includes('500') || (result.error || '').includes('502') || (result.error || '').includes('503');
+      throw error;
 
     } catch (error) {
       const isServerError = error.isServerError || (error.status && error.status >= 500);

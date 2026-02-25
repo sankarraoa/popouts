@@ -215,6 +215,8 @@
       flex-shrink: 0;
     }
     .copy-btn:hover { color: var(--color-primary); }
+    .copy-btn.copied { color: var(--color-green-text); }
+    .copy-btn.copied:hover { color: var(--color-green-text); }
     .copy-btn svg { width: 14px; height: 14px; }
     .badge {
       display: inline-block;
@@ -478,12 +480,22 @@
     }
 
     const copyIcon = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="8" height="8" rx="1"/><path d="M2 10V3a1 1 0 011-1h7"/></svg>';
+    const checkIcon = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l3 3 5-6"/></svg>';
     const trashIcon = '<svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h9M5 4V3a1 1 0 011-1h3a1 1 0 011 1v1m2 0v8a1 1 0 01-1 1H4a1 1 0 01-1-1V4h10z"/><path d="M6 7v4M9 7v4"/></svg>';
 
     async function copyToClipboard(text, btn) {
       try {
         await navigator.clipboard.writeText(text);
-        if (btn) { btn.title = 'Copied!'; setTimeout(() => btn.title = 'Copy', 1500); }
+        if (btn) {
+          btn.classList.add('copied');
+          btn.innerHTML = checkIcon;
+          btn.title = 'Copied!';
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = copyIcon;
+            btn.title = 'Copy';
+          }, 2000);
+        }
       } catch (_) {}
     }
 
