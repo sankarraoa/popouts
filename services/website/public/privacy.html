@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Popouts</title>
+  <meta name="description" content="Privacy Policy for Popouts. Learn how we collect, use, and protect your data.">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .privacy-page { padding-top: 100px; padding-bottom: 80px; }
+    .privacy-page .container { max-width: 720px; }
+    .privacy-page h1 { font-size: 32px; font-weight: 600; margin-bottom: 8px; }
+    .privacy-page .updated { font-size: 14px; color: var(--color-muted); margin-bottom: 40px; }
+    .privacy-page h2 { font-size: 18px; font-weight: 600; margin-top: 32px; margin-bottom: 12px; }
+    .privacy-page p { font-size: 15px; line-height: 1.7; color: var(--color-secondary); margin-bottom: 16px; }
+    .privacy-page ul { margin: 0 0 16px 24px; color: var(--color-secondary); line-height: 1.7; }
+    .privacy-page li { margin-bottom: 8px; }
+    .privacy-page a { color: var(--color-primary); text-decoration: underline; }
+    .privacy-page a:hover { opacity: 0.8; }
+    .privacy-page .back-link { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px; font-size: 14px; color: var(--color-secondary); text-decoration: none; }
+    .privacy-page .back-link:hover { color: var(--color-primary); }
+  </style>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <img src="assets/logo.png" alt="Popouts" class="nav-logo-img">
+        <span class="nav-logo-text">Popouts</span>
+      </a>
+      <div class="nav-right">
+        <a href="/#features" class="nav-link">features</a>
+        <a href="/#how-it-works" class="nav-link">how it works</a>
+        <a href="/#pricing" class="nav-link">pricing</a>
+        <a href="https://chromewebstore.google.com" class="btn btn-dark btn-sm" target="_blank" rel="noopener">Add to Chrome</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="privacy-page">
+    <div class="container">
+      <a href="/" class="back-link">← Back to Popouts</a>
+
+      <h1>Privacy Policy</h1>
+      <p class="updated">Last updated: February 2026</p>
+
+      <p>
+        Popouts ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, store, and protect information when you use the Popouts Chrome extension and our website at www.popouts.app.
+      </p>
+
+      <h2>1. Overview</h2>
+      <p>
+        Popouts is a productivity tool that helps you manage meeting agendas, capture notes, and extract action items — all from your browser. We are designed with privacy in mind: most of your data stays on your device. This policy describes the limited circumstances in which data is transmitted and how we handle it.
+      </p>
+
+      <h2>2. Information We Collect</h2>
+
+      <h3>2.1 Chrome Extension — Data Stored Locally</h3>
+      <p>
+        The Popouts extension stores the following data <strong>entirely on your device</strong> using your browser's local storage (IndexedDB and Chrome storage API):
+      </p>
+      <ul>
+        <li>Meeting names and categories (e.g., 1:1s, recurring meetings)</li>
+        <li>Agenda items you create</li>
+        <li>Meeting notes you write</li>
+        <li>Action items (both manually added and automatically extracted)</li>
+        <li>Your environment preference (development vs. production API)</li>
+      </ul>
+      <p>
+        This data is never automatically sent to our servers. It remains under your control and is only accessible to the extension running in your browser.
+      </p>
+
+      <h3>2.2 Chrome Extension — Data Sent to Our API</h3>
+      <p>
+        When you use the automatic action item extraction feature, the extension sends the following to our backend service:
+      </p>
+      <ul>
+        <li>Meeting notes (the text you typed)</li>
+        <li>Meeting metadata (meeting series name, meeting instance identifier)</li>
+      </ul>
+      <p>
+        This data is sent only when extraction is triggered (e.g., after you stop typing for a period). It is used solely to generate action items from your notes and is not stored permanently on our servers. The API processes the request and returns extracted action items; we do not retain copies of your notes for longer than necessary to complete the request.
+      </p>
+
+      <h3>2.3 Website — Email Address</h3>
+      <p>
+        If you use the "Request Access" or "Want to keep using Popouts after beta?" form on our website, we collect your email address. We use this only to notify you about access to Popouts after the beta period and to respond to your request. We do not add you to marketing lists or share your email with third parties for advertising.
+      </p>
+
+      <h3>2.4 Website — Usage Information</h3>
+      <p>
+        Our website is a static landing page. We do not use analytics cookies, tracking pixels, or third-party advertising. We do not collect information about how you browse our website.
+      </p>
+
+      <h2>3. How We Use Your Information</h2>
+      <ul>
+        <li><strong>Action extraction:</strong> Meeting notes and metadata are sent to our LLM service to extract action items. The response is returned to your browser and stored locally.</li>
+        <li><strong>Beta access requests:</strong> Your email is used to contact you about Popouts access after the beta. We may store it to fulfill this purpose.</li>
+        <li><strong>Support:</strong> If you contact us, we may use the information you provide to respond to your inquiry.</li>
+      </ul>
+
+      <h2>4. Third-Party Services</h2>
+      <p>
+        We use the following third-party services to operate Popouts:
+      </p>
+      <ul>
+        <li><strong>Google Chrome Web Store:</strong> The extension is distributed through the Chrome Web Store. Google's privacy policy applies to the installation process: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.</li>
+        <li><strong>Railway:</strong> Our backend services (LLM API, website) are hosted on Railway. Data sent to our API is processed on Railway's infrastructure. See <a href="https://railway.app/legal/privacy" target="_blank" rel="noopener">Railway's privacy policy</a>.</li>
+        <li><strong>Resend:</strong> We use Resend to send emails (e.g., beta access notifications). Your email address may be processed by Resend. See <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener">Resend's privacy policy</a>.</li>
+        <li><strong>LLM Provider:</strong> Our action extraction feature may use an AI/LLM provider (e.g., OpenAI or a similar service) to process your meeting notes. Notes are sent to this provider only for the purpose of extraction and are subject to that provider's data processing terms.</li>
+      </ul>
+
+      <h2>5. Data Retention</h2>
+      <ul>
+        <li><strong>Local data:</strong> Data stored in your browser remains until you uninstall the extension or clear your browser data. We have no access to delete it remotely.</li>
+        <li><strong>API processing:</strong> Meeting notes sent for action extraction are not stored long-term. They are processed and discarded after the response is returned.</li>
+        <li><strong>Email addresses:</strong> We retain beta access request emails for as long as needed to fulfill your request and communicate about Popouts.</li>
+      </ul>
+
+      <h2>6. Data Security</h2>
+      <p>
+        We use HTTPS for all communications. Data in transit is encrypted. Local data in your browser is protected by your browser's security model and your device's access controls. We do not store passwords or sensitive authentication data.
+      </p>
+
+      <h2>7. Your Rights and Choices</h2>
+      <ul>
+        <li><strong>Access and deletion:</strong> You can delete all local data by uninstalling the Popouts extension. For email-related requests, contact us.</li>
+        <li><strong>Opt-out of API:</strong> You can use Popouts without the automatic action extraction feature. Add action items manually instead.</li>
+        <li><strong>Opt-out of emails:</strong> Do not submit the beta access form if you do not wish to receive emails. You can ask us to remove your email at any time.</li>
+      </ul>
+
+      <h2>8. Children's Privacy</h2>
+      <p>
+        Popouts is not directed at children under 13. We do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us and we will delete it.
+      </p>
+
+      <h2>9. Changes to This Policy</h2>
+      <p>
+        We may update this Privacy Policy from time to time. We will post the updated policy on this page and update the "Last updated" date. Continued use of Popouts after changes constitutes acceptance of the updated policy.
+      </p>
+
+      <h2>10. Contact Us</h2>
+      <p>
+        If you have questions about this Privacy Policy or our data practices, contact us at:
+      </p>
+      <p>
+        <a href="mailto:asankarrao@gmail.com">asankarrao@gmail.com</a>
+      </p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <a href="/" class="footer-logo">
+          <img src="assets/logo.png" alt="Popouts" class="footer-logo-img">
+          <span class="footer-logo-text">Popouts</span>
+        </a>
+        <div class="footer-links">
+          <a href="/#features">Features</a>
+          <a href="/#how-it-works">How it works</a>
+          <a href="/#pricing">Pricing</a>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="mailto:asankarrao@gmail.com">Contact</a>
+        </div>
+        <p class="footer-copyright">© 2026 Popouts</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

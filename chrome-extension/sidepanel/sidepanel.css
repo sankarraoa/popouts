@@ -735,8 +735,8 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 0;
-  width: 39.28px;
+  gap: 4px;
+  min-width: 65px;
   height: 13.5px;
   position: relative;
   flex-shrink: 0;
@@ -778,11 +778,10 @@ body {
 }
 
 .meeting-item-date {
-  position: absolute;
-  width: 29px;
+  flex: 1;
+  min-width: 0;
   height: 14px;
-  left: 10px;
-  top: 0px;
+  padding-left: 10px;
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
@@ -790,6 +789,9 @@ body {
   line-height: 14px;
   letter-spacing: 0.166992px;
   color: #717182;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .meeting-item-badge {
@@ -1267,6 +1269,15 @@ body {
 }
 
 /* Agenda View */
+#agenda-view .agenda-filters {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fff;
+  flex-shrink: 0;
+  margin-top: 0;
+  padding-top: 3px;
+}
 .agenda-filters {
   display: flex;
   gap: 6px;
@@ -1954,7 +1965,15 @@ body {
 }
 
 /* Actions View */
-/* Actions View */
+#actions-view .actions-filters {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fff;
+  flex-shrink: 0;
+  margin-top: 0;
+  padding-top: 3px;
+}
 .actions-filters {
   display: flex;
   gap: 6px;
@@ -3101,7 +3120,7 @@ select.settings-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 4px;
+  margin-left: 8px;
 }
 
 .meeting-extraction-status.completed svg {

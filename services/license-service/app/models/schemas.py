@@ -31,5 +31,5 @@ class LicenseValidationResponse(BaseModel):
 
 class CreateLicenseRequest(BaseModel):
     email: str = Field(..., description="User's email address")
-    license_key: str = Field(..., description="License key to create")
+    license_key: Optional[str] = Field(None, description="License key (auto-generated if omitted)")
     days: int = Field(365, description="Number of days until expiry", ge=1, le=3650)

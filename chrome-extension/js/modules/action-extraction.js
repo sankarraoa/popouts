@@ -1,5 +1,12 @@
 // Action Extraction Service
-// Handles debounced extraction of action items from meeting notes
+// Handles debounced extraction of action items from meeting notes.
+//
+// Approach 1 (no service worker):
+// 1. On popup/sidepanel open: checkPendingExtractions and checkAllMeetingsForExtraction run.
+//    If notes have waited >= DEBOUNCE_DELAY, extract immediately.
+// 2. When a note is saved: scheduleExtraction sets a 5-min timer.
+// 3. If popup stays open 5 min: timer fires, extraction runs.
+// 4. If popup closes: timer is lost. Next open triggers extraction via step 1.
 
 import { db } from '../db.js';
 import { getAllMeetingSeries } from '../meetings.js';
@@ -9,7 +16,8 @@ import { getActionItems, createActionItem, updateActionItem, deleteActionItem } 
 import * as licenseManager from './license.js';
 import { getConfig, onEnvChange } from '../config.js';
 
-const DEBOUNCE_DELAY = 5 * 60 * 1000; // 5 minutes
+const DEBOUNCE_DELAY = 0; // 5 * 60 * 1000; // Set to 0 for testing; use 5 min for production
+
 const RETRY_DELAYS = [10000, 30000];
 const MAX_RETRIES = 3;
 
@@ -33,26 +41,62 @@ class ActionExtractionService {
     this.statusBarElement = null;
     this.statusBarText = null;
     this.statusBarIndicator = null;
+    this.statusBarProgress = null;
     this.inFlightCalls = new Map(); // meetingId -> Promise (tracks ongoing API calls)
   }
 
-  // Initialize the service
+  // Initialize the service (sets up status bar only; extraction is triggered by runExtractionOnLoad)
   async init(statusBarElement) {
     this.statusBarElement = statusBarElement;
     if (statusBarElement) {
       this.statusBarText = statusBarElement.querySelector('.extraction-status-text');
       this.statusBarIndicator = statusBarElement.querySelector('.extraction-status-indicator');
+      this.statusBarProgress = statusBarElement.querySelector('.extraction-status-progress');
     }
-    
-    // Check for pending extractions on startup (non-blocking)
-    // Defer to avoid blocking UI initialization
-    setTimeout(() => {
-      this.checkPendingExtractions().catch(err => {
-        console.error('[ActionExtraction] Error checking pending extractions:', err);
+  }
+
+  // Run on popup/sidepanel load: migrate stuck notes, then extract for ALL meetings
+  async runExtractionOnLoad() {
+    try {
+      console.log('[ActionExtraction] runExtractionOnLoad starting');
+      await db.ensureReady();
+      await this.migrateActionInProgressToCompleted();
+      await this.checkPendingExtractions();
+      await this.checkAllMeetingsForExtraction();
+      console.log('[ActionExtraction] runExtractionOnLoad complete');
+    } catch (err) {
+      console.error('[ActionExtraction] Error on load extraction check:', err);
+    }
+  }
+
+  // Convert all action_in_progress notes to action_failed (runs every load)
+  // When popup closes before LLM returns, notes stay action_in_progress with no extracted actions.
+  // Converting to action_failed allows extraction to retry on next open.
+  // (Converting to action_completed would hide them from retry and show "completed" with no actions.)
+  async migrateActionInProgressToCompleted() {
+    const instances = await db.meetingInstances.toArray();
+    let totalConverted = 0;
+
+    for (const instance of instances) {
+      if (!Array.isArray(instance.notes)) continue;
+
+      const updatedNotes = instance.notes.map(note => {
+        if (note.actionStatus === 'action_in_progress') {
+          totalConverted++;
+          return { ...note, actionStatus: 'action_failed' };
+        }
+        return note;
       });
-    }, 100);
-    
-    // Note: checkAllMeetingsForExtraction() will be called after meetings are loaded
+
+      const hasChanges = instance.notes.some(note => note.actionStatus === 'action_in_progress');
+      if (hasChanges) {
+        await db.meetingInstances.update(instance.id, { notes: updatedNotes });
+      }
+    }
+
+    if (totalConverted > 0) {
+      console.log(`[ActionExtraction] Migrated ${totalConverted} action_in_progress note(s) to action_failed (will retry extraction)`);
+    }
   }
 
   // Schedule extraction with debounce
@@ -139,17 +183,22 @@ class ActionExtractionService {
     }
   }
 
-  // Check all meetings for notes that need extraction
+  // Check all meetings for notes that need extraction.
+  // Only extracts when the debounce delay has passed since the last note (respects PENDING_EXTRACTIONS).
   async checkAllMeetingsForExtraction() {
     try {
       const allMeetings = await getAllMeetingSeries();
-      
+      console.log(`[ActionExtraction] checkAllMeetingsForExtraction: ${allMeetings.length} meetings`);
+
       // Early exit if no meetings
       if (allMeetings.length === 0) {
         return;
       }
+
+      const pending = await chrome.storage.local.get(PENDING_EXTRACTIONS_KEY);
+      const pendingExtractions = pending[PENDING_EXTRACTIONS_KEY] || {};
+      const now = Date.now();
       
-      let totalNotesToExtract = 0;
       const meetingsWithNotes = [];
       
       // First, check all meetings and collect which ones need extraction
@@ -157,21 +206,40 @@ class ActionExtractionService {
         const notesToExtract = await this.getNotesToExtract(meeting.id);
         
         if (notesToExtract.length > 0) {
-          totalNotesToExtract += notesToExtract.length;
-          meetingsWithNotes.push({ meeting, notesToExtract });
+          const pendingData = pendingExtractions[meeting.id];
+          const lastNoteTime = pendingData?.last_note_time ?? 0;
+          const timeSinceLastNote = now - lastNoteTime;
+          const hasActiveTimer = this.timers.has(meeting.id);
+
+          // Only extract if debounce delay has passed. Skip if:
+          // - There's an active debounce timer (note just saved), or
+          // - Pending extraction exists and not enough time has passed
+          if (!hasActiveTimer && (timeSinceLastNote >= DEBOUNCE_DELAY || !pendingData)) {
+            meetingsWithNotes.push({ meeting, notesToExtract });
+          }
         }
       }
       
-      // Early exit if no notes to extract
+      if (meetingsWithNotes.length > 0) {
+        console.log(`[ActionExtraction] Found ${meetingsWithNotes.length} meeting(s) with unextracted notes:`, meetingsWithNotes.map(m => m.meeting.name));
+      } else {
+        console.log(`[ActionExtraction] No meetings with not_actioned/action_failed notes to extract`);
+      }
+      
       if (meetingsWithNotes.length === 0) {
         return;
       }
       
       // Process each meeting sequentially — await each one to avoid
       // concurrent DB writes that cause "Key already exists" errors
-      for (const { meeting, notesToExtract } of meetingsWithNotes) {
+      const total = meetingsWithNotes.length;
+      for (let i = 0; i < total; i++) {
+        const { meeting, notesToExtract } = meetingsWithNotes[i];
         try {
-          await this.extractActions(meeting.id);
+          await this.extractActions(meeting.id, {
+            batchIndex: i + 1,
+            batchTotal: total
+          });
         } catch (err) {
           console.error(`[ActionExtraction] Error extracting actions for meeting ${meeting.id}:`, err);
         }
@@ -182,6 +250,7 @@ class ActionExtractionService {
   }
 
   // Get notes that need extraction (not_actioned or action_failed)
+  // action_in_progress is excluded to avoid duplicate action items when re-extracting
   async getNotesToExtract(meetingId) {
     const notesByDate = await getNotesByDate(meetingId);
     const allNotes = notesByDate.flatMap(dateGroup => dateGroup.notes);
@@ -197,7 +266,7 @@ class ActionExtractionService {
   }
 
   // Extract actions for a meeting
-  async extractActions(meetingId) {
+  async extractActions(meetingId, options = {}) {
     // Dexie auto-increment keys are numbers; coerce string IDs from chrome.storage
     meetingId = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
     console.log(`[ActionExtraction] extractActions called for meeting ${meetingId}`);
@@ -233,7 +302,7 @@ class ActionExtractionService {
         }
 
         // Show status bar
-        await this.showStatusBar('extracting', meetingId);
+        await this.showStatusBar('extracting', meetingId, options);
 
         // Get meeting details (pass notes to extract so we don't filter again after marking as in_progress)
         console.log(`[ActionExtraction] Getting meeting details for API call`);
@@ -265,7 +334,7 @@ class ActionExtractionService {
           await this.updateExtractionStatus(meetingId, 'completed', result.data);
           
           // Show success status
-          await this.showStatusBar('success', meetingId);
+          await this.showStatusBar('success', meetingId, options);
           
           // Auto-hide after 3 seconds
           setTimeout(() => {
@@ -293,7 +362,7 @@ class ActionExtractionService {
           await this.updateExtractionStatus(meetingId, 'failed', null, result.error);
           
           // Show failed status
-          await this.showStatusBar('failed', meetingId);
+          await this.showStatusBar('failed', meetingId, options);
           
           // Auto-hide after 5 seconds
           setTimeout(() => {
@@ -321,7 +390,7 @@ class ActionExtractionService {
         }
         
         await this.updateExtractionStatus(meetingId, 'failed', null, errorMsg);
-        await this.showStatusBar('failed', meetingId);
+        await this.showStatusBar('failed', meetingId, options);
         setTimeout(() => {
           this.hideStatusBar();
         }, 5000);
@@ -436,8 +505,19 @@ class ActionExtractionService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[ActionExtraction] API error response:`, errorText);
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        const isServerError = response.status >= 500;
+        if (isServerError) {
+          console.warn(`[ActionExtraction] LLM service unavailable (${response.status}):`, errorText);
+        } else {
+          console.error(`[ActionExtraction] API error response:`, errorText);
+        }
+        const friendlyMessage = isServerError
+          ? 'LLM service temporarily unavailable. Please try again later.'
+          : `API error: ${response.status} ${response.statusText}`;
+        const err = new Error(friendlyMessage);
+        err.status = response.status;
+        err.isServerError = isServerError;
+        throw err;
       }
 
       const data = await response.json();
@@ -445,19 +525,24 @@ class ActionExtractionService {
       return { success: true, data };
 
     } catch (error) {
-      console.error(`[ActionExtraction] Extraction attempt ${retryCount + 1} failed:`, error);
-      console.error(`[ActionExtraction] Error details:`, error.message, error.stack);
+      const isServerError = error.isServerError || (error.status && error.status >= 500);
+      if (isServerError) {
+        console.warn(`[ActionExtraction] LLM service unavailable (attempt ${retryCount + 1}):`, error.message);
+      } else {
+        console.error(`[ActionExtraction] Extraction attempt ${retryCount + 1} failed:`, error);
+      }
+
+      // Skip retries for 5xx (server down) - retrying won't help and blocks the UI
+      if (isServerError && retryCount === 0) {
+        return { success: false, error: error.message };
+      }
 
       if (retryCount < MAX_RETRIES - 1) {
-        // Wait before retry
         const delay = RETRY_DELAYS[retryCount] || 30000;
         console.log(`[ActionExtraction] Waiting ${delay}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, delay));
-        
-        // Retry
         return this.extractWithRetry(meetingId, meetingDetails, retryCount + 1);
       } else {
-        // Max retries reached
         console.error(`[ActionExtraction] Max retries reached for meeting ${meetingId}`);
         return { success: false, error: error.message };
       }
@@ -653,29 +738,48 @@ class ActionExtractionService {
   }
 
   // Show status bar
-  async showStatusBar(state, meetingId) {
+  async showStatusBar(state, meetingId, options = {}) {
     if (!this.statusBarElement) return;
 
-    const meeting = await db.meetingSeries.get(meetingId);
-    const meetingName = meeting ? meeting.name : 'Meeting';
+    const { batchIndex, batchTotal } = options;
+    const isBatch = batchTotal && batchTotal > 1;
 
     let message = '';
-    switch (state) {
-      case 'extracting':
-        message = `Extracting action items for ${meetingName}...`;
-        break;
-      case 'success':
-        message = `Action items extracted for ${meetingName}`;
-        break;
-      case 'failed':
-        message = `Failed to extract actions for ${meetingName}`;
-        break;
+    let progressText = '';
+    if (isBatch) {
+      const batchMsg = this.statusBarElement?.dataset?.batchMessage || 'Extracting action items for all meetings...';
+      message = batchMsg;
+      progressText = ` (${batchIndex} of ${batchTotal})`;
+      if (state === 'success' || state === 'failed') {
+        const meeting = await db.meetingSeries.get(meetingId);
+        const meetingName = meeting ? meeting.name : 'Meeting';
+        message = state === 'success'
+          ? `Action items extracted for ${meetingName}`
+          : `Failed to extract actions for ${meetingName}`;
+      }
+    } else {
+      const meeting = await db.meetingSeries.get(meetingId);
+      const meetingName = meeting ? meeting.name : 'Meeting';
+      switch (state) {
+        case 'extracting':
+          message = `Extracting action items for ${meetingName}...`;
+          break;
+        case 'success':
+          message = `Action items extracted for ${meetingName}`;
+          break;
+        case 'failed':
+          message = `Failed to extract actions for ${meetingName}`;
+          break;
+      }
     }
 
     this.statusBarElement.className = `extraction-status-bar active ${state}`;
     this.statusBarElement.style.display = 'flex';
     if (this.statusBarText) {
-      this.statusBarText.textContent = message;
+      this.statusBarText.textContent = message + progressText;
+    }
+    if (this.statusBarProgress) {
+      this.statusBarProgress.style.display = 'none';
     }
   }
 
@@ -706,6 +810,7 @@ class ActionExtractionService {
     if (status === 'completed') {
       const indicator = document.createElement('div');
       indicator.className = 'meeting-extraction-status completed';
+      indicator.title = 'Action items extracted';
       indicator.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -715,6 +820,7 @@ class ActionExtractionService {
     } else if (status === 'pending') {
       const indicator = document.createElement('div');
       indicator.className = 'meeting-extraction-status pending';
+      indicator.title = 'Extracting action items...';
       indicator.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1" fill="none"/>
@@ -725,6 +831,7 @@ class ActionExtractionService {
     } else if (status === 'failed') {
       const indicator = document.createElement('div');
       indicator.className = 'meeting-extraction-status failed';
+      indicator.title = 'Action extraction failed';
       indicator.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1" fill="none"/>
@@ -753,6 +860,7 @@ class ActionExtractionService {
     
     if (status === 'completed') {
       indicator.className = 'meeting-extraction-status completed';
+      indicator.title = 'Action items extracted';
       indicator.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -760,6 +868,7 @@ class ActionExtractionService {
       `;
     } else if (status === 'pending') {
       indicator.className = 'meeting-extraction-status pending';
+      indicator.title = 'Extracting action items...';
       indicator.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1" fill="none"/>
@@ -768,6 +877,7 @@ class ActionExtractionService {
       `;
     } else if (status === 'failed') {
       indicator.className = 'meeting-extraction-status failed';
+      indicator.title = 'Action extraction failed';
       indicator.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1" fill="none"/>

@@ -176,9 +176,18 @@ export async function loadMeetings(elements) {
     const countEl2 = document.querySelector('[data-category="recurring"] .category-count');
     const countEl3 = document.querySelector('[data-category="adhoc"] .category-count');
     
-    if (countEl1) countEl1.textContent = count1;
-    if (countEl2) countEl2.textContent = count2;
-    if (countEl3) countEl3.textContent = count3;
+    if (countEl1) {
+      countEl1.textContent = count1;
+      countEl1.title = count1 === 1 ? '1 meeting' : `${count1} meetings`;
+    }
+    if (countEl2) {
+      countEl2.textContent = count2;
+      countEl2.title = count2 === 1 ? '1 meeting' : `${count2} meetings`;
+    }
+    if (countEl3) {
+      countEl3.textContent = count3;
+      countEl3.title = count3 === 1 ? '1 meeting' : `${count3} meetings`;
+    }
     
     // Render meetings for each category
     for (const [type, meetingList] of Object.entries(meetingsByType)) {
@@ -303,6 +312,7 @@ function createMeetingItem(meeting, stats, elements) {
   if (stats.openAgendaCount > 0) {
     const badge = document.createElement('div');
     badge.className = 'meeting-item-badge';
+    badge.title = stats.openAgendaCount === 1 ? '1 open agenda item' : `${stats.openAgendaCount} open agenda items`;
     const badgeText = document.createElement('span');
     badgeText.textContent = `${stats.openAgendaCount} open`;
     badge.appendChild(badgeText);
@@ -383,6 +393,7 @@ export async function updateMeetingBadge(meetingId) {
   if (stats.openAgendaCount > 0) {
     const badge = document.createElement('div');
     badge.className = 'meeting-item-badge';
+    badge.title = stats.openAgendaCount === 1 ? '1 open agenda item' : `${stats.openAgendaCount} open agenda items`;
     const badgeText = document.createElement('span');
     badgeText.textContent = `${stats.openAgendaCount} open`;
     badge.appendChild(badgeText);

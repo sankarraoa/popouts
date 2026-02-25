@@ -557,9 +557,12 @@
     </div>
     
     <!-- Extraction Status Bar -->
-    <div id="extraction-status-bar" class="extraction-status-bar" style="display: none;">
+    <div id="extraction-status-bar" class="extraction-status-bar" style="display: none;"
+         data-batch-message="Extracting action items for all meetings..."
+         aria-label="Extraction status">
       <div class="extraction-status-indicator"></div>
       <span class="extraction-status-text"></span>
+      <span class="extraction-status-progress" style="display: none;"></span>
     </div>
   </div>
 

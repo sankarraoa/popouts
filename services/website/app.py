@@ -1,14 +1,18 @@
 import os
 import httpx
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, EmailStr
 
 app = FastAPI()
 
+PUBLIC_DIR = Path(__file__).parent / "public"
+
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 NOTIFY_EMAIL = os.getenv("NOTIFY_EMAIL", "asankarrao@gmail.com")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "onboarding@resend.dev")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@inform.popouts.app")
 
 
 class AccessRequest(BaseModel):
@@ -51,6 +55,12 @@ async def request_access(req: AccessRequest):
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+
+@app.get("/privacy")
+async def privacy():
+    """Privacy policy page — required for Chrome Web Store."""
+    return FileResponse(PUBLIC_DIR / "privacy.html")
 
 
 app.mount("/", StaticFiles(directory="public", html=True), name="static")

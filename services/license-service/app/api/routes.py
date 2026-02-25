@@ -37,11 +37,27 @@ async def validate_installation_get(email: str, installation_id: str):
     return LicenseValidationResponse(**result)
 
 
+@router.get("/list")
+async def list_licenses():
+    licenses = await license_service.list_licenses()
+    return {"licenses": licenses, "count": len(licenses)}
+
+
 @router.post("/create", response_model=dict)
 async def create_license(request: CreateLicenseRequest):
-    result = await license_service.create_license(email=request.email, license_key=request.license_key, days=request.days)
+    result = await license_service.create_license(
+        email=request.email, license_key=request.license_key, days=request.days
+    )
     if not result.get("success"):
         raise HTTPException(status_code=400, detail=result.get("error"))
+    return result
+
+
+@router.delete("/{license_id}")
+async def delete_license(license_id: int):
+    result = await license_service.delete_license(license_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=404, detail=result.get("error"))
     return result
 
 

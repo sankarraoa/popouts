@@ -3,9 +3,12 @@
   "name": "Popouts",
   "version": "1.0.0",
   "description": "Productivity tools that pop out of your browser - like digital post-its",
-  "permissions": [
-    "storage",
-    "sidePanel"
+  "permissions": ["storage", "sidePanel"],
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "http://localhost:8001/*",
+    "https://llm-service-production-22b1.up.railway.app/*",
+    "https://license-service-production.up.railway.app/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",

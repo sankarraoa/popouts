@@ -1,9 +1,23 @@
+import hashlib
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict, List, Optional
 from app.database import get_db_connection
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+LICENSE_SALT = "popouts-license-salt-change-in-production"
+
+
+def generate_license_key(email: str, days: int = 365) -> tuple:
+    """Generate a license key and expiry date. Returns (license_key, expiry_iso)."""
+    expiry = datetime.now() + timedelta(days=days)
+    expiry_str = expiry.strftime("%Y%m%d")
+    hash_input = f"{email.lower()}{LICENSE_SALT}{expiry_str}"
+    hash_value = hashlib.sha256(hash_input.encode()).hexdigest()[:8].upper()
+    email_clean = email.lower().replace("@", "-").replace(".", "-")
+    license_key = f"{email_clean}-{expiry_str}-{hash_value}"
+    return license_key, expiry.isoformat()
 
 
 class LicenseService:
@@ -100,14 +114,62 @@ class LicenseService:
         finally:
             await conn.close()
 
-    async def create_license(self, email: str, license_key: str, days: int = 365) -> Dict:
+    async def list_licenses(self) -> List[Dict]:
         conn = await get_db_connection()
         try:
-            expiry_date = (datetime.now() + timedelta(days=days)).isoformat()
+            rows = await conn.execute(
+                "SELECT id, email, license_key, expiry_date, created_at, status FROM licenses ORDER BY created_at DESC"
+            )
+            records = await rows.fetchall()
+            result = []
+            for r in records:
+                created = datetime.fromisoformat(r["created_at"]) if r["created_at"] else None
+                expiry = datetime.fromisoformat(r["expiry_date"]) if r["expiry_date"] else None
+                days_val = (expiry - created).days if (created and expiry) else None
+                result.append({
+                    "id": r["id"],
+                    "email": r["email"],
+                    "license_key": r["license_key"],
+                    "days": days_val,
+                    "created_at": r["created_at"],
+                    "expiry_date": r["expiry_date"],
+                    "status": r["status"],
+                })
+            return result
+        except Exception as e:
+            logger.error(f"[ListLicenses] Error: {e}")
+            return []
+        finally:
+            await conn.close()
+
+    async def delete_license(self, license_id: int) -> Dict:
+        conn = await get_db_connection()
+        try:
+            row = await conn.execute("SELECT 1 FROM licenses WHERE id = ?", (license_id,))
+            if not await row.fetchone():
+                return {"success": False, "error": "License not found"}
+            await conn.execute("DELETE FROM licenses WHERE id = ?", (license_id,))
+            await conn.commit()
+            logger.info(f"[Delete] License id={license_id} deleted")
+            return {"success": True}
+        except Exception as e:
+            logger.error(f"[Delete] Error: {e}")
+            await conn.rollback()
+            return {"success": False, "error": str(e)}
+        finally:
+            await conn.close()
+
+    async def create_license(self, email: str, license_key: Optional[str] = None, days: int = 365) -> Dict:
+        conn = await get_db_connection()
+        try:
+            if not license_key:
+                license_key, expiry_date = generate_license_key(email, days)
+            else:
+                expiry_date = (datetime.now() + timedelta(days=days)).isoformat()
             await conn.execute(
                 """INSERT INTO licenses (email, license_key, expiry_date, status)
                    VALUES (?, ?, ?, 'active')
-                   ON CONFLICT(email, license_key) DO UPDATE SET expiry_date = excluded.expiry_date, status = 'active'""",
+                   ON CONFLICT(license_key) DO UPDATE SET expiry_date = excluded.expiry_date, status = 'active'""",
                 (email.lower(), license_key, expiry_date),
             )
             await conn.commit()

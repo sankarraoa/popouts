@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>License Management — Popouts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-primary: #0a0a0a;
+      --color-secondary: #71717a;
+      --color-muted: #a1a1aa;
+      --color-bg: #ffffff;
+      --color-bg-alt: #fafafa;
+      --color-bg-subtle: #f4f4f5;
+      --color-border: rgba(0, 0, 0, 0.06);
+      --color-border-light: rgba(0, 0, 0, 0.05);
+      --color-green: #22c55e;
+      --color-green-dark: #059669;
+      --color-red: #dc2626;
+      --radius-sm: 8px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 16px;
+      --shadow-card: 0px 1px 3px 0px rgba(0, 0, 0, 0.1), 0px 1px 2px -1px rgba(0, 0, 0, 0.1);
+      --max-width: 1024px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--color-primary);
+      background: var(--color-bg-alt);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+    .page { padding: 40px 0 80px; }
+    .page-header { margin-bottom: 32px; }
+    .page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 8px; }
+    .page-desc { font-size: 15px; color: var(--color-secondary); }
+    .card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .card-title { font-size: 17px; font-weight: 600; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+      font-weight: 500;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      padding: 0 20px;
+      height: 40px;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-dark { background: var(--color-primary); color: #fff; }
+    .btn-ghost { background: transparent; color: var(--color-secondary); }
+    .btn-danger { background: var(--color-red); color: #fff; }
+    .btn-sm { height: 34px; padding: 0 14px; font-size: 13px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 14px 24px; text-align: left; border-bottom: 1px solid var(--color-border-light); }
+    th {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--color-muted);
+      background: var(--color-bg-alt);
+    }
+    td { font-size: 14px; color: var(--color-primary); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--color-bg-alt); }
+    .mono { font-family: ui-monospace, monospace; font-size: 13px; }
+    .text-muted { color: var(--color-muted); font-size: 13px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 500; }
+    .badge-active { background: #dcfce7; color: #166534; }
+    .badge-expired { background: #fee2e2; color: #991b1b; }
+    .form-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+    .form-group { flex: 1; min-width: 160px; }
+    .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--color-secondary); margin-bottom: 6px; }
+    .form-input {
+      width: 100%;
+      height: 40px;
+      padding: 0 14px;
+      font-family: inherit;
+      font-size: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--color-primary); }
+    .form-input::placeholder { color: var(--color-muted); }
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.25);
+      width: 420px; max-width: calc(100vw - 32px);
+      padding: 24px;
+    }
+    .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .modal-desc { font-size: 14px; color: var(--color-secondary); margin-bottom: 20px; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+    .empty-state { padding: 48px 24px; text-align: center; color: var(--color-muted); font-size: 14px; }
+    .loading { padding: 48px; text-align: center; color: var(--color-muted); }
+    .error-msg { color: var(--color-red); font-size: 13px; margin-top: 8px; }
+    .success-msg { color: var(--color-green-dark); font-size: 13px; margin-top: 8px; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 500; margin-bottom: 32px; }
+    .nav-logo span { color: var(--color-secondary); font-weight: 400; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="container">
+      <div class="nav-logo">Popouts <span>— License Admin</span></div>
+      <div class="page-header">
+        <h1 class="page-title">License Management</h1>
+        <p class="page-desc">Create, view, and manage Popouts license keys.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Create new license</h2>
+        </div>
+        <div style="padding: 24px;">
+          <form id="create-form" class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="email">Email address</label>
+              <input class="form-input" id="email" type="email" placeholder="user@example.com" required>
+            </div>
+            <div class="form-group" style="min-width: 100px;">
+              <label class="form-label" for="days">Days</label>
+              <input class="form-input" id="days" type="number" value="365" min="1" max="3650" required>
+            </div>
+            <div class="form-group" style="flex: 0;">
+              <label class="form-label">&nbsp;</label>
+              <button type="submit" class="btn btn-dark" id="create-btn">Create license</button>
+            </div>
+          </form>
+          <div id="create-error" class="error-msg" style="display:none;"></div>
+          <div id="create-success" class="success-msg" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">All licenses</h2>
+          <button type="button" class="btn btn-ghost btn-sm" id="refresh-btn">Refresh</button>
+        </div>
+        <div id="table-container">
+          <div class="loading" id="loading">Loading licenses…</div>
+          <div class="table-wrap" id="table-wrap" style="display:none;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>License key</th>
+                  <th>Days</th>
+                  <th>Date generated</th>
+                  <th>Date expiry</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="empty-state" style="display:none;">No licenses yet. Create one above.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+      <h3 class="modal-title">Delete license?</h3>
+      <p class="modal-desc" id="delete-modal-desc">This will permanently remove the license. Users with this key will lose access.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="delete-cancel">Cancel</button>
+        <button type="button" class="btn btn-danger" id="delete-confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api/v1/license';
+    let deleteTargetId = null;
+
+    async function loadLicenses() {
+      const loading = document.getElementById('loading');
+      const tableWrap = document.getElementById('table-wrap');
+      const emptyState = document.getElementById('empty-state');
+      const tbody = document.getElementById('table-body');
+
+      loading.style.display = 'block';
+      tableWrap.style.display = 'none';
+      emptyState.style.display = 'none';
+
+      try {
+        const res = await fetch(API + '/list');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Failed to load');
+
+        const licenses = data.licenses || [];
+        loading.style.display = 'none';
+
+        if (licenses.length === 0) {
+          emptyState.style.display = 'block';
+          return;
+        }
+
+        tbody.innerHTML = licenses.map(l => {
+          const created = l.created_at ? formatDate(l.created_at) : '—';
+          const expiry = l.expiry_date ? formatDate(l.expiry_date) : '—';
+          const days = l.days != null ? l.days : '—';
+          const expiryDate = l.expiry_date ? new Date(l.expiry_date) : null;
+          const isExpired = expiryDate && expiryDate < new Date();
+          const statusClass = isExpired ? 'badge-expired' : 'badge-active';
+          const statusText = isExpired ? 'Expired' : (l.status || 'Active');
+
+          return `
+            <tr>
+              <td>${escapeHtml(l.email)}</td>
+              <td class="mono">${escapeHtml(l.license_key)}</td>
+              <td>${days}</td>
+              <td>${created}</td>
+              <td>${expiry}</td>
+              <td><span class="badge ${statusClass}">${statusText}</span></td>
+              <td>
+                <button type="button" class="btn btn-ghost btn-sm delete-btn" data-id="${l.id}" data-email="${escapeHtml(l.email)}">Delete</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        tableWrap.style.display = 'block';
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', () => openDeleteModal(parseInt(btn.dataset.id), btn.dataset.email));
+        });
+      } catch (err) {
+        loading.style.display = 'none';
+        emptyState.style.display = 'block';
+        emptyState.textContent = 'Error: ' + (err.message || 'Failed to load licenses');
+      }
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const days = parseInt(document.getElementById('days').value, 10) || 365;
+      const btn = document.getElementById('create-btn');
+      const errEl = document.getElementById('create-error');
+      const successEl = document.getElementById('create-success');
+
+      errEl.style.display = 'none';
+      successEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Creating…';
+
+      try {
+        const res = await fetch(API + '/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, days })
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.detail || data.error || 'Failed to create');
+
+        successEl.textContent = `License created: ${data.license_key}`;
+        successEl.style.display = 'block';
+        document.getElementById('email').value = '';
+        await loadLicenses();
+      } catch (err) {
+        errEl.textContent = err.message || 'Failed to create license';
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create license';
+      }
+    });
+
+    document.getElementById('refresh-btn').addEventListener('click', loadLicenses);
+
+    function openDeleteModal(id, email) {
+      deleteTargetId = id;
+      document.getElementById('delete-modal-desc').textContent =
+        `Delete license for ${email}? This will permanently remove it. Users with this key will lose access.`;
+      document.getElementById('delete-modal').classList.add('open');
+    }
+
+    document.getElementById('delete-cancel').addEventListener('click', () => {
+      document.getElementById('delete-modal').classList.remove('open');
+      deleteTargetId = null;
+    });
+
+    document.getElementById('delete-confirm').addEventListener('click', async () => {
+      if (!deleteTargetId) return;
+      const btn = document.getElementById('delete-confirm');
+      btn.disabled = true;
+      try {
+        const res = await fetch(API + '/' + deleteTargetId, { method: 'DELETE' });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.detail || 'Failed to delete');
+        }
+        document.getElementById('delete-modal').classList.remove('open');
+        deleteTargetId = null;
+        await loadLicenses();
+      } catch (err) {
+        alert(err.message || 'Failed to delete');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('delete-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'delete-modal') {
+        document.getElementById('delete-modal').classList.remove('open');
+        deleteTargetId = null;
+      }
+    });
+
+    loadLicenses();
+  </script>
+</body>
+</html>

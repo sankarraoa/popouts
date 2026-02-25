@@ -12,7 +12,6 @@ import { selectMeeting, switchView, setMeetingViewDependencies } from '../js/mod
 import { createAgendaItem } from '../js/agenda.js';
 import { updateMeetingBadge } from '../js/modules/sidebar.js';
 import { createActionItem } from '../js/actions.js';
-import { getAllMeetingSeries } from '../js/meetings.js';
 import { db } from '../js/db.js';
 import { actionExtractionService } from '../js/modules/action-extraction.js';
 import * as licenseManager from '../js/modules/license.js';
@@ -150,21 +149,10 @@ async function init() {
     scheduleDeferredHydration();
     
     // Everything below is non-blocking — UI is already visible
-    actionExtractionService.init(elements.extractionStatusBar).then(() => {
-      mark('Extraction service initialized');
-      setTimeout(async () => {
-        try {
-          const allMeetings = await getAllMeetingSeries();
-          if (allMeetings.length > 0) {
-            await actionExtractionService.checkAllMeetingsForExtraction();
-            mark('Extraction check complete');
-          }
-        } catch (err) {
-          console.error('Error checking meetings for extraction:', err);
-        }
-      }, 500);
-    }).catch(err => {
-      console.error('Error initializing action extraction service:', err);
+    actionExtractionService.init(elements.extractionStatusBar);
+    // Run extraction for ALL meetings on load (migrate stuck notes, then extract not_actioned/action_failed)
+    actionExtractionService.runExtractionOnLoad().catch(err => {
+      console.error('[ActionExtraction] Error on load:', err);
     });
     
   } catch (error) {
