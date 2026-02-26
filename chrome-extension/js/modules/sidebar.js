@@ -206,8 +206,15 @@ export async function loadMeetings(elements) {
         }
       }
     });
-    
-    
+
+    // Re-apply selected state (loadMeetings re-renders the list and removes the selected class)
+    if (state.currentMeetingId != null) {
+      const idStr = String(state.currentMeetingId);
+      const selectedItem = document.querySelector(`.meeting-item[data-meeting-id="${idStr}"]`);
+      if (selectedItem) {
+        selectedItem.classList.add('selected');
+      }
+    }
   } catch (error) {
     console.error('Error loading meetings:', error);
   }
@@ -274,12 +281,56 @@ async function renderMeetingList(type, meetingList, elements) {
   }
 }
 
+// Show delete confirmation modal (returns Promise<boolean>)
+function showDeleteConfirm(meetingName) {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('delete-meeting-modal');
+    const messageEl = document.getElementById('delete-modal-message');
+    const cancelBtn = document.getElementById('delete-modal-cancel');
+    const confirmBtn = document.getElementById('delete-modal-confirm');
+
+    if (!overlay || !messageEl || !cancelBtn || !confirmBtn) {
+      resolve(confirm(`Are you sure you want to delete "${meetingName}"?`));
+      return;
+    }
+
+    messageEl.textContent = `Are you sure you want to delete "${meetingName}"?`;
+    overlay.classList.add('show');
+
+    const cleanup = (result) => {
+      overlay.classList.remove('show');
+      cancelBtn.removeEventListener('click', onCancel);
+      confirmBtn.removeEventListener('click', onConfirm);
+      overlay.removeEventListener('click', onOverlayClick);
+      document.removeEventListener('keydown', onKeyDown);
+      resolve(result);
+    };
+
+    const onCancel = () => cleanup(false);
+    const onConfirm = () => cleanup(true);
+    const onOverlayClick = (e) => {
+      if (e.target === overlay) cleanup(false);
+    };
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') cleanup(false);
+    };
+
+    cancelBtn.addEventListener('click', onCancel);
+    confirmBtn.addEventListener('click', onConfirm);
+    overlay.addEventListener('click', onOverlayClick);
+    document.addEventListener('keydown', onKeyDown);
+  });
+}
+
 // Create meeting item element
 function createMeetingItem(meeting, stats, elements) {
   const item = document.createElement('div');
   item.className = 'meeting-item';
-  item.dataset.meetingId = meeting.id;
-  
+  item.dataset.meetingId = String(meeting.id);
+  if (state.currentMeetingId != null && String(state.currentMeetingId) === String(meeting.id)) {
+    item.classList.add('selected');
+  }
+
   const content = document.createElement('div');
   content.className = 'meeting-item-content';
   
@@ -349,12 +400,13 @@ function createMeetingItem(meeting, stats, elements) {
   `;
   deleteButton.addEventListener('click', async (e) => {
     e.stopPropagation(); // Prevent selecting the meeting
-    if (confirm(`Are you sure you want to delete "${meeting.name}"?`)) {
+    const confirmed = await showDeleteConfirm(meeting.name);
+    if (confirmed) {
       await deleteMeetingSeries(meeting.id);
       await loadMeetings(elements);
       await updateCounts(elements);
       // Clear selection if deleted meeting was selected
-      if (state.currentMeetingId === meeting.id) {
+      if (state.currentMeetingId != null && String(state.currentMeetingId) === String(meeting.id)) {
         state.currentMeetingId = null;
         if (elements.emptyState) elements.emptyState.style.display = 'flex';
         if (elements.meetingDetail) elements.meetingDetail.style.display = 'none';

@@ -8,10 +8,12 @@ const ENVIRONMENTS = {
   development: {
     LLM_SERVICE_URL: 'http://localhost:8000',
     LICENSE_SERVICE_URL: 'http://localhost:8001',
+    WEBSITE_URL: 'http://localhost:8080',
   },
   production: {
     LLM_SERVICE_URL: 'https://llm-service-production-22b1.up.railway.app',
     LICENSE_SERVICE_URL: 'https://license-service-production.up.railway.app',
+    WEBSITE_URL: 'https://www.popouts.app',
   },
 };
 

@@ -514,6 +514,7 @@ body {
   border: 1px solid rgba(3, 2, 19, 0.3);
   border-radius: 8px;
   margin-bottom: 2px;
+  text-align: left;
 }
 
 .add-meeting-input {
@@ -537,6 +538,7 @@ body {
   white-space: pre-wrap;
   word-wrap: break-word;
   word-break: break-word;
+  text-align: left;
 }
 
 .add-meeting-input::placeholder {
@@ -618,7 +620,7 @@ body {
   position: relative;
 }
 
-.meeting-item:hover:not(.selected) {
+.meeting-item:hover {
   background: rgba(0, 0, 0, 0.02) !important;
 }
 
@@ -663,12 +665,15 @@ body {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  padding: 8px 38px 8px 10px;
+  padding: 8px 12px;
   width: 100%;
   min-height: 50px;
-  background: rgba(3, 2, 19, 0.12) !important;
-  border: 1px solid rgba(3, 2, 19, 0.2);
+  background: rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 8px;
+}
+.meeting-item.selected:hover {
+  background: rgba(0, 0, 0, 0.12) !important;
 }
 
 .meeting-item-content {
@@ -2597,6 +2602,34 @@ body {
   display: flex !important;
 }
 
+/* Delete confirmation modal - center-aligned text */
+.delete-modal .modal {
+  padding: 20px 24px;
+}
+.delete-modal-body {
+  text-align: center;
+  padding-bottom: 4px;
+}
+.delete-modal-message {
+  font-family: 'Inter';
+  font-size: 14px;
+  line-height: 1.5;
+  color: #3f3f46;
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+.delete-modal-actions {
+  justify-content: center;
+  gap: 12px;
+}
+.delete-modal-actions .modal-button.delete {
+  background: #dc2626;
+  color: white;
+}
+.delete-modal-actions .modal-button.delete:hover {
+  background: #b91c1c;
+}
+
 .modal {
   background: white;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -3011,6 +3044,166 @@ select.settings-input {
   line-height: 15px;
   letter-spacing: 0.1172px;
   color: rgba(231, 0, 11, 0.8);
+}
+
+.license-request-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: #e7000b;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter';
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 15px;
+  letter-spacing: 0.1172px;
+  color: white;
+  cursor: pointer;
+}
+
+.license-request-cta svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.license-request-cta:hover {
+  background: #c10007;
+}
+
+#license-status-expired,
+#free-trial-status-expired {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.license-request-form {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 201, 201, 0.5);
+}
+
+.license-request-form-title {
+  font-family: 'Inter';
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 18px;
+  color: #c10007;
+  margin: 0 0 6px 0;
+}
+
+.license-request-form-desc {
+  font-family: 'Inter';
+  font-weight: 400;
+  font-size: 10px;
+  line-height: 15px;
+  letter-spacing: 0.1172px;
+  color: rgba(231, 0, 11, 0.7);
+  margin: 0 0 12px 0;
+}
+
+.license-request-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.license-request-form-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter';
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 15px;
+  letter-spacing: 0.1172px;
+  color: rgba(193, 0, 7, 0.7);
+  cursor: default;
+}
+
+.license-request-form-label svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.license-request-form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.license-request-email-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 6px 10px;
+  background: white;
+  border: 1px solid #ffc9c9;
+  border-radius: 8px;
+  font-family: 'Inter';
+  font-size: 11px;
+  color: #0a0a0a;
+}
+
+.license-request-email-input::placeholder {
+  color: rgba(255, 162, 162, 0.6);
+}
+
+.license-request-submit-btn {
+  flex-shrink: 0;
+  height: 30px;
+  padding: 0 12px;
+  background: #e7000b;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter';
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 15px;
+  letter-spacing: 0.1172px;
+  color: white;
+  cursor: pointer;
+}
+
+.license-request-submit-btn:hover:not(:disabled) {
+  background: #c10007;
+}
+
+.license-request-submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.license-request-cancel-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: 'Inter';
+  font-weight: 500;
+  font-size: 9px;
+  line-height: 13.5px;
+  letter-spacing: 0.167px;
+  color: rgba(251, 44, 54, 0.6);
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.license-request-cancel-btn:hover {
+  color: rgba(251, 44, 54, 0.9);
+}
+
+.license-request-success {
+  font-family: 'Inter';
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 16px;
+  color: rgba(0, 130, 54, 0.9);
+  margin: 0;
 }
 
 /* License Error Message */

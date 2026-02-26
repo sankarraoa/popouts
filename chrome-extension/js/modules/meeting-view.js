@@ -61,10 +61,11 @@ export async function selectMeeting(meetingId) {
   // Update selected meeting item
   const allItems = document.querySelectorAll('.meeting-item');
   console.log('[MeetingView] Updating selection for', allItems.length, 'meeting items, selecting:', meetingId);
+  const meetingIdStr = String(meetingId);
   allItems.forEach(item => {
     const wasSelected = item.classList.contains('selected');
     item.classList.remove('selected');
-    if (item.dataset.meetingId === meetingId) {
+    if (String(item.dataset.meetingId) === meetingIdStr) {
       item.classList.add('selected');
       console.log('[MeetingView] Added selected class to item:', meetingId, 'Element:', item, 'Computed background:', window.getComputedStyle(item).backgroundColor);
     } else if (wasSelected) {

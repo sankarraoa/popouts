@@ -19,6 +19,15 @@ class AccessRequest(BaseModel):
     email: EmailStr
 
 
+class LicenseRequest(BaseModel):
+    email: EmailStr
+
+
+class ContactSupportRequest(BaseModel):
+    email: EmailStr
+    message: str = ""
+
+
 @app.post("/api/request-access")
 async def request_access(req: AccessRequest):
     if not RESEND_API_KEY:
@@ -52,6 +61,74 @@ async def request_access(req: AccessRequest):
     return {"status": "ok"}
 
 
+@app.post("/api/request-license")
+async def request_license(req: LicenseRequest):
+    """Extension: user requests a new license key when theirs expired."""
+    if not RESEND_API_KEY:
+        raise HTTPException(status_code=500, detail="Email not configured")
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": FROM_EMAIL,
+                "to": NOTIFY_EMAIL,
+                "subject": f"Popouts License Key Request from {req.email}",
+                "text": (
+                    f"Hi,\n\n"
+                    f"Someone has requested a new license key for Popouts.\n\n"
+                    f"Email: {req.email}\n\n"
+                    f"You can follow up with them directly to provide a new license key.\n\n"
+                    f"Best,\n"
+                    f"Popouts Extension"
+                ),
+            },
+        )
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="Failed to send email")
+
+    return {"status": "ok"}
+
+
+@app.post("/api/contact-support")
+async def contact_support(req: ContactSupportRequest):
+    """Help page: user submits email and message; sends to support."""
+    if not RESEND_API_KEY:
+        raise HTTPException(status_code=500, detail="Email not configured")
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": FROM_EMAIL,
+                "to": NOTIFY_EMAIL,
+                "subject": f"Popouts Support Request from {req.email}",
+                "text": (
+                    f"Hi,\n\n"
+                    f"A user has contacted support from the Popouts help page.\n\n"
+                    f"Email: {req.email}\n\n"
+                    f"Message:\n{req.message or '(no message)'}\n\n"
+                    f"Best,\n"
+                    f"Popouts Website"
+                ),
+            },
+        )
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="Failed to send email")
+
+    return {"status": "ok"}
+
+
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
@@ -61,6 +138,12 @@ async def health():
 async def privacy():
     """Privacy policy page — required for Chrome Web Store."""
     return FileResponse(PUBLIC_DIR / "privacy.html")
+
+
+@app.get("/help")
+async def help_page():
+    """Help page with FAQs and contact support."""
+    return FileResponse(PUBLIC_DIR / "help.html")
 
 
 app.mount("/", StaticFiles(directory="public", html=True), name="static")

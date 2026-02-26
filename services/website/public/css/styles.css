@@ -31,6 +31,8 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
@@ -40,6 +42,8 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  position: relative;
 }
 
 img {
@@ -53,12 +57,18 @@ a {
   text-decoration: none;
 }
 
+main {
+  overflow-x: hidden;
+  min-width: 0;
+}
+
 /* ---------- Layout ---------- */
 
 .container {
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 0 24px;
+  min-width: 0;
 }
 
 .container-narrow {
@@ -241,6 +251,9 @@ a {
   padding-top: 128px;
   padding-bottom: 64px;
   text-align: center;
+  overflow: visible;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .hero-badge {
@@ -295,6 +308,8 @@ a {
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .hero-flow-cards {
@@ -303,6 +318,8 @@ a {
   justify-content: center;
   gap: 20px;
   flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .hero-card {
@@ -316,6 +333,8 @@ a {
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-hero);
   transition: transform 0.2s, box-shadow 0.2s;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .hero-card:hover {
@@ -1425,6 +1444,11 @@ a {
 
   .hero {
     padding-top: 120px;
+    padding-bottom: 48px;
+  }
+
+  .hero .container {
+    overflow: visible;
   }
 
   .hero-title {

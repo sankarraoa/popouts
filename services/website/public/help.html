@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help — Popouts</title>
+  <meta name="description" content="Get help with Popouts. FAQs, how to use, and contact support.">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .help-page { padding-top: 100px; padding-bottom: 80px; min-height: 100vh; }
+    .help-page .help-container { max-width: 1024px; margin: 0 auto; padding: 0 24px; }
+    .help-page .help-header { text-align: center; margin-bottom: 32px; }
+    .help-page .help-title { font-size: 32px; font-weight: 600; margin-bottom: 16px; letter-spacing: -0.3px; }
+    .help-page .help-search { max-width: 560px; margin: 0 auto; position: relative; }
+    .help-page .help-search input { width: 100%; padding: 14px 18px 14px 44px; font-size: 15px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); font-family: inherit; background: var(--color-bg); }
+    .help-page .help-search input::placeholder { color: var(--color-muted); }
+    .help-page .help-search input:focus { outline: none; border-color: var(--color-primary); }
+    .help-page .help-search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--color-muted); pointer-events: none; }
+    .help-page .help-layout { display: flex; gap: 48px; margin-top: 48px; }
+    .help-page .help-sidebar { flex: 0 0 260px; position: sticky; top: 100px; height: fit-content; }
+    .help-page .help-sidebar-title { font-size: 11px; font-weight: 500; letter-spacing: 0.66px; color: #a1a1aa; margin-bottom: 16px; text-transform: uppercase; }
+    .help-page .help-nav-list { display: flex; flex-direction: column; gap: 2px; }
+    .help-page .help-nav-item { display: block; font-size: 13px; color: #71717a; text-decoration: none; padding: 6px 0 6px 12px; border-left: 2px solid transparent; transition: color 0.15s, border-color 0.15s; }
+    .help-page .help-nav-item:hover { color: var(--color-primary); }
+    .help-page .help-nav-item.active { color: #0a0a0a; font-weight: 500; border-left-color: #0a0a0a; }
+    .help-page .help-nav-item.sub { padding-left: 28px; }
+    .help-page .help-content { flex: 1; min-width: 0; max-width: 800px; }
+    .help-page .help-section { margin-bottom: 48px; }
+    .help-page .help-section:last-of-type { margin-bottom: 0; }
+    .help-page .help-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .help-page .help-section-icon { width: 16px; height: 16px; flex-shrink: 0; color: #a1a1aa; }
+    .help-page .help-section-label { font-size: 13px; font-weight: 500; color: #a1a1aa; }
+    .help-page .help-section h2 { font-size: 28px; font-weight: 600; letter-spacing: -0.56px; color: #0a0a0a; line-height: 1.2; margin-bottom: 16px; }
+    .help-page .help-section-body { font-size: 15px; line-height: 25.5px; color: #3f3f46; }
+    .help-page .help-section-body p { margin-bottom: 16px; }
+    .help-page .help-section-body p:last-child { margin-bottom: 0; }
+    .help-page .help-section-body .block { margin-bottom: 16px; }
+    .help-page .help-section-body .block:last-child { margin-bottom: 0; }
+    .help-page .help-section-body .bold { font-weight: 700; color: #3f3f46; }
+    .help-page .help-subsection { border-left: 2px solid #f4f4f5; padding-left: 26px; margin-top: 24px; }
+    .help-page .help-subsection-header { margin-bottom: 4px; }
+    .help-page .help-subsection-num { font-size: 12px; font-weight: 500; color: #a1a1aa; margin-bottom: 4px; }
+    .help-page .help-subsection h3 { font-size: 22px; font-weight: 600; letter-spacing: -0.22px; color: #0a0a0a; margin-bottom: 16px; }
+    .help-page .help-subsection .block { margin-bottom: 16px; }
+    .help-page .help-section-body ul, .help-page .help-section-body ol { margin: 0 0 16px 24px; padding-left: 24px; }
+    .help-page .help-section-body ul { list-style-type: disc; }
+    .help-page .help-section-body ol { list-style-type: decimal; }
+    .help-page .help-section-body li { margin-bottom: 6px; }
+    .help-page .help-still { padding: 32px; background: var(--color-bg-subtle); border-radius: var(--radius-lg); text-align: center; margin-top: 48px; }
+    .help-page .help-still h3 { font-size: 14px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .help-page .help-still p { font-size: 14px; color: var(--color-secondary); margin-bottom: 16px; }
+    .help-page .help-still .btn-contact { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; background: var(--color-primary); color: white; border: none; border-radius: var(--radius-md); font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; }
+    .help-page .help-still .btn-contact:hover { opacity: 0.9; }
+    .help-page .back-link { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 32px; font-size: 14px; color: var(--color-secondary); text-decoration: none; }
+    .help-page .back-link:hover { color: var(--color-primary); }
+    .help-page .section-divider { border-top: 1px solid rgba(0,0,0,0.05); margin-top: 48px; padding-top: 48px; }
+    .help-page .contact-modal .modal { width: 448px; }
+    .help-page .contact-modal .modal-header { padding: 24px 24px 0; }
+    .help-page .contact-modal .modal-title { font-size: 18px; font-weight: 600; letter-spacing: -0.36px; }
+    .help-page .contact-modal .modal-desc { font-size: 14px; color: var(--color-secondary); }
+    .help-page .contact-modal .modal-form { padding: 24px; }
+    .help-page .contact-modal .modal-label { display: block; font-size: 12px; font-weight: 500; color: var(--color-secondary); margin-bottom: 8px; }
+    .help-page .contact-modal .modal-input, .help-page .contact-modal .modal-textarea { width: 100%; padding: 12px 14px; font-size: 14px; border: 1px solid rgba(0,0,0,0.1); border-radius: 14px; font-family: inherit; margin-bottom: 20px; }
+    .help-page .contact-modal .modal-textarea { min-height: 85px; resize: vertical; }
+    .help-page .contact-modal .modal-input:focus, .help-page .contact-modal .modal-textarea:focus { outline: none; border-color: var(--color-primary); }
+    .help-page .contact-modal .modal-submit { width: 100%; padding: 12px 24px; background: var(--color-primary); color: white; border: none; border-radius: 14px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .help-page .contact-modal .modal-submit:hover:not(:disabled) { opacity: 0.9; }
+    .help-page .contact-modal .modal-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .help-page .contact-modal .modal-fine-print { font-size: 11px; color: var(--color-muted); text-align: center; margin-top: 16px; }
+    .help-page .contact-modal .form-success { color: var(--color-green); font-size: 14px; margin-top: 12px; }
+    .help-page .contact-modal .form-error { color: #dc2626; font-size: 14px; margin-top: 12px; }
+    @media (max-width: 768px) {
+      .help-page .help-layout { flex-direction: column; }
+      .help-page .help-sidebar { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <img src="assets/logo.png" alt="Popouts" class="nav-logo-img">
+        <span class="nav-logo-text">Popouts</span>
+      </a>
+      <div class="nav-right">
+        <a href="/#features" class="nav-link">features</a>
+        <a href="/#how-it-works" class="nav-link">how it works</a>
+        <a href="/#pricing" class="nav-link">pricing</a>
+        <a href="https://chromewebstore.google.com" class="btn btn-dark btn-sm" target="_blank" rel="noopener">Add to Chrome</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="help-page">
+    <div class="help-container">
+
+      <div class="help-header">
+        <h1 class="help-title">How can we help?</h1>
+        <div class="help-search">
+          <svg class="help-search-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="8" r="5"/><path d="M12 12l4 4"/>
+          </svg>
+          <input type="text" id="help-search" placeholder="Search for anything on Popouts..." autocomplete="off">
+        </div>
+      </div>
+
+      <div class="help-layout">
+        <aside class="help-sidebar">
+          <p class="help-sidebar-title">ON THIS PAGE</p>
+          <nav class="help-nav-list">
+            <a href="#what-is-popouts" class="help-nav-item">What is Popouts and why is it used?</a>
+            <a href="#how-to-use" class="help-nav-item">How to use it</a>
+            <a href="#meeting-categories" class="help-nav-item sub">Meeting categories</a>
+            <a href="#create-meeting" class="help-nav-item sub">How to create a meeting</a>
+            <a href="#add-agenda" class="help-nav-item sub">How to add agenda items</a>
+            <a href="#close-reopen-agenda" class="help-nav-item sub">How to close or reopen agenda items</a>
+            <a href="#notes-work" class="help-nav-item sub">How notes work</a>
+            <a href="#add-notes" class="help-nav-item sub">How to add notes</a>
+            <a href="#action-items" class="help-nav-item">Action items</a>
+            <a href="#automatic-actions" class="help-nav-item sub">How automatic action items work</a>
+            <a href="#review-ai" class="help-nav-item sub">Always review AI-generated actions</a>
+            <a href="#add-own-actions" class="help-nav-item sub">How to add your own action items</a>
+            <a href="#close-reopen-actions" class="help-nav-item sub">How to close or reopen action items</a>
+            <a href="#consolidated-view" class="help-nav-item">Consolidated view of action items</a>
+            <a href="#access-consolidated" class="help-nav-item sub">How to access it</a>
+            <a href="#what-can-do" class="help-nav-item sub">What you can do here</a>
+            <a href="#when-to-use" class="help-nav-item sub">When to use it</a>
+            <a href="#changes-sync" class="help-nav-item sub">Changes sync automatically</a>
+            <a href="#settings" class="help-nav-item">Settings</a>
+            <a href="#trial-license" class="help-nav-item sub">Trial and license</a>
+            <a href="#requires-license" class="help-nav-item sub">What requires a license</a>
+            <a href="#export-data" class="help-nav-item sub">Export your data</a>
+            <a href="#import-data" class="help-nav-item sub">Import your data</a>
+            <a href="#data-stored-locally" class="help-nav-item sub">Important: Data is stored locally</a>
+            <a href="#" class="help-nav-item" id="sidebar-contact-link">Contact Support</a>
+          </nav>
+        </aside>
+
+        <div class="help-content">
+          <!-- Section 1: What is Popouts and why is it used? -->
+          <section class="help-section" id="what-is-popouts">
+            <div class="help-section-header">
+              <svg class="help-section-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 6h6M5 9h4"/></svg>
+              <span class="help-section-label">Section 1</span>
+            </div>
+            <h2>What is Popouts and why is it used?</h2>
+            <div class="help-section-body">
+              <div class="block">
+                <p class="bold">Why Popouts Exists</p>
+                <p>Popouts was born from a very personal workflow.</p>
+                <p>As a busy executive managing multiple meetings every day, I struggled with two extremes. On one side were sophisticated meeting tools with transcription, AI summaries, integrations, and dashboards. They generated a lot of information — but often failed at the simplest outcome: a clear, reliable list of things I needed to do.</p>
+                <p>On the other side were simple to-do lists. They were great for capturing tasks quickly, but they lacked context. Weeks later, it was difficult to remember why a task existed, what meeting it came from, or what exactly was agreed. And because notes were usually written in a hurry, they were often incomplete or hard to search.</p>
+                <p>Over time, I developed a system that worked: keep the agenda, notes, and action items together — tied to the meeting itself. Everything in one place. Simple. Fast. Searchable. Reliable.</p>
+                <p>Popouts is the extension built around that experience.</p>
+              </div>
+              <div class="block">
+                <p class="bold">Designed for How Executives Actually Work</p>
+                <p>For most executives and professionals, meetings fall into three categories:</p>
+                <ul>
+                  <li>1:1 meetings with direct reports, peers, or managers</li>
+                  <li>Recurring meetings to manage projects and ongoing work</li>
+                  <li>Ad-hoc or one-off meetings that still produce commitments</li>
+                </ul>
+                <p>Each of these meetings needs only a few essential things:</p>
+                <ul>
+                  <li>A place to prepare an agenda</li>
+                  <li>A place to capture notes during the meeting</li>
+                  <li>A place to extract and track action items</li>
+                </ul>
+                <p>When all action items live in one place — alongside their context — it becomes easy to follow through, close tasks, and add personal to-dos when needed.</p>
+                <p>Beyond that, most features found in complex tools — deep integrations, automatic prioritization, sharing workflows — add overhead and are rarely used consistently.</p>
+                <p>Popouts intentionally avoids that complexity.</p>
+              </div>
+              <div class="block">
+                <p class="bold">What Popouts Does</p>
+                <p>Popouts is a lightweight Chrome extension that lives in your browser and focuses on the essentials:</p>
+                <ul>
+                  <li>Prepare your agenda before the meeting</li>
+                  <li>Capture notes quickly during the meeting</li>
+                  <li>Extract and track clear action items afterward</li>
+                </ul>
+                <p>No dashboards. No forced workflows. No unnecessary complexity.</p>
+                <p>Just a simple system that helps you remember what matters — and get it done.</p>
+              </div>
+              <div class="block">
+                <p class="bold">Who It's For</p>
+                <ul>
+                  <li>Executives and professionals managing multiple meetings daily</li>
+                  <li>Team leads tracking commitments and follow-ups</li>
+                  <li>Individual contributors who want clarity without overhead</li>
+                  <li>Anyone who prefers simplicity over bloated meeting tools</li>
+                </ul>
+              </div>
+              <div class="block">
+                <p class="bold">Why Not Just Use a Notes App?</p>
+                <p>You could. But notes alone don't solve the problem.</p>
+                <p>Popouts connects agenda → notes → action items → closure, all tied to the meeting. That structure preserves context and makes follow-through effortless.</p>
+                <p>Because the goal isn't to take more notes. It's to make sure things actually get done.</p>
+              </div>
+            </div>
+          </section>
+
+          <div class="section-divider"></div>
+
+          <!-- Section 2: How to use it -->
+          <section class="help-section" id="how-to-use">
+            <div class="help-section-header">
+              <svg class="help-section-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h8"/></svg>
+              <span class="help-section-label">Section 2</span>
+            </div>
+            <h2>How to use it</h2>
+            <div class="help-section-body">
+              <p class="block">Popouts keeps meetings simple. You can create meetings, add agenda items, and write notes — all in one place.</p>
+
+              <div class="help-subsection" id="meeting-categories">
+                <div class="help-subsection-header"><span class="help-subsection-num">2.1</span></div>
+                <h3>Meeting categories</h3>
+                <div class="block">
+                  <p>Popouts has only three types of meetings:</p>
+                  <ul>
+                    <li><strong>1:1s</strong> — meetings with your manager, team members, or peers</li>
+                    <li><strong>Recurring meetings</strong> — regular meetings like weekly reviews or project syncs</li>
+                    <li><strong>Adhoc meetings</strong> — one-off or unplanned meetings</li>
+                  </ul>
+                  <p>These three categories are enough for most people. No tags, labels, or extra setup needed.</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="create-meeting">
+                <div class="help-subsection-header"><span class="help-subsection-num">2.2</span></div>
+                <h3>How to create a meeting</h3>
+                <div class="block">
+                  <p>Creating a meeting takes just a few seconds:</p>
+                  <ol>
+                    <li>Go to the <strong>Meetings</strong> list</li>
+                    <li>Click the <strong>+ Add</strong> button</li>
+                    <li>Type the meeting title</li>
+                    <li>Press <strong>Enter</strong></li>
+                  </ol>
+                  <p>That's it. Your meeting is created.</p>
+                  <p>You can edit the meeting title anytime by clicking on it.</p>
+                  <p>There is no limit to how many meetings you can create during the beta.</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="add-agenda">
+                <div class="help-subsection-header"><span class="help-subsection-num">2.3</span></div>
+                <h3>How to add agenda items</h3>
+                <div class="block">
+                  <p>When you select a meeting, you'll see the Agenda section with three tabs:</p>
+                  <ul>
+                    <li><strong>All</strong> — shows everything</li>
+                    <li><strong>Open</strong> — shows items not yet covered</li>
+                    <li><strong>Closed</strong> — shows items already covered</li>
+                  </ul>
+                  <p>To add an agenda item:</p>
+                  <ol>
+                    <li>Click on the meeting</li>
+                    <li>Go to the <strong>Agenda</strong> section</li>
+                    <li>Type your agenda in the first line (no button needed)</li>
+                    <li>Press <strong>Enter</strong></li>
+                  </ol>
+                  <p>The item will be added to the list.</p>
+                  <p>You can add agenda items only in the <strong>All</strong> and <strong>Open</strong> tabs.</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="close-reopen-agenda">
+                <div class="help-subsection-header"><span class="help-subsection-num">2.4</span></div>
+                <h3>How to close or reopen agenda items</h3>
+                <div class="block">
+                  <p>During or after the meeting:</p>
+                  <ul>
+                    <li>Click the <strong>radio button</strong> next to an agenda item to mark it as covered</li>
+                    <li>Closed items will show a <strong>strikethrough</strong></li>
+                    <li>You can see all closed items in the <strong>Closed</strong> tab</li>
+                  </ul>
+                  <p>If needed, you can reopen an item by clicking the radio button again.</p>
+                  <p>This helps you quickly see what's done and what's still pending.</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="notes-work">
+                <div class="help-subsection-header"><span class="help-subsection-num">2.5</span></div>
+                <h3>How notes work</h3>
+                <div class="block">
+                  <p>Notes in Popouts are intentionally simple.</p>
+                  <ul>
+                    <li>Notes are <strong>plain text only</strong></li>
+                    <li>There is no formatting (no bold, colors, or styles)</li>
+                    <li>This keeps notes fast, clean, and easy to read later</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="add-notes">
+                <div class="help-subsection-header"><span class="help-subsection-num">2.6</span></div>
+                <h3>How to add notes</h3>
+                <div class="block">
+                  <p>To add notes:</p>
+                  <ol>
+                    <li>Select a meeting</li>
+                    <li>Go to the <strong>Notes</strong> tab</li>
+                    <li>Type your notes in the <strong>Today's</strong> card</li>
+                  </ol>
+                  <p>You can write notes anytime during the day.</p>
+                  <p>Notes from previous days are visible, but cannot be edited. This keeps your notes accurate and prevents accidental changes.</p>
+                  <p class="bold">Simple tip</p>
+                  <p>Use agenda items to track what needs to be discussed. Use notes to capture what actually happened.</p>
+                  <p>Together, they give you full context without extra complexity.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="section-divider"></div>
+
+          <!-- Section 3: Action items -->
+          <section class="help-section" id="action-items">
+            <div class="help-section-header">
+              <svg class="help-section-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v4l2 2"/><circle cx="8" cy="8" r="6"/></svg>
+              <span class="help-section-label">Section 3</span>
+            </div>
+            <h2>Action items</h2>
+            <div class="help-section-body">
+              <p class="block">Action items are the things you need to do after a meeting. Popouts can create them automatically from your notes, and you can also add your own.</p>
+
+              <div class="help-subsection" id="automatic-actions">
+                <div class="help-subsection-header"><span class="help-subsection-num">3.1</span></div>
+                <h3>How automatic action items work</h3>
+                <div class="block">
+                  <p>Popouts has an AI agent that reads your meeting notes and creates action items when it finds something that needs to be done.</p>
+                  <p>Here's how it works:</p>
+                  <ul>
+                    <li>Action items are created automatically from the notes you write</li>
+                    <li>If you edit your notes later, action items will be updated or new ones may be added</li>
+                    <li>If there are no clear actions in the notes, nothing will be created</li>
+                    <li>Action items are not created when notes are deleted</li>
+                    <li>This happens in the background — even if the popup is closed or you move away from the browser</li>
+                  </ul>
+                  <p>You don't need to click anything. Just write notes, and Popouts will take care of the rest.</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="review-ai">
+                <div class="help-subsection-header"><span class="help-subsection-num">3.2</span></div>
+                <h3>Always review AI-generated actions</h3>
+                <div class="block">
+                  <p>Since action items are created using AI, you should always review them.</p>
+                  <p>Most of the time they'll be correct, but it's good to quickly check and make sure they reflect what actually needs to be done.</p>
+                  <p>You can edit, close, or ignore them as needed.</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="add-own-actions">
+                <div class="help-subsection-header"><span class="help-subsection-num">3.3</span></div>
+                <h3>How to add your own action items</h3>
+                <div class="block">
+                  <p>You can also add action items manually.</p>
+                  <p>To add one:</p>
+                  <ol>
+                    <li>Select a meeting</li>
+                    <li>Go to the <strong>Actions</strong> tab</li>
+                    <li>Type your action in the first line</li>
+                    <li>Press <strong>Enter</strong></li>
+                  </ol>
+                  <p>This is useful if something important was discussed but not captured automatically.</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="close-reopen-actions">
+                <div class="help-subsection-header"><span class="help-subsection-num">3.4</span></div>
+                <h3>How to close or reopen action items</h3>
+                <div class="block">
+                  <p>Action items work just like agenda items.</p>
+                  <p>There are three tabs:</p>
+                  <ul>
+                    <li><strong>All</strong> — shows all action items</li>
+                    <li><strong>Open</strong> — shows pending action items</li>
+                    <li><strong>Closed</strong> — shows completed action items</li>
+                  </ul>
+                  <p>To close an action item:</p>
+                  <ul>
+                    <li>Click the <strong>radio button</strong> next to it</li>
+                    <li>It will get a <strong>strikethrough</strong> and move to the <strong>Closed</strong> tab</li>
+                  </ul>
+                  <p>To reopen it, click the radio button again.</p>
+                  <p>This makes it easy to track what's done and what's still pending.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="section-divider"></div>
+
+          <!-- Section 4: Consolidated view of action items -->
+          <section class="help-section" id="consolidated-view">
+            <div class="help-section-header">
+              <svg class="help-section-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/></svg>
+              <span class="help-section-label">Section 4</span>
+            </div>
+            <h2>Consolidated view of action items</h2>
+            <div class="help-section-body">
+              <p class="block">The consolidated view is one of the most useful parts of Popouts. Instead of opening each meeting to check what's pending, this view shows all action items from all meetings in one single list.</p>
+              <p class="block">It also works as a running to-do list, so you can add and track personal tasks that are not tied to any meeting.</p>
+
+              <div class="help-subsection" id="access-consolidated">
+                <div class="help-subsection-header"><span class="help-subsection-num">4.1</span></div>
+                <h3>How to access it</h3>
+                <div class="block">
+                  <ul>
+                    <li>Click the <strong>Actions</strong> tab in the main navigation at the top of the extension</li>
+                    <li>You'll see all action items grouped by meeting, with open items shown first</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="what-can-do">
+                <div class="help-subsection-header"><span class="help-subsection-num">4.2</span></div>
+                <h3>What you can do here</h3>
+                <div class="block">
+                  <ul>
+                    <li><strong>See everything in one place</strong> — all action items across meetings</li>
+                    <li><strong>Use it as a personal to-do list</strong> — add tasks that didn't come from any meeting</li>
+                    <li><strong>Filter by status</strong> — view All, Open, or Closed items</li>
+                    <li><strong>See the meeting context</strong> — each item shows which meeting it came from</li>
+                    <li><strong>Close items quickly</strong> — mark them done without opening the meeting</li>
+                    <li><strong>Get a quick overview</strong> — see everything you need to do at a glance</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="when-to-use">
+                <div class="help-subsection-header"><span class="help-subsection-num">4.3</span></div>
+                <h3>When to use it</h3>
+                <div class="block">
+                  <ul>
+                    <li>At the start of your day, to see what needs to be done</li>
+                    <li>During the day, to add personal tasks and track progress</li>
+                    <li>At the end of the week, to review what's still open</li>
+                    <li>Before recurring meetings, to check what was supposed to be completed</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="changes-sync">
+                <div class="help-subsection-header"><span class="help-subsection-num">4.4</span></div>
+                <h3>Changes sync automatically</h3>
+                <div class="block">
+                  <p>You can close, reopen, or add action items directly from this view.</p>
+                  <p>Any changes you make here will automatically reflect in the related meeting as well.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="section-divider"></div>
+
+          <!-- Section 5: Settings -->
+          <section class="help-section" id="settings">
+            <div class="help-section-header">
+              <svg class="help-section-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 2v1.5M8 12.5V14M14 8h-1.5M3.5 8H2M12.6 3.4l-1 1M4.4 11.6l-1 1M12.6 12.6l-1-1M4.4 4.4l-1-1"/></svg>
+              <span class="help-section-label">Section 5</span>
+            </div>
+            <h2>Settings</h2>
+            <div class="help-section-body">
+              <p class="block">Popouts keeps settings simple. This section explains your trial and license status, and how to export or import your data.</p>
+
+              <div class="help-subsection" id="trial-license">
+                <div class="help-subsection-header"><span class="help-subsection-num">5.1</span></div>
+                <h3>Trial and license</h3>
+                <div class="block">
+                  <p>When you first install Popouts, you'll be on a trial version.</p>
+                  <p>During the trial:</p>
+                  <ul>
+                    <li>No license key will be shown</li>
+                    <li>You'll see a message that you are in trial mode</li>
+                    <li>The trial expiry date will be displayed</li>
+                  </ul>
+                  <p>Once the trial expires:</p>
+                  <ul>
+                    <li>You'll see a message that your trial has expired</li>
+                    <li>You can request a license by entering your email address</li>
+                    <li>You'll receive a license key by email</li>
+                    <li>Enter the same email address and license key in Settings to activate it</li>
+                  </ul>
+                  <p>After activation, your license status and expiry date will be visible in Settings.</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="requires-license">
+                <div class="help-subsection-header"><span class="help-subsection-num">5.2</span></div>
+                <h3>What requires a license</h3>
+                <div class="block">
+                  <p>A license is required only for automatic action item generation from notes using AI.</p>
+                  <p>Everything else will continue to work even without a license, including:</p>
+                  <ul>
+                    <li>Creating meetings</li>
+                    <li>Adding and closing agenda items</li>
+                    <li>Writing and viewing notes</li>
+                    <li>Adding action items manually</li>
+                    <li>Viewing and managing all your existing data</li>
+                  </ul>
+                  <p>Your data is never locked or removed if your trial or license expires.</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="export-data">
+                <div class="help-subsection-header"><span class="help-subsection-num">5.3</span></div>
+                <h3>Export your data</h3>
+                <div class="block">
+                  <p>Export allows you to download all your Popouts data in JSON format.</p>
+                  <p>The export includes:</p>
+                  <ul>
+                    <li>All meetings</li>
+                    <li>All agenda items and their status</li>
+                    <li>All notes</li>
+                    <li>All action items and their status</li>
+                  </ul>
+                  <p>To export:</p>
+                  <ol>
+                    <li>Open <strong>Settings</strong></li>
+                    <li>Go to the <strong>Data</strong> section</li>
+                    <li>Click <strong>Export All Data</strong></li>
+                  </ol>
+                  <p>A JSON file will be downloaded. You can keep it as a backup or use it to restore your data later.</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="import-data">
+                <div class="help-subsection-header"><span class="help-subsection-num">5.4</span></div>
+                <h3>Import your data</h3>
+                <div class="block">
+                  <p>Import allows you to restore or add data from a previously exported file.</p>
+                  <p>Important things to know:</p>
+                  <ul>
+                    <li>Import will add meetings, agenda items, notes, and action items</li>
+                    <li>It will not remove or replace existing data</li>
+                    <li>Importing the same file multiple times will create duplicate entries</li>
+                    <li>Import does not automatically merge duplicates</li>
+                  </ul>
+                  <p>To import:</p>
+                  <ol>
+                    <li>Open <strong>Settings</strong></li>
+                    <li>Go to the <strong>Data</strong> section</li>
+                    <li>Click <strong>Import Data</strong></li>
+                    <li>Select your JSON file</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="data-stored-locally">
+                <div class="help-subsection-header"><span class="help-subsection-num">5.5</span></div>
+                <h3>Important: Data is stored locally</h3>
+                <div class="block">
+                  <p>All Popouts data is stored locally in your browser.</p>
+                  <p>This means:</p>
+                  <ul>
+                    <li>Reinstalling the extension will wipe your data</li>
+                    <li>Refreshing the extension or clearing browser data may wipe your data</li>
+                    <li>Data does not automatically sync or backup</li>
+                  </ul>
+                  <p>To avoid losing your data, you should export regularly.</p>
+                  <p>Export and import are the only way to backup and restore your Popouts data.</p>
+                  <p>For more information on how we handle your data, see our <a href="/privacy.html">Privacy Policy</a>.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="help-still">
+            <h3>STILL NEED HELP?</h3>
+            <p>Can't find what you're looking for? Reach out to our support team.</p>
+            <button type="button" class="btn-contact" id="contact-support-btn">
+              <img src="assets/icon-mail.svg" alt="" width="16" height="16">
+              Contact Support
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <a href="/" class="footer-logo">
+          <img src="assets/logo.png" alt="Popouts" class="footer-logo-img">
+          <span class="footer-logo-text">Popouts</span>
+        </a>
+        <div class="footer-links">
+          <a href="/#features">Features</a>
+          <a href="/#how-it-works">How it works</a>
+          <a href="/#pricing">Pricing</a>
+          <a href="/help.html">Help</a>
+          <a href="/privacy.html">Privacy Policy</a>
+          <a href="mailto:asankarrao@gmail.com">Contact</a>
+        </div>
+        <p class="footer-copyright">© 2026 Popouts</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Contact Support Modal (matches Figma 14-1506) -->
+  <div class="modal-overlay contact-modal" id="contact-modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-header-text">
+          <h3 class="modal-title">Contact Support</h3>
+          <p class="modal-desc">Enter your email and we'll get back to you.</p>
+        </div>
+        <button class="modal-close" id="contact-modal-close" type="button" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M15 5L5 15M5 5l10 10" stroke="#71717a" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <form class="modal-form" id="support-form">
+        <label class="modal-label" for="support-email">Your email address</label>
+        <input class="modal-input" id="support-email" type="email" placeholder="you@company.com" required>
+        <label class="modal-label" for="support-message">Message <span style="color: var(--color-muted); font-weight: 400;">(optional)</span></label>
+        <textarea class="modal-textarea" id="support-message" placeholder="How can we help?"></textarea>
+        <button type="submit" class="modal-submit" id="support-submit">
+          <img src="assets/icon-send.svg" alt="" width="16" height="16">
+          Send Request
+        </button>
+        <p class="modal-fine-print">We'll only use your email to respond to this request.</p>
+        <p id="support-status" class="form-success" style="display: none;"></p>
+        <p id="support-error" class="form-error" style="display: none;"></p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    var contactBtn = document.getElementById('contact-support-btn');
+    var sidebarContactLink = document.getElementById('sidebar-contact-link');
+    var contactOverlay = document.getElementById('contact-modal-overlay');
+    var contactClose = document.getElementById('contact-modal-close');
+    var supportForm = document.getElementById('support-form');
+    var supportEmail = document.getElementById('support-email');
+    var supportMessage = document.getElementById('support-message');
+    var supportSubmit = document.getElementById('support-submit');
+    var supportStatus = document.getElementById('support-status');
+    var supportError = document.getElementById('support-error');
+
+    function openContactModal() {
+      contactOverlay.classList.add('open');
+      supportEmail.value = '';
+      supportMessage.value = '';
+      supportStatus.style.display = 'none';
+      supportError.style.display = 'none';
+      supportSubmit.disabled = false;
+      supportSubmit.innerHTML = '<img src="assets/icon-send.svg" alt="" width="16" height="16"> Send Request';
+      setTimeout(function() { supportEmail.focus(); }, 100);
+    }
+
+    function closeContactModal() {
+      contactOverlay.classList.remove('open');
+    }
+
+    contactBtn.addEventListener('click', openContactModal);
+    if (sidebarContactLink) sidebarContactLink.addEventListener('click', function(e) { e.preventDefault(); openContactModal(); });
+
+    contactClose.addEventListener('click', closeContactModal);
+    contactOverlay.addEventListener('click', function(e) {
+      if (e.target === contactOverlay) closeContactModal();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && contactOverlay.classList.contains('open')) closeContactModal();
+    });
+
+    supportForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = supportEmail.value.trim();
+      if (!email) return;
+
+      supportError.style.display = 'none';
+      supportStatus.style.display = 'none';
+      supportSubmit.disabled = true;
+      supportSubmit.innerHTML = 'Sending...';
+
+      fetch('/api/contact-support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, message: supportMessage.value.trim() })
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Failed to send');
+        supportStatus.textContent = 'Thanks! Your message has been sent. We\'ll get back to you soon.';
+        supportStatus.style.display = 'block';
+        supportStatus.classList.remove('form-error');
+        supportStatus.classList.add('form-success');
+        supportForm.reset();
+        supportSubmit.innerHTML = '<img src="assets/icon-send.svg" alt="" width="16" height="16"> Send Request';
+        setTimeout(closeContactModal, 2000);
+      })
+      .catch(function() {
+        supportError.textContent = 'Something went wrong. Please try again or email us directly at asankarrao@gmail.com.';
+        supportError.style.display = 'block';
+        supportSubmit.disabled = false;
+        supportSubmit.innerHTML = '<img src="assets/icon-send.svg" alt="" width="16" height="16"> Send Request';
+      });
+    });
+
+    // Simple search: filter sections by text
+    document.getElementById('help-search').addEventListener('input', function() {
+      var q = this.value.toLowerCase().trim();
+      document.querySelectorAll('.help-section').forEach(function(section) {
+        var text = section.textContent.toLowerCase();
+        section.style.display = q ? (text.includes(q) ? 'block' : 'none') : 'block';
+      });
+      document.querySelectorAll('.section-divider').forEach(function(div) {
+        var prev = div.previousElementSibling;
+        var next = div.nextElementSibling;
+        var prevHidden = prev && prev.classList && prev.classList.contains('help-section') && prev.style.display === 'none';
+        var nextHidden = next && next.classList && next.classList.contains('help-section') && next.style.display === 'none';
+        div.style.display = (q && (prevHidden || nextHidden)) ? 'none' : 'block';
+      });
+    });
+
+    // Update active nav link on scroll
+    var navLinks = document.querySelectorAll('.help-nav-item[href^="#"]');
+    var sections = document.querySelectorAll('.help-section, .help-subsection[id]');
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          var id = entry.target.id;
+          if (!id) return;
+          navLinks.forEach(function(a) {
+            var href = a.getAttribute('href');
+            if (href === '#' + id) {
+              navLinks.forEach(function(x) { x.classList.remove('active'); });
+              a.classList.add('active');
+            }
+          });
+        }
+      });
+    }, { rootMargin: '-100px 0px -50% 0px', threshold: 0 });
+    sections.forEach(function(el) {
+      if (el.id) observer.observe(el);
+    });
+  </script>
+</body>
+</html>

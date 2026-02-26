@@ -8,7 +8,9 @@
     "http://localhost:8000/*",
     "http://localhost:8001/*",
     "https://llm-service-production-22b1.up.railway.app/*",
-    "https://license-service-production.up.railway.app/*"
+    "https://license-service-production.up.railway.app/*",
+    "https://www.popouts.app/*",
+    "https://popouts.app/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",

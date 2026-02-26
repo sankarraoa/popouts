@@ -7,15 +7,13 @@ import { loadMeetings, initSidebar } from '../js/modules/sidebar.js';
 import { loadAgenda, setAgendaDependencies, handleShowMoreAgenda } from '../js/modules/agenda-tab.js';
 import { loadNotes, setNotesDependencies, handleShowMoreNotes } from '../js/modules/notes-tab.js';
 import { loadActions, setActionsDependencies, createActionItemElement, handleShowMoreActions } from '../js/modules/actions-tab.js';
-import { loadConsolidatedActions, showAddActionSection, hideAddActionSection, handleAddAction, handleShowMore, setConsolidatedActionsDependencies } from '../js/modules/consolidated-actions.js';
 import { selectMeeting, switchView, setMeetingViewDependencies } from '../js/modules/meeting-view.js';
 import { createAgendaItem } from '../js/agenda.js';
 import { updateMeetingBadge } from '../js/modules/sidebar.js';
 import { createActionItem } from '../js/actions.js';
 import { db } from '../js/db.js';
 import { actionExtractionService } from '../js/modules/action-extraction.js';
-import * as licenseManager from '../js/modules/license.js';
-import { getEnv, setEnv } from '../js/config.js';
+import { getConfig, getEnv, setEnv } from '../js/config.js';
 
 // Make state available globally for extraction service
 window.state = state;
@@ -26,8 +24,24 @@ window.showSettingsView = showSettingsView;
 // DOM Elements - will be populated after DOM is ready
 const elements = {};
 let deferredHydrationScheduled = false;
-let settingsHydrated = false;
 const PERF_DEBUG = false;
+
+// Lazy-loaded consolidated actions module (loaded when user clicks Actions tab)
+let consolidatedActionsModule = null;
+
+async function getConsolidatedActionsModule() {
+  if (!consolidatedActionsModule) {
+    consolidatedActionsModule = await import('../js/modules/consolidated-actions.js');
+  }
+  return consolidatedActionsModule;
+}
+
+async function ensureConsolidatedActionsReady() {
+  const mod = await getConsolidatedActionsModule();
+  mod.setConsolidatedActionsDependencies(elements, async () => await updateCounts(elements));
+  setActionsDependencies(elements, async () => await updateCounts(elements), () => mod.loadConsolidatedActions());
+  return mod;
+}
 
 // Initialize DOM elements
 function initializeElements() {
@@ -120,8 +134,9 @@ async function init() {
     const updateCountsWithElements = async () => await updateCounts(elements);
     setAgendaDependencies(elements, updateCountsWithElements);
     setNotesDependencies(elements, updateCountsWithElements);
-    setActionsDependencies(elements, updateCountsWithElements, loadConsolidatedActions);
-    setConsolidatedActionsDependencies(elements, updateCountsWithElements);
+    setActionsDependencies(elements, updateCountsWithElements, async () => {
+      if (consolidatedActionsModule) await consolidatedActionsModule.loadConsolidatedActions();
+    });
     setMeetingViewDependencies(elements, updateCountsWithElements);
     initSidebar(elements, { 
       selectMeeting, 
@@ -162,13 +177,12 @@ async function init() {
 
 // Setup event listeners
 function setupCriticalEventListeners() {
-  // Help button
+  // Help button - opens help page on website
   if (elements.helpButton) {
-    elements.helpButton.addEventListener('click', () => {
-      // TODO: Open help modal/page
-      if (PERF_DEBUG) {
-        console.log('Help clicked');
-      }
+    elements.helpButton.addEventListener('click', async () => {
+      const cfg = await getConfig();
+      const helpUrl = `${cfg.WEBSITE_URL}/help.html`;
+      chrome.tabs.create({ url: helpUrl });
     });
   }
   
@@ -188,7 +202,7 @@ function setupCriticalEventListeners() {
   
   // Header tabs
   if (elements.meetingsTab) {
-    elements.meetingsTab.addEventListener('click', () => {
+    elements.meetingsTab.addEventListener('click', async () => {
       // If settings view is open, close it first
       if (elements.settingsView && elements.settingsView.style.display === 'flex') {
         hideSettingsView();
@@ -201,10 +215,15 @@ function setupCriticalEventListeners() {
         elements.consolidatedActionsView.style.display = 'none';
         elements.consolidatedActionsView.classList.remove('active');
       }
-      if (elements.emptyState) elements.emptyState.style.display = 'flex';
-      if (elements.meetingDetail) elements.meetingDetail.style.display = 'none';
       const sidebar = document.querySelector('.sidebar');
       if (sidebar) sidebar.style.display = 'flex';
+      // Restore previously selected meeting if any
+      if (state.currentMeetingId) {
+        await selectMeeting(state.currentMeetingId);
+      } else {
+        if (elements.emptyState) elements.emptyState.style.display = 'flex';
+        if (elements.meetingDetail) elements.meetingDetail.style.display = 'none';
+      }
     });
   }
   
@@ -225,7 +244,8 @@ function setupCriticalEventListeners() {
       if (elements.meetingDetail) elements.meetingDetail.style.display = 'none';
       const sidebar = document.querySelector('.sidebar');
       if (sidebar) sidebar.style.display = 'none';
-      await loadConsolidatedActions();
+      const mod = await ensureConsolidatedActionsReady();
+      await mod.loadConsolidatedActions();
     });
   }
 }
@@ -337,29 +357,33 @@ function setupDeferredEventListeners() {
     });
   }
   
-  // Add Action button - show add action input section
+  // Add Action button - show add action input section (lazy-loads consolidated-actions)
   const consolidatedAddButton = document.getElementById('consolidated-actions-add-button');
   if (consolidatedAddButton) {
-    consolidatedAddButton.addEventListener('click', () => {
-      showAddActionSection();
+    consolidatedAddButton.addEventListener('click', async () => {
+      const mod = await ensureConsolidatedActionsReady();
+      mod.showAddActionSection();
     });
   }
   
   if (elements.actionsAddButton) {
-    elements.actionsAddButton.addEventListener('click', () => {
-      showAddActionSection();
+    elements.actionsAddButton.addEventListener('click', async () => {
+      const mod = await ensureConsolidatedActionsReady();
+      mod.showAddActionSection();
     });
   }
   
-  // Add Action input handlers
+  // Add Action input handlers (lazy-loads consolidated-actions)
   if (elements.addActionInput) {
     elements.addActionInput.addEventListener('keydown', async (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        await handleAddAction();
+        const mod = await ensureConsolidatedActionsReady();
+        await mod.handleAddAction();
       } else if (e.key === 'Escape') {
         e.preventDefault();
-        hideAddActionSection();
+        const mod = await ensureConsolidatedActionsReady();
+        mod.hideAddActionSection();
       }
     });
   }
@@ -488,10 +512,10 @@ function setupDeferredEventListeners() {
     }
   }
   
-  // Consolidated actions filters
+  // Consolidated actions filters (lazy-loads consolidated-actions)
   if (elements.consolidatedActionsFilters && elements.consolidatedActionsFilters.length > 0) {
     elements.consolidatedActionsFilters.forEach(filter => {
-      filter.addEventListener('click', () => {
+      filter.addEventListener('click', async () => {
         elements.consolidatedActionsFilters.forEach(f => f.classList.remove('active'));
         filter.classList.add('active');
         state.currentActionFilter = filter.dataset.filter;
@@ -501,58 +525,59 @@ function setupDeferredEventListeners() {
         if (elements.consolidatedActionsSearchInput) {
           elements.consolidatedActionsSearchInput.value = '';
         }
-        // Hide clear button when search is cleared
         updateSearchClearButton();
         
-        loadConsolidatedActions();
+        const mod = await ensureConsolidatedActionsReady();
+        await mod.loadConsolidatedActions();
       });
     });
   }
   
-  // Consolidated actions search input - filter on input and show clear button
+  // Consolidated actions search input (lazy-loads consolidated-actions)
   if (elements.consolidatedActionsSearchInput) {
-    // Initialize clear button state
     updateSearchClearButton();
     
-    // Update search query on input (real-time search)
-    elements.consolidatedActionsSearchInput.addEventListener('input', (e) => {
+    elements.consolidatedActionsSearchInput.addEventListener('input', async (e) => {
       state.currentActionSearchQuery = e.target.value;
       updateSearchClearButton();
-      loadConsolidatedActions();
+      const mod = await ensureConsolidatedActionsReady();
+      await mod.loadConsolidatedActions();
     });
     
-    // Also handle Enter key
-    elements.consolidatedActionsSearchInput.addEventListener('keypress', (e) => {
+    elements.consolidatedActionsSearchInput.addEventListener('keypress', async (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         state.currentActionSearchQuery = e.target.value;
         updateSearchClearButton();
-        loadConsolidatedActions();
+        const mod = await ensureConsolidatedActionsReady();
+        await mod.loadConsolidatedActions();
       }
     });
   }
   
-  // Clear search button click handler
+  // Clear search button click handler (lazy-loads consolidated-actions)
   const clearSearchButton = document.getElementById('consolidated-actions-search-clear');
   if (clearSearchButton) {
-    clearSearchButton.addEventListener('click', (e) => {
+    clearSearchButton.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (elements.consolidatedActionsSearchInput) {
         elements.consolidatedActionsSearchInput.value = '';
         state.currentActionSearchQuery = '';
         updateSearchClearButton();
-        loadConsolidatedActions();
+        const mod = await ensureConsolidatedActionsReady();
+        await mod.loadConsolidatedActions();
         elements.consolidatedActionsSearchInput.focus();
       }
     });
   }
   
-  // Show More button click handler (consolidated actions) - use event delegation since button is created dynamically
+  // Show More button click handler (consolidated actions) - use event delegation, lazy-loads
   document.addEventListener('click', async (e) => {
     if (e.target.closest('#consolidated-actions-show-more .actions-show-more-button')) {
       e.preventDefault();
-      await handleShowMore();
+      const mod = await ensureConsolidatedActionsReady();
+      await mod.handleShowMore();
     }
   });
   
@@ -694,28 +719,14 @@ function filterMeetingsBySearch(query) {
   });
 }
 
-// Show settings view
+// Show settings view (lazy-loads settings module on first open)
 async function showSettingsView() {
-  await hydrateSettingsView();
-  if (elements.settingsView) {
-    elements.settingsView.style.display = 'flex';
-  }
-  // Hide main content (but keep header visible)
-  const mainContent = document.querySelector('.main-content');
-  if (mainContent) {
-    mainContent.style.display = 'none';
-  }
-  // Mark settings button as selected and toggle icons
-  if (elements.settingsButton) {
-    elements.settingsButton.classList.add('selected');
-    const unselectedIcon = elements.settingsButton.querySelector('.settings-icon-unselected');
-    const selectedIcon = elements.settingsButton.querySelector('.settings-icon-selected');
-    if (unselectedIcon) unselectedIcon.style.display = 'none';
-    if (selectedIcon) selectedIcon.style.display = 'block';
-  }
-  
-  // Refresh status whenever settings opens (license/trial could have changed).
-  await updateLicenseStatusDisplay();
+  const settings = await import('../js/modules/settings-view.js');
+  await settings.displaySettingsView(elements, {
+    onExport: () => handleExportData(),
+    onImportClick: () => handleImportDataClick(),
+    onImportFileSelected: () => handleImportDataFileSelected(),
+  });
 }
 
 // Hide settings view
@@ -736,224 +747,6 @@ function hideSettingsView() {
     if (unselectedIcon) unselectedIcon.style.display = 'block';
     if (selectedIcon) selectedIcon.style.display = 'none';
   }
-}
-
-// Handle license key change
-async function handleLicenseKeyChange() {
-  const licenseKey = elements.settingsProductKeyInput.value.trim();
-  const email = elements.settingsNameInput.value.trim() || 'user@example.com';
-  
-  if (!licenseKey) {
-    // Clear license if empty
-    await licenseManager.clearLicense();
-    await updateLicenseStatusDisplay();
-    return;
-  }
-  
-  // Show loading state (you can add a loading indicator here)
-  const input = elements.settingsProductKeyInput;
-  const originalBorder = input.style.borderColor;
-  input.style.borderColor = '#f59e0b'; // Orange border for loading
-  
-  // Activate license
-  const result = await licenseManager.activateLicense(email, licenseKey);
-  
-  if (result.success) {
-    await updateLicenseStatusDisplay();
-    // Show success state
-    input.style.borderColor = '#008236'; // Green border for success
-    setTimeout(() => {
-      input.style.borderColor = originalBorder;
-    }, 2000);
-    console.log('License activated successfully');
-  } else {
-    // Show error state
-    input.style.borderColor = '#c10007'; // Red border for error
-    setTimeout(() => {
-      input.style.borderColor = originalBorder;
-    }, 3000);
-    
-    // Show error message
-    console.error('License activation failed:', result.error);
-    
-    // Display error to user
-    showLicenseError(result.error);
-  }
-}
-
-// Show license error message
-function showLicenseError(message) {
-  // Remove existing error message
-  const existingError = document.getElementById('license-error-message');
-  if (existingError) {
-    existingError.remove();
-  }
-  
-  // Create error message element
-  const errorDiv = document.createElement('div');
-  errorDiv.id = 'license-error-message';
-  errorDiv.className = 'license-error-message';
-  errorDiv.textContent = message;
-  
-  // Insert after license key input
-  const licenseField = elements.settingsProductKeyInput?.parentElement;
-  if (licenseField) {
-    licenseField.appendChild(errorDiv);
-    
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-      if (errorDiv.parentElement) {
-        errorDiv.remove();
-      }
-    }, 5000);
-  }
-}
-
-// Update license status display
-async function updateLicenseStatusDisplay() {
-  try {
-    // Always re-initialize elements when Settings view is shown (in case DOM wasn't ready before)
-    elements.licenseStatusActive = document.getElementById('license-status-active');
-    elements.licenseStatusExpired = document.getElementById('license-status-expired');
-    elements.licenseExpiryText = document.getElementById('license-expiry-text');
-    elements.licenseExpiredText = document.getElementById('license-expired-text');
-    elements.freeTrialStatusActive = document.getElementById('free-trial-status-active');
-    elements.freeTrialStatusExpired = document.getElementById('free-trial-status-expired');
-    elements.freeTrialActiveText = document.getElementById('free-trial-active-text');
-    elements.freeTrialExpiredText = document.getElementById('free-trial-expired-text');
-    
-    // If elements still don't exist, skip (Settings view might not be in DOM)
-    if (!elements.licenseStatusActive || !elements.licenseStatusExpired) {
-      return;
-    }
-    
-    const status = await licenseManager.getLicenseStatus();
-    
-    // Hide all status boxes initially
-    elements.licenseStatusActive.style.display = 'none';
-    elements.licenseStatusExpired.style.display = 'none';
-    if (elements.freeTrialStatusActive) {
-      elements.freeTrialStatusActive.style.display = 'none';
-    }
-    if (elements.freeTrialStatusExpired) {
-      elements.freeTrialStatusExpired.style.display = 'none';
-    }
-    
-    // Show appropriate status box
-    if (status.status === 'active') {
-      // Paid license active
-      if (elements.licenseExpiryText) {
-        elements.licenseExpiryText.textContent = status.message;
-      }
-      elements.licenseStatusActive.style.display = 'block';
-    } else if (status.status === 'expired') {
-      // Paid license expired
-      if (elements.licenseExpiredText) {
-        elements.licenseExpiredText.textContent = status.message;
-      }
-      elements.licenseStatusExpired.style.display = 'block';
-    } else if (status.status === 'free_trial') {
-      // Free trial active
-      if (elements.freeTrialStatusActive && elements.freeTrialActiveText) {
-        // Use the message from getLicenseStatus which includes expiry date
-        elements.freeTrialActiveText.textContent = status.message;
-        elements.freeTrialStatusActive.style.display = 'block';
-      }
-    } else if (status.status === 'none') {
-      // Free trial expired, no license
-      if (elements.freeTrialStatusExpired && elements.freeTrialExpiredText) {
-        // Calculate when trial expired
-        const installDate = await licenseManager.getInstallDate();
-        const trialEndDate = new Date(installDate);
-        // Use 7 days (matching FREE_TRIAL_DAYS constant in license.js)
-        trialEndDate.setDate(trialEndDate.getDate() + 7);
-        const now = new Date();
-        // Calculate days expired: if trialEndDate is in past, (now - trialEndDate) is positive
-        // If somehow trialEndDate is in future, use absolute value and show 0
-        const daysExpired = Math.max(0, Math.floor((now - trialEndDate) / (1000 * 60 * 60 * 24)));
-        // Format date manually
-        const formattedDate = trialEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        
-        // Only show expired message if trial actually expired (trialEndDate is in past)
-        if (trialEndDate < now) {
-          elements.freeTrialExpiredText.textContent = `Expired on ${formattedDate} (${daysExpired} days ago). Enter a license key to continue.`;
-        } else {
-          // This shouldn't happen if status is 'none', but handle edge case
-          elements.freeTrialExpiredText.textContent = `Free trial expired. Enter a license key to continue.`;
-        }
-        elements.freeTrialStatusExpired.style.display = 'block';
-      }
-    }
-  } catch (error) {
-    console.error('[Settings] Error updating license status display:', error);
-  }
-}
-
-async function hydrateSettingsView() {
-  if (settingsHydrated) {
-    return;
-  }
-
-  if (elements.settingsProductKeyInput) {
-    const license = await licenseManager.loadLicense();
-    if (license && license.license_key) {
-      elements.settingsProductKeyInput.value = license.license_key;
-    }
-
-    elements.settingsProductKeyInput.addEventListener('blur', () => {
-      handleLicenseKeyChange();
-    });
-
-    elements.settingsProductKeyInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        handleLicenseKeyChange();
-      }
-    });
-  }
-
-  if (elements.settingsNameInput) {
-    const saved = await chrome.storage.local.get('user_name');
-    if (saved.user_name) {
-      elements.settingsNameInput.value = saved.user_name;
-    }
-
-    elements.settingsNameInput.addEventListener('blur', () => {
-      chrome.storage.local.set({ user_name: elements.settingsNameInput.value });
-    });
-  }
-
-  const envSelect = document.getElementById('settings-env-select');
-  if (envSelect) {
-    const currentEnv = await getEnv();
-    envSelect.value = currentEnv;
-
-    envSelect.addEventListener('change', async () => {
-      await setEnv(envSelect.value);
-      if (PERF_DEBUG) {
-        console.log(`[Settings] Environment switched to: ${envSelect.value}`);
-      }
-    });
-  }
-
-  if (elements.settingsExportDataButton) {
-    elements.settingsExportDataButton.addEventListener('click', () => {
-      handleExportData();
-    });
-  }
-
-  if (elements.settingsImportDataButton) {
-    elements.settingsImportDataButton.addEventListener('click', () => {
-      handleImportDataClick();
-    });
-  }
-
-  if (elements.settingsImportFileInput) {
-    elements.settingsImportFileInput.addEventListener('change', () => {
-      handleImportDataFileSelected();
-    });
-  }
-
-  settingsHydrated = true;
 }
 
 function setDataTransferStatus(message, type = 'info') {

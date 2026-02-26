@@ -506,6 +506,31 @@
                   </svg>
                   <span id="license-expired-text" class="license-expired-text">Expired on Dec 31, 2025 (52 days ago)</span>
                 </div>
+                <button type="button" id="license-request-cta" class="license-request-cta">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 1.5L6.5 3.5L5 5.5L3.5 3.5L5 1.5Z" stroke="white" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 4.5V7.5C2 8.05228 2.44772 8.5 3 8.5H7C7.55228 8.5 8 8.05228 8 7.5V4.5" stroke="white" stroke-width="0.8" stroke-linecap="round"/>
+                  </svg>
+                  Request for License Keys
+                </button>
+              </div>
+            </div>
+            <div id="license-request-form" class="license-request-form" style="display: none;">
+              <p class="license-request-form-title">Your license has expired</p>
+              <p id="license-request-form-desc" class="license-request-form-desc">Expired on Dec 31, 2025 (52 days ago). Enter your email below and we'll get in touch with a new license key.</p>
+              <div class="license-request-form-fields">
+                <label class="license-request-form-label">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 3L5 5.5L9 3V7.5C9 8.05228 8.55228 8.5 8 8.5H2C1.44772 8.5 1 8.05228 1 7.5V3Z" stroke="rgba(193,0,7,0.7)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M1 3L5 5.5L9 3" stroke="rgba(193,0,7,0.7)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  Email Address
+                </label>
+                <div class="license-request-form-row">
+                  <input type="email" id="license-request-email" class="license-request-email-input" placeholder="you@company.com">
+                  <button type="button" id="license-request-submit" class="license-request-submit-btn">Submit</button>
+                </div>
+                <button type="button" id="license-request-cancel" class="license-request-cancel-btn">Cancel</button>
               </div>
             </div>
           </div>
@@ -549,6 +574,31 @@
                   </svg>
                   <span id="free-trial-expired-text" class="license-expired-text">Free trial expired. Enter a license key to continue.</span>
                 </div>
+                <button type="button" class="license-request-cta license-request-cta-free-trial">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 1.5L6.5 3.5L5 5.5L3.5 3.5L5 1.5Z" stroke="white" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 4.5V7.5C2 8.05228 2.44772 8.5 3 8.5H7C7.55228 8.5 8 8.05228 8 7.5V4.5" stroke="white" stroke-width="0.8" stroke-linecap="round"/>
+                  </svg>
+                  Request for License Keys
+                </button>
+              </div>
+            </div>
+            <div id="free-trial-request-form" class="license-request-form" style="display: none;">
+              <p class="license-request-form-title">Your license has expired</p>
+              <p id="free-trial-request-form-desc" class="license-request-form-desc">Free trial expired. Enter your email below and we'll get in touch with a new license key.</p>
+              <div class="license-request-form-fields">
+                <label class="license-request-form-label">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 3L5 5.5L9 3V7.5C9 8.05228 8.55228 8.5 8 8.5H2C1.44772 8.5 1 8.05228 1 7.5V3Z" stroke="rgba(193,0,7,0.7)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M1 3L5 5.5L9 3" stroke="rgba(193,0,7,0.7)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  Email Address
+                </label>
+                <div class="license-request-form-row">
+                  <input type="email" id="free-trial-request-email" class="license-request-email-input" placeholder="you@company.com">
+                  <button type="button" id="free-trial-request-submit" class="license-request-submit-btn">Submit</button>
+                </div>
+                <button type="button" id="free-trial-request-cancel" class="license-request-cancel-btn">Cancel</button>
               </div>
             </div>
           </div>
@@ -563,6 +613,19 @@
       <div class="extraction-status-indicator"></div>
       <span class="extraction-status-text"></span>
       <span class="extraction-status-progress" style="display: none;"></span>
+    </div>
+  </div>
+
+  <!-- Delete Meeting Confirmation Modal -->
+  <div id="delete-meeting-modal" class="modal-overlay delete-modal">
+    <div class="modal">
+      <div class="modal-body delete-modal-body">
+        <p class="delete-modal-message" id="delete-modal-message">Are you sure you want to delete "Meeting name"?</p>
+        <div class="modal-actions delete-modal-actions">
+          <button class="modal-button cancel" id="delete-modal-cancel">Cancel</button>
+          <button class="modal-button primary delete" id="delete-modal-confirm">Delete</button>
+        </div>
+      </div>
     </div>
   </div>
 
