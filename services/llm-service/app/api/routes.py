@@ -156,16 +156,73 @@ def _parse_cached_response(output_json: str | None) -> ActionExtractionResponse 
         return None
 
 
+async def _validate_license(license_key: str | None) -> None:
+    """
+    Validate license_key server-side. Raises HTTPException 403 if invalid.
+    - If no license_key: allow (free trial user, client validated)
+    - If license_key present: must exist in DB and not be expired
+    """
+    if not license_key or not license_key.strip():
+        return  # Free trial - no license to validate
+
+    url = getattr(settings, "database_service_url", None) or ""
+    if not url:
+        logger.warning("DATABASE_SERVICE_URL not set - cannot validate license")
+        raise HTTPException(status_code=403, detail="License validation unavailable")
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            r = await client.get(
+                f"{url.rstrip('/')}/api/v1/db/license/by-key",
+                params={"license_key": license_key.strip()},
+            )
+            if r.status_code == 404:
+                logger.warning(f"License not found: {license_key[:20]}...")
+                raise HTTPException(status_code=403, detail="Invalid or inactive license")
+            r.raise_for_status()
+            license_data = r.json()
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning(f"License validation failed: {e}")
+        raise HTTPException(status_code=503, detail="License validation service unavailable")
+
+    # Check expiry
+    expiry_str = license_data.get("expiry_date")
+    if expiry_str:
+        try:
+            from datetime import datetime, timezone
+            expiry = datetime.fromisoformat(expiry_str.replace("Z", "+00:00"))
+            if not expiry.tzinfo:
+                expiry = expiry.replace(tzinfo=timezone.utc)
+            now = datetime.now(timezone.utc)
+            if expiry < now:
+                raise HTTPException(status_code=403, detail="License expired")
+        except HTTPException:
+            raise
+        except (ValueError, TypeError):
+            pass
+
+    # Check status
+    if license_data.get("status") != "active":
+        raise HTTPException(status_code=403, detail="License inactive")
+
+
 @router.post("/extract-actions", response_model=ActionExtractionResponse)
 async def extract_actions(http_request: Request, request: ActionExtractionRequest):
     """
     Extract action items from meeting notes using the configured LLM provider.
+    Validates license server-side when X-License-Key is present.
     Deduplicates by input_hash: returns cached result if same request seen before.
     If another request with same input is pending, polls until it completes.
     """
-    input_hash = _compute_input_hash(request.meeting_details)
     license_key = http_request.headers.get("X-License-Key") or http_request.headers.get("x-license-key")
     installation_id = http_request.headers.get("X-Installation-Id") or http_request.headers.get("x-installation-id")
+
+    # Server-side license validation
+    await _validate_license(license_key)
+
+    input_hash = _compute_input_hash(request.meeting_details)
     input_json = json.dumps(request.model_dump(mode="json"))
 
     # Check for cached or in-flight duplicate

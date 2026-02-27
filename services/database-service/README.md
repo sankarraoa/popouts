@@ -44,7 +44,16 @@ Or run the raw SQL in Railway's PostgreSQL query console:
 # See scripts/postgres_schema.sql
 ```
 
-### 3. Add input_hash column (for deduplication)
+### 3. Clear PostgreSQL (before fresh migration)
+
+To wipe all data and re-migrate:
+
+```bash
+cd services/database-service
+python scripts/clear_postgres.py
+```
+
+### 4. Add input_hash column (for deduplication)
 
 If you have an existing `extract_action_items` table, run the migration to add `input_hash`:
 
@@ -58,7 +67,7 @@ python scripts/add_input_hash_column.py
 python scripts/add_input_hash_column.py --sqlite ../db-data/licenses.db
 ```
 
-### 4. Migrate existing data
+### 5. Migrate existing data
 
 If you have data in SQLite (`services/db-data/licenses.db`):
 

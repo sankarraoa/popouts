@@ -34,6 +34,20 @@ async def health():
     return {"status": "healthy"}
 
 
+@app.get("/status")
+async def status():
+    """Report which database backend is configured (for verification)."""
+    import os
+    url = os.environ.get("DATABASE_SERVICE_URL", "http://localhost:8002")
+    # Mask credentials if present
+    masked = url.split("@")[-1] if "@" in url else url
+    return {
+        "database_backend": "database-service (HTTP)",
+        "database_service_url": masked,
+        "uses_local_sqlite": False,
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host=settings.host, port=settings.port, reload=True)
