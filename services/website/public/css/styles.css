@@ -1386,6 +1386,33 @@ main {
   box-shadow: 0 0 0 2px rgba(10, 10, 10, 0.08);
 }
 
+.modal-textarea {
+  display: block;
+  width: 100%;
+  min-height: 120px;
+  margin-bottom: 4px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-primary);
+  background: var(--color-bg);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-lg);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.modal-textarea::placeholder {
+  color: #c4c4cc;
+}
+
+.modal-textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(10, 10, 10, 0.08);
+}
+
 .modal-submit {
   display: flex;
   align-items: center;

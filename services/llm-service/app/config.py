@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     max_retries: int = 3
     toqan_poll_interval: int = 2
 
+    database_service_url: str = ""  # e.g. http://localhost:8002
+
     class Config:
         env_file = ".env"
         case_sensitive = False

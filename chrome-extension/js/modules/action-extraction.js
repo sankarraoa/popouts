@@ -20,6 +20,7 @@ const DEBOUNCE_DELAY = 100; // 5 * 60 * 1000; // Set to 0 for testing; use 5 min
 
 const RETRY_DELAYS = [10000, 30000];
 const MAX_RETRIES = 3;
+const EXTRACTION_TIMEOUT_MS = 120000; // 2 min - LLM can be slow
 
 let _apiUrl = null;
 async function getApiUrl() {
@@ -334,6 +335,11 @@ class ActionExtractionService {
         // Show status bar
         await this.showStatusBar('extracting', meetingId, options);
 
+        // Ensure installation_id exists in storage so the background script can send it with the API request
+        console.log(`[ActionExtraction] Ensuring installation_id in storage...`);
+        await licenseManager.getInstallationId();
+        console.log(`[ActionExtraction] installation_id ready`);
+
         // Get meeting details (pass notes to extract so we don't filter again after marking as in_progress)
         console.log(`[ActionExtraction] Getting meeting details for API call`);
         const meetingDetails = await this.getMeetingDetails(meetingId, notesToExtract);
@@ -351,7 +357,9 @@ class ActionExtractionService {
         console.log(`[ActionExtraction] Calling LLM API with ${meetingDetails.meeting_instance.notes.length} notes`);
         
         // Extract with retry logic
+        console.log(`[ActionExtraction] Sending message to background script...`);
         const result = await this.extractWithRetry(meetingId, meetingDetails);
+        console.log(`[ActionExtraction] Background responded:`, result?.success ? 'success' : 'failed', result?.error || '');
 
         if (result.success) {
           // Save extracted actions
@@ -533,8 +541,15 @@ class ActionExtractionService {
   async extractWithRetry(meetingId, meetingDetails, retryCount = 0) {
     try {
       const apiUrl = await getApiUrl();
+      console.log(`[ActionExtraction] extractWithRetry attempt ${retryCount + 1}, apiUrl=${apiUrl}`);
 
       const result = await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          console.error(`[ActionExtraction] extractWithRetry TIMEOUT after ${EXTRACTION_TIMEOUT_MS / 1000}s`);
+          reject(new Error(`Extraction timed out after ${EXTRACTION_TIMEOUT_MS / 1000} seconds. The LLM service may be slow or unavailable.`));
+        }, EXTRACTION_TIMEOUT_MS);
+
+        console.log(`[ActionExtraction] Sending EXTRACT_ACTIONS to background, meetingId=${meetingId}`);
         chrome.runtime.sendMessage(
           {
             type: 'EXTRACT_ACTIONS',
@@ -543,10 +558,13 @@ class ActionExtractionService {
             apiUrl: `${apiUrl}`
           },
           (response) => {
+            clearTimeout(timeoutId);
             if (chrome.runtime.lastError) {
+              console.error('[ActionExtraction] sendMessage error:', chrome.runtime.lastError);
               reject(new Error(chrome.runtime.lastError.message));
               return;
             }
+            console.log('[ActionExtraction] Background response received:', response?.success ? 'success' : 'failed');
             resolve(response);
           }
         );

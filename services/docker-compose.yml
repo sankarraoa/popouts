@@ -1,14 +1,29 @@
-version: "3.8"
-
 services:
+  database-service:
+    build: ./database-service
+    ports:
+      - "${DB_PORT:-8002}:${DB_PORT:-8002}"
+    environment:
+      - PORT=${DB_PORT:-8002}
+      # DB_PATH for SQLite when DATABASE_URL not set
+      - DB_PATH=/data
+    env_file:
+      - ./database-service/.env
+    volumes:
+      - ./db-data:/data
+    restart: unless-stopped
+
   llm-service:
     build: ./llm-service
     ports:
       - "${LLM_PORT:-8000}:${LLM_PORT:-8000}"
     environment:
       - PORT=${LLM_PORT:-8000}
+      - DATABASE_SERVICE_URL=http://database-service:8002
     env_file:
       - ./llm-service/.env
+    depends_on:
+      - database-service
     volumes:
       - ./llm-service/app:/app/app
     restart: unless-stopped
@@ -19,9 +34,12 @@ services:
       - "${LICENSE_PORT:-8001}:${LICENSE_PORT:-8001}"
     environment:
       - PORT=${LICENSE_PORT:-8001}
+      - DATABASE_SERVICE_URL=http://database-service:8002
     volumes:
       - ./license-service/app:/app/app
-      - ./data:/data
+      - ./license-service/public:/app/public
+    depends_on:
+      - database-service
     restart: unless-stopped
 
   website:

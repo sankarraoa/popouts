@@ -20,32 +20,40 @@ onEnvChange(() => { _apiBaseUrl = null; });
 
 // Generate or get installation ID (device fingerprint)
 async function getInstallationId() {
-  const stored = await chrome.storage.local.get(INSTALLATION_ID_KEY);
-  if (stored[INSTALLATION_ID_KEY]) {
-    return stored[INSTALLATION_ID_KEY];
+  console.log('[License] getInstallationId: starting');
+  try {
+    const stored = await chrome.storage.local.get(INSTALLATION_ID_KEY);
+    if (stored[INSTALLATION_ID_KEY]) {
+      console.log('[License] getInstallationId: found existing', stored[INSTALLATION_ID_KEY]);
+      return stored[INSTALLATION_ID_KEY];
+    }
+
+    console.log('[License] getInstallationId: generating new (navigator:', !!navigator, ', screen:', typeof screen !== 'undefined' ? `${screen?.width}x${screen?.height}` : 'N/A', ')');
+    // Generate installation ID based on browser/device characteristics
+    const fingerprint = [
+      navigator?.userAgent ?? 'unknown',
+      (typeof screen !== 'undefined' ? `${screen.width}x${screen.height}` : '0x0'),
+      Intl?.DateTimeFormat?.().resolvedOptions?.().timeZone ?? 'unknown',
+      navigator?.language ?? 'unknown',
+      chrome?.runtime?.id ?? 'unknown'
+    ].join('|');
+
+    // Simple hash function
+    let hash = 0;
+    for (let i = 0; i < fingerprint.length; i++) {
+      const char = fingerprint.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+
+    const installationId = Math.abs(hash).toString(16).substring(0, 16).toUpperCase();
+    await chrome.storage.local.set({ [INSTALLATION_ID_KEY]: installationId });
+    console.log('[License] getInstallationId: created and stored', installationId);
+    return installationId;
+  } catch (err) {
+    console.error('[License] getInstallationId: error', err);
+    throw err;
   }
-  
-  // Generate installation ID based on browser/device characteristics
-  const fingerprint = [
-    navigator.userAgent,
-    screen.width + 'x' + screen.height,
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-    navigator.language,
-    chrome.runtime.id
-  ].join('|');
-  
-  // Simple hash function
-  let hash = 0;
-  for (let i = 0; i < fingerprint.length; i++) {
-    const char = fingerprint.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  
-  const installationId = Math.abs(hash).toString(16).substring(0, 16).toUpperCase();
-  await chrome.storage.local.set({ [INSTALLATION_ID_KEY]: installationId });
-  
-  return installationId;
 }
 
 // Get install date (for free trial tracking)

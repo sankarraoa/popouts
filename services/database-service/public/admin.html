@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popouts Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-primary: #0a0a0a;
+      --color-secondary: #71717a;
+      --color-muted: #a1a1aa;
+      --color-bg: #ffffff;
+      --color-bg-alt: #fafafa;
+      --color-bg-subtle: #f4f4f5;
+      --color-border: rgba(0,0,0,0.06);
+      --color-border-light: rgba(0,0,0,0.05);
+      --color-border-medium: rgba(0,0,0,0.08);
+      --color-border-input: rgba(0,0,0,0.1);
+      --color-green: #22c55e;
+      --color-green-bg: #dcfce7;
+      --color-green-text: #15803d;
+      --color-red-bg: #fee2e2;
+      --color-red-text: #b91c1c;
+      --color-blue: #3b82f6;
+      --color-amber: #f59e0b;
+      --radius-sm: 8px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 16px;
+      --radius-2xl: 20px;
+      --shadow-card: 0px 1px 3px 0px rgba(0,0,0,0.1);
+      --max-width: 1152px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--color-primary);
+      background: var(--color-bg-alt);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    .admin-page { display: none; min-height: 100vh; }
+    .admin-page.active { display: flex; }
+
+    /* ========== State 1: Login ========== */
+    #login-page {
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    @media (min-width: 1024px) {
+      #login-page { flex-direction: row; }
+    }
+    .login-left {
+      display: none;
+      background: var(--color-bg-alt);
+      border-right: 1px solid var(--color-border);
+      min-height: 50vh;
+      position: relative;
+      overflow: hidden;
+    }
+    @media (min-width: 1024px) {
+      .login-left { display: flex; flex: 1; min-height: 100vh; }
+    }
+    .login-left-inner {
+      position: relative;
+      z-index: 10;
+      max-width: 400px;
+      margin: auto;
+      text-align: center;
+      padding: 40px 24px;
+    }
+    .login-illustration {
+      width: 180px;
+      height: auto;
+      margin: 0 auto 24px;
+      display: block;
+      opacity: 0.75;
+    }
+    .login-logo {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 12px;
+      display: block;
+      object-fit: contain;
+    }
+    .login-tagline {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .login-tagline .muted { color: var(--color-muted); }
+    .login-subtitle {
+      font-size: 14px;
+      color: var(--color-secondary);
+      margin-bottom: 20px;
+    }
+    .login-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .login-pill {
+      padding: 6px 12px;
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: 9999px;
+      font-size: 12px;
+      color: var(--color-secondary);
+    }
+
+    .login-right {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      background: var(--color-bg);
+    }
+    .login-form-wrap {
+      width: 100%;
+      max-width: 400px;
+    }
+    .login-mobile-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+      justify-content: center;
+    }
+    @media (min-width: 1024px) {
+      .login-mobile-logo { display: none; }
+    }
+    .login-mobile-logo .logo-box {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      object-fit: contain;
+    }
+    .login-mobile-logo span { font-size: 18px; font-weight: 600; }
+    .login-form h2 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+    .login-form .subtitle { font-size: 14px; color: var(--color-secondary); margin-bottom: 24px; }
+    .btn-google {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border: 1px solid var(--color-border-input);
+      border-radius: var(--radius-lg);
+      background: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .btn-google:hover { background: var(--color-bg-alt); }
+    .login-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: var(--color-muted);
+      font-size: 13px;
+    }
+    .login-divider::before, .login-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--color-secondary); margin-bottom: 6px; }
+    .form-input-wrap { position: relative; }
+    .form-input {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px 0 14px;
+      font-family: inherit;
+      font-size: 14px;
+      border: 1px solid var(--color-border-input);
+      border-radius: var(--radius-lg);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--color-primary); }
+    .form-input.with-eye { padding-right: 44px; }
+    .form-input-eye {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--color-muted);
+    }
+    .form-input-eye:hover { color: var(--color-primary); }
+    .form-input-eye svg { width: 18px; height: 18px; }
+    .forgot-link {
+      font-size: 13px;
+      color: var(--color-secondary);
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 4px;
+    }
+    .forgot-link:hover { color: var(--color-primary); }
+    .btn-dark {
+      width: 100%;
+      height: 44px;
+      margin-top: 8px;
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-lg);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-dark:hover { opacity: 0.9; }
+    .btn-dark:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error-banner {
+      display: none;
+      background: var(--color-red-bg);
+      color: var(--color-red-text);
+      padding: 12px 16px;
+      border-radius: var(--radius-lg);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .error-banner.show { display: block; }
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-4px); }
+      40%, 80% { transform: translateX(4px); }
+    }
+    .error-banner.shake { animation: shakeError 0.4s ease; }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: var(--color-secondary);
+      text-decoration: none;
+      margin-bottom: 20px;
+    }
+    .back-link:hover { color: var(--color-primary); }
+    .reset-success {
+      display: none;
+      text-align: center;
+      padding: 24px;
+    }
+    .reset-success.show { display: block; }
+    .reset-success svg { color: var(--color-green-text); margin-bottom: 12px; }
+
+    /* ========== State 2: Dashboard ========== */
+    #dashboard-page { flex-direction: column; min-height: 100vh; }
+    .dash-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      height: 56px;
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+    }
+    .dash-header-left { display: flex; align-items: center; gap: 16px; }
+    .dash-menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      color: var(--color-primary);
+    }
+    .dash-menu-btn:hover { opacity: 0.8; }
+    .dash-menu-btn svg { width: 20px; height: 20px; }
+    .dash-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .dash-logo-box {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+    .dash-logo span { font-size: 16px; font-weight: 500; }
+    .dash-header-right { margin-left: auto; }
+    .dash-logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--color-secondary);
+    }
+    .dash-logout-btn:hover { color: var(--color-red-text); }
+    .dash-logout-btn svg { width: 18px; height: 18px; }
+    .dash-logout-btn .logout-text { display: none; }
+    @media (min-width: 640px) {
+      .dash-logout-btn .logout-text { display: inline; }
+    }
+
+    .dash-body { display: flex; flex: 1; overflow: hidden; }
+    .dash-sidebar {
+      width: 224px;
+      background: var(--color-bg);
+      border-right: 1px solid var(--color-border);
+      padding: 24px 0;
+      transition: width 0.3s ease-in-out;
+      overflow: hidden;
+    }
+    .dash-sidebar.collapsed { width: 0; padding: 0; border: none; }
+    .dash-sidebar-label {
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.55px;
+      color: var(--color-muted);
+      padding: 0 24px 12px;
+    }
+    .dash-nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 24px;
+      border: none;
+      background: none;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--color-secondary);
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s;
+    }
+    .dash-nav-btn:hover { background: var(--color-bg-alt); color: var(--color-primary); }
+    .dash-nav-btn.active { background: var(--color-primary); color: #fff; }
+    .dash-nav-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .dash-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+    .dash-tab { display: none; padding: 40px 24px 80px; }
+    .dash-tab.active { display: block; }
+
+    /* License Keys tab - reuse existing styles */
+    .page-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+    .page-top-licenses { flex-direction: row; align-items: flex-start; justify-content: space-between; }
+    .btn-generate { width: auto; flex-shrink: 0; margin-left: auto; }
+    .page-header { flex: 1; min-width: 200px; }
+    .page-title { font-size: 30px; font-weight: 600; margin-bottom: 4px; }
+    .page-summary { font-size: 14px; color: var(--color-secondary); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-weight: 500; font-size: 14px; border: none; cursor: pointer; border-radius: var(--radius-lg); padding: 0 20px; height: 41px; text-decoration: none; color: inherit; }
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-dark { background: var(--color-primary); color: #fff; }
+    .btn-ghost { background: transparent; color: var(--color-secondary); }
+    .btn-danger { background: var(--color-red-text); color: #fff; }
+    .btn-icon { width: 16px; height: 16px; }
+    .search-wrap { position: relative; width: 320px; max-width: 100%; margin-bottom: 24px; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--color-muted); pointer-events: none; }
+    .search-input { width: 100%; height: 43px; padding: 10px 16px 10px 40px; font-family: inherit; font-size: 14px; border: 1px solid var(--color-border-input); border-radius: var(--radius-lg); background: var(--color-bg); outline: none; }
+    .search-input:focus { border-color: var(--color-primary); }
+    .table-card { background: var(--color-bg); border: 1px solid var(--color-border-medium); border-radius: var(--radius-2xl); box-shadow: var(--shadow-card); overflow: hidden; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 14px 20px; text-align: left; vertical-align: middle; font-size: 13px; }
+    th { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.55px; color: var(--color-muted); background: var(--color-bg-alt); border-bottom: 1px solid var(--color-border-light); }
+    td { border-bottom: 1px solid rgba(0,0,0,0.03); }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--color-bg-alt); }
+    .cell-email { font-weight: 400; }
+    .cell-muted { color: var(--color-secondary); }
+    .cell-mono { font-family: ui-monospace, monospace; font-size: 12px; }
+    .license-key-cell { display: flex; align-items: center; gap: 8px; }
+    .license-key-pill { background: var(--color-bg-subtle); border-radius: var(--radius-sm); padding: 2px 8px; font-family: ui-monospace, monospace; font-size: 12px; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .copy-btn { background: none; border: none; cursor: pointer; padding: 2px; color: var(--color-secondary); }
+    .copy-btn:hover { color: var(--color-primary); }
+    .copy-btn.copied { color: var(--color-green-text); }
+    .copy-btn svg { width: 14px; height: 14px; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; }
+    .badge-active { background: var(--color-green-bg); color: var(--color-green-text); }
+    .badge-expired { background: var(--color-red-bg); color: var(--color-red-text); }
+    .badge-revoked { background: var(--color-bg-subtle); color: var(--color-secondary); }
+    .delete-btn { background: none; border: none; cursor: pointer; padding: 4px; color: var(--color-secondary); }
+    .delete-btn:hover { color: var(--color-red-text); }
+    .delete-btn svg { width: 15px; height: 15px; }
+    .empty-state { padding: 48px 24px; text-align: center; color: var(--color-muted); font-size: 14px; }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .loading { padding: 48px; text-align: center; color: var(--color-muted); }
+    .modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal { background: var(--color-bg); border: 1px solid var(--color-border-medium); border-radius: var(--radius-xl); box-shadow: 0 25px 60px -12px rgba(0,0,0,0.25); width: 420px; max-width: calc(100vw - 32px); padding: 24px; }
+    .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .modal-desc { font-size: 14px; color: var(--color-secondary); margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--color-secondary); margin-bottom: 6px; }
+    .form-input { width: 100%; height: 44px; padding: 0 14px; font-family: inherit; font-size: 14px; border: 1px solid var(--color-border-input); border-radius: var(--radius-lg); outline: none; }
+    .form-input:focus { border-color: var(--color-primary); }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+    .error-msg { color: var(--color-red-text); font-size: 13px; margin-top: 8px; }
+    .success-msg { color: var(--color-green-text); font-size: 13px; margin-top: 8px; }
+
+    /* Audit Log */
+    .badge-generated { background: #dbeafe; color: #1d4ed8; }
+    .badge-revoked { background: var(--color-red-bg); color: var(--color-red-text); }
+    .badge-login { background: var(--color-green-bg); color: var(--color-green-text); }
+    .badge-exported { background: #fef3c7; color: #b45309; }
+    .badge-pending { background: var(--color-bg-subtle); color: var(--color-secondary); }
+    .filter-select { height: 40px; padding: 0 32px 0 14px; font-family: inherit; font-size: 14px; border: 1px solid rgba(0,0,0,0.1); border-radius: var(--radius-lg); background: var(--color-bg); }
+    .extract-actions-wrap { display: flex; align-items: center; gap: 12px; flex-shrink: 0; margin-left: auto; }
+    .extract-search-wrap { position: relative; width: 360px; max-width: 100%; margin-bottom: 20px; }
+    .extract-search-wrap .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--color-muted); pointer-events: none; }
+    .extract-search-wrap .search-input { width: 100%; }
+    .pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--color-border-light); background: var(--color-bg-alt); }
+    .pagination-info { font-size: 13px; color: var(--color-secondary); }
+    .pagination-btns { display: flex; align-items: center; gap: 8px; }
+    .pagination-btn { min-width: 36px; height: 36px; padding: 0 10px; font-size: 13px; }
+    .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* JSON Viewer Modal */
+    .modal-json { width: 90vw; max-width: 720px; max-height: 85vh; display: flex; flex-direction: column; position: relative; }
+    .modal-json .modal-title { margin-bottom: 4px; }
+    .modal-json .modal-desc { margin-bottom: 12px; font-size: 13px; }
+    .json-viewer-close-btn { position: absolute; top: 16px; right: 16px; left: auto; background: none; border: none; cursor: pointer; padding: 6px; color: var(--color-secondary); }
+    .json-viewer-close-btn:hover { color: var(--color-primary); }
+    .json-viewer-close-btn svg { width: 20px; height: 20px; }
+    .json-viewer-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .json-viewer-copy-btn { background: none; border: none; cursor: pointer; padding: 6px; color: var(--color-secondary); }
+    .json-viewer-copy-btn:hover { color: var(--color-primary); }
+    .json-viewer-copy-btn.copied { color: var(--color-green-text); }
+    .json-viewer-copy-btn svg { width: 18px; height: 18px; }
+    .json-viewer-header { padding-right: 44px; }
+    .json-viewer-pre { flex: 1; min-height: 200px; max-height: 60vh; overflow: auto; padding: 16px; font-family: ui-monospace, 'SF Mono', Monaco, monospace; font-size: 12px; line-height: 1.5; background: var(--color-bg-alt); border: 1px solid var(--color-border); border-radius: var(--radius-lg); white-space: pre-wrap; word-break: break-word; }
+    .link-view-json { background: none; border: none; cursor: pointer; padding: 0; font-family: inherit; font-size: 13px; color: var(--color-blue); text-decoration: underline; text-underline-offset: 2px; }
+    .link-view-json:hover { color: #2563eb; }
+    .link-view-json:disabled { color: var(--color-muted); text-decoration: none; cursor: not-allowed; }
+    .link-view-json + .link-view-json { margin-left: 12px; }
+  </style>
+</head>
+<body>
+  <!-- State 1: Login -->
+  <div id="login-page" class="admin-page active">
+    <div class="login-left">
+      <div class="login-left-inner">
+        <img src="/admin-assets/illustration-laptop.png" alt="" class="login-illustration">
+        <img src="/admin-assets/logo-popouts.png" alt="Popouts" class="login-logo">
+        <h1 class="login-tagline">Two things. <span class="muted">Done right.</span></h1>
+        <p class="login-subtitle">Manage Popouts licenses and settings from one place.</p>
+        <div class="login-pills">
+          <span class="login-pill">Agenda</span>
+          <span class="login-pill">Notes</span>
+          <span class="login-pill">Action Items</span>
+          <span class="login-pill">AI-Powered</span>
+        </div>
+      </div>
+    </div>
+    <div class="login-right">
+      <div class="login-form-wrap">
+        <div class="login-mobile-logo">
+          <img src="/admin-assets/logo-popouts.png" alt="Popouts" class="logo-box">
+          <span>Popouts</span>
+        </div>
+        <div id="login-view">
+          <form class="login-form" id="login-form">
+            <h2>Admin Login</h2>
+            <p class="subtitle">Sign in to manage Popouts licenses and settings.</p>
+            <div id="login-error" class="error-banner"></div>
+            <button type="button" class="btn-google" id="btn-google">
+              <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+              Sign in with Google
+            </button>
+            <div class="login-divider">or</div>
+            <div class="form-group">
+              <label class="form-label" for="login-email">Email</label>
+              <input class="form-input" id="login-email" type="email" value="asankarrao@gmail.com" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="login-password">Password</label>
+              <div class="form-input-wrap">
+                <input class="form-input with-eye" id="login-password" type="password" value="SankarRao@1234" required>
+                <button type="button" class="form-input-eye" id="toggle-password" aria-label="Toggle password visibility">
+                  <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+            <a href="#" class="forgot-link" id="forgot-link">Forgot password?</a>
+            <button type="submit" class="btn-dark" id="login-btn">Sign in</button>
+          </form>
+        </div>
+        <div id="reset-view" style="display:none;">
+          <a href="#" class="back-link" id="reset-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            Back to login
+          </a>
+          <form class="login-form" id="reset-form">
+            <h2>Reset your password</h2>
+            <div class="form-group">
+              <label class="form-label" for="reset-email">Email</label>
+              <input class="form-input" id="reset-email" type="email" placeholder="your@email.com">
+            </div>
+            <button type="submit" class="btn-dark">Send reset link</button>
+          </form>
+          <div class="reset-success" id="reset-success">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+            <p>Check your email</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- State 2: Dashboard -->
+  <div id="dashboard-page" class="admin-page">
+    <header class="dash-header">
+      <div class="dash-header-left">
+        <button type="button" class="dash-menu-btn" id="sidebar-toggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <a href="/admin" class="dash-logo">
+          <img src="/admin-assets/logo-dashboard.png" alt="Popouts" class="dash-logo-box">
+          <span>Popouts</span>
+        </a>
+      </div>
+      <div class="dash-header-right">
+        <button type="button" class="dash-logout-btn" id="logout-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span class="logout-text">Logout</span>
+        </button>
+      </div>
+    </header>
+    <div class="dash-body">
+      <aside class="dash-sidebar" id="sidebar">
+        <div class="dash-sidebar-label">NAVIGATION</div>
+        <button type="button" class="dash-nav-btn active" data-tab="licenses">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l2.84-2.84M15.5 7.5l-2.84-2.84m0 11.32l2.84 2.84"/></svg>
+          License Keys
+        </button>
+        <button type="button" class="dash-nav-btn" data-tab="audit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Audit Log
+        </button>
+        <button type="button" class="dash-nav-btn" data-tab="extract">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+          Extract Action Items
+        </button>
+      </aside>
+      <main class="dash-main">
+        <div id="tab-licenses" class="dash-tab active">
+          <div class="page-top page-top-licenses">
+            <div class="page-header">
+              <h1 class="page-title">License Keys</h1>
+              <p class="page-summary" id="license-summary">Loading…</p>
+            </div>
+            <button type="button" class="btn btn-dark btn-generate" id="open-create-modal">
+              <svg class="btn-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
+              Generate License
+            </button>
+          </div>
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M11 11l3.5 3.5"/></svg>
+            <input type="text" class="search-input" id="search-input" placeholder="Search by email or license key...">
+          </div>
+          <div class="table-card">
+            <div id="table-container">
+              <div class="loading" id="loading">Loading licenses…</div>
+              <div class="table-wrap" id="table-wrap" style="display:none;">
+                <table>
+                  <thead><tr><th>Email</th><th>License Key</th><th>Days</th><th>Generated</th><th>Expires</th><th>Status</th><th style="width:60px"></th></tr></thead>
+                  <tbody id="table-body"></tbody>
+                </table>
+              </div>
+              <div class="empty-state" id="empty-state" style="display:none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l2.84-2.84M15.5 7.5l-2.84-2.84m0 11.32l2.84 2.84"/></svg>
+                <p id="empty-msg">No licenses yet. Click "Generate License" to create one.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="tab-audit" class="dash-tab">
+          <div class="page-top">
+            <h1 class="page-title">Audit Log</h1>
+            <p class="page-summary">Recent admin actions and events</p>
+          </div>
+          <div class="table-card">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
+                <tbody id="audit-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div id="tab-extract" class="dash-tab">
+          <div class="page-top page-top-licenses">
+            <div class="page-header">
+              <h1 class="page-title">Extract Action Items</h1>
+              <p class="page-summary" id="extract-summary">LLM extract-actions API call log (for debugging)</p>
+            </div>
+            <div class="extract-actions-wrap">
+              <label>Status: <select class="filter-select" id="extract-filter-status"><option value="">All</option><option value="pending">Pending</option><option value="completed">Completed</option><option value="failed">Failed</option></select></label>
+              <button type="button" class="btn btn-dark btn-generate" id="extract-refresh">Refresh</button>
+            </div>
+          </div>
+          <div class="extract-search-wrap">
+            <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M11 11l3.5 3.5"/></svg>
+            <input type="text" class="search-input" id="extract-search-input" placeholder="Search by license key or installation ID...">
+          </div>
+          <div class="table-card">
+            <div id="extract-container">
+              <div class="loading" id="extract-loading">Loading…</div>
+              <div class="table-wrap" id="extract-table-wrap" style="display:none">
+                <table>
+                  <thead><tr><th>Created</th><th>License Key</th><th>Installation ID</th><th>Status</th><th>HTTP</th><th>Duration</th><th>Error</th><th>JSON</th></tr></thead>
+                  <tbody id="extract-body"></tbody>
+                </table>
+              </div>
+              <div class="empty-state" id="extract-empty" style="display:none">No extract action items yet.</div>
+              <div class="pagination" id="extract-pagination" style="display:none">
+                <span class="pagination-info" id="extract-pagination-info"></span>
+                <div class="pagination-btns">
+                  <button type="button" class="btn btn-ghost pagination-btn" id="extract-prev" disabled>Previous</button>
+                  <span class="pagination-info" id="extract-page-nums"></span>
+                  <button type="button" class="btn btn-ghost pagination-btn" id="extract-next">Next</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Create License Modal -->
+  <div class="modal-overlay" id="create-modal">
+    <div class="modal">
+      <h3 class="modal-title">Generate License</h3>
+      <p class="modal-desc">Create a new license key. The key will be auto-generated.</p>
+      <form id="create-form">
+        <div class="form-group">
+          <label class="form-label" for="create-email">Email address</label>
+          <input class="form-input" id="create-email" type="email" placeholder="user@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="create-days">Duration (days)</label>
+          <input class="form-input" id="create-days" type="number" value="365" min="1" max="3650" required>
+        </div>
+        <div id="create-error" class="error-msg" style="display:none;"></div>
+        <div id="create-success" class="success-msg" style="display:none;"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="create-cancel">Cancel</button>
+          <button type="submit" class="btn btn-dark" id="create-btn">Generate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JSON Viewer Modal -->
+  <div class="modal-overlay" id="json-viewer-modal">
+    <div class="modal modal-json">
+      <button type="button" class="json-viewer-close-btn" id="json-viewer-close" title="Close" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="json-viewer-header">
+        <h3 class="modal-title" id="json-viewer-title">View JSON</h3>
+        <p class="modal-desc" id="json-viewer-desc">Input or output payload</p>
+      </div>
+      <div class="json-viewer-toolbar">
+        <button type="button" class="json-viewer-copy-btn" id="json-viewer-copy" title="Copy to clipboard" aria-label="Copy">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="8" height="8" rx="1"/><path d="M2 10V3a1 1 0 011-1h7"/></svg>
+        </button>
+      </div>
+      <pre class="json-viewer-pre" id="json-viewer-pre"></pre>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+      <h3 class="modal-title">Delete license?</h3>
+      <p class="modal-desc" id="delete-modal-desc">This will permanently remove the license.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="delete-cancel">Cancel</button>
+        <button type="button" class="btn btn-danger" id="delete-confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api/v1/db/license';
+    const VALID_EMAIL = 'asankarrao@gmail.com';
+    const VALID_PASSWORD = 'SankarRao@1234';
+
+    let deleteTargetId = null;
+    let allLicenses = [];
+    let sidebarOpen = true;
+    let extractItems = [];
+    let extractPage = 1;
+    const EXTRACT_PAGE_SIZE = 20;
+    let extractSearchDebounce = null;
+
+    // Mock audit log entries
+    const AUDIT_ENTRIES = [
+      { ts: '2025-02-23T10:30:00', user: 'asankarrao@gmail.com', action: 'Generated', target: 'user@example.com', details: '365-day license' },
+      { ts: '2025-02-22T14:15:00', user: 'asankarrao@gmail.com', action: 'Login', target: '—', details: 'Admin login' },
+      { ts: '2025-02-22T09:00:00', user: 'asankarrao@gmail.com', action: 'Revoked', target: 'old@user.com', details: 'License revoked' },
+      { ts: '2025-02-21T16:45:00', user: 'asankarrao@gmail.com', action: 'Exported', target: '—', details: 'License list exported' },
+      { ts: '2025-02-21T11:20:00', user: 'asankarrao@gmail.com', action: 'Generated', target: 'new@user.com', details: '30-day trial' },
+      { ts: '2025-02-20T08:00:00', user: 'asankarrao@gmail.com', action: 'Login', target: '—', details: 'Admin login' },
+      { ts: '2025-02-19T17:30:00', user: 'asankarrao@gmail.com', action: 'Generated', target: 'beta@test.com', details: '90-day license' },
+    ];
+
+    function renderAuditLog() {
+      const tbody = document.getElementById('audit-body');
+      tbody.innerHTML = AUDIT_ENTRIES.map(e => {
+        const d = new Date(e.ts);
+        const timeStr = d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+        const actionClass = e.action === 'Generated' ? 'badge-generated' : e.action === 'Revoked' ? 'badge-revoked' : e.action === 'Login' ? 'badge-login' : 'badge-exported';
+        return `<tr><td class="cell-muted">${timeStr}</td><td>${escapeHtml(e.user)}</td><td><span class="badge ${actionClass}">${e.action}</span></td><td class="cell-muted">${escapeHtml(e.target)}</td><td>${escapeHtml(e.details)}</td></tr>`;
+      }).join('');
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    document.getElementById('btn-google').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-google');
+      btn.disabled = true;
+      btn.innerHTML = '<span style="animation:spin 1s linear infinite">⟳</span> Signing in...';
+      await new Promise(r => setTimeout(r, 1500));
+      btn.innerHTML = 'Sign in with Google';
+      btn.disabled = false;
+      document.getElementById('login-error').textContent = 'Google authentication is not available for this demo.';
+      document.getElementById('login-error').classList.add('show', 'shake');
+      setTimeout(() => document.getElementById('login-error').classList.remove('shake'), 400);
+    });
+
+    document.getElementById('toggle-password').addEventListener('click', () => {
+      const inp = document.getElementById('login-password');
+      const icon = document.getElementById('eye-icon');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+      } else {
+        inp.type = 'password';
+        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      }
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errEl = document.getElementById('login-error');
+      const btn = document.getElementById('login-btn');
+
+      errEl.classList.remove('show');
+      btn.disabled = true;
+      btn.innerHTML = '<span style="animation:spin 1s linear infinite">⟳</span> Signing in...';
+      await new Promise(r => setTimeout(r, 1200));
+
+      if (email !== VALID_EMAIL) {
+        errEl.textContent = 'No account found';
+        errEl.classList.add('show', 'shake');
+        setTimeout(() => errEl.classList.remove('shake'), 400);
+      } else if (password !== VALID_PASSWORD) {
+        errEl.textContent = 'Incorrect password';
+        errEl.classList.add('show', 'shake');
+        setTimeout(() => errEl.classList.remove('shake'), 400);
+      } else {
+        sessionStorage.setItem('adminLoggedIn', '1');
+        document.getElementById('login-page').classList.remove('active');
+        document.getElementById('dashboard-page').classList.add('active');
+        loadLicenses();
+        renderAuditLog();
+      }
+      btn.disabled = false;
+      btn.innerHTML = 'Sign in';
+    });
+
+    document.getElementById('forgot-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('login-view').style.display = 'none';
+      document.getElementById('reset-view').style.display = 'block';
+    });
+
+    document.getElementById('reset-back').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('login-view').style.display = 'block';
+      document.getElementById('reset-view').style.display = 'none';
+      document.getElementById('reset-success').classList.remove('show');
+    });
+
+    document.getElementById('reset-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      document.getElementById('reset-form').style.display = 'none';
+      document.getElementById('reset-success').classList.add('show');
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      sessionStorage.removeItem('adminLoggedIn');
+      sessionStorage.removeItem('adminTab');
+      document.getElementById('dashboard-page').classList.remove('active');
+      document.getElementById('login-page').classList.add('active');
+    });
+
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+      sidebarOpen = !sidebarOpen;
+      document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
+    });
+
+    document.querySelectorAll('.dash-nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.dash-nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        sessionStorage.setItem('adminTab', btn.dataset.tab);
+        if (btn.dataset.tab === 'extract') loadExtractItems();
+      });
+    });
+
+    function formatExtractDate(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      const day = String(d.getDate()).padStart(2, '0');
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const mon = months[d.getMonth()];
+      const year = d.getFullYear();
+      let h = d.getHours();
+      const m = d.getMinutes();
+      const s = d.getSeconds();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      const hh = String(h).padStart(2, '0');
+      const mm = String(m).padStart(2, '0');
+      const ss = String(s).padStart(2, '0');
+      return `${day}-${mon}-${year} ${hh}:${mm}:${ss} ${ampm}`;
+    }
+
+    async function loadExtractItems(page) {
+      if (page != null) extractPage = page;
+      const loading = document.getElementById('extract-loading');
+      const tableWrap = document.getElementById('extract-table-wrap');
+      const emptyState = document.getElementById('extract-empty');
+      const pagination = document.getElementById('extract-pagination');
+      const tbody = document.getElementById('extract-body');
+      const status = document.getElementById('extract-filter-status').value || undefined;
+      const search = (document.getElementById('extract-search-input').value || '').trim() || undefined;
+      const offset = (extractPage - 1) * EXTRACT_PAGE_SIZE;
+      loading.style.display = 'block';
+      tableWrap.style.display = 'none';
+      emptyState.style.display = 'none';
+      pagination.style.display = 'none';
+      try {
+        const params = new URLSearchParams({ limit: String(EXTRACT_PAGE_SIZE), offset: String(offset) });
+        if (status) params.set('status', status);
+        if (search) params.set('search', search);
+        const res = await fetch('/api/v1/db/extract-action-items?' + params);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Failed to load');
+        const items = data.items || [];
+        const total = data.total ?? 0;
+        loading.style.display = 'none';
+        document.getElementById('extract-summary').textContent = `${total} record${total !== 1 ? 's' : ''} total`;
+        if (items.length === 0) {
+          emptyState.style.display = 'block';
+          return;
+        }
+        extractItems = items;
+        tbody.innerHTML = items.map((r, i) => {
+          const created = formatExtractDate(r.created_at);
+          const statusClass = r.status === 'completed' ? 'badge-active' : r.status === 'failed' ? 'badge-expired' : 'badge-pending';
+          const key = (r.license_key || '—').slice(0, 20) + (r.license_key && r.license_key.length > 20 ? '…' : '');
+          const inst = (r.installation_id || '—').slice(0, 12) + (r.installation_id && r.installation_id.length > 12 ? '…' : '');
+          const err = (r.error_message || '—').slice(0, 40) + (r.error_message && r.error_message.length > 40 ? '…' : '');
+          const hasInput = r.input_json != null && r.input_json !== '';
+          const hasOutput = r.output_json != null && r.output_json !== '';
+          const viewBtns = `<span class="link-view-json-wrap"><button type="button" class="link-view-json" data-json-type="input" data-index="${i}" ${!hasInput ? 'disabled' : ''}>View Input</button><button type="button" class="link-view-json" data-json-type="output" data-index="${i}" ${!hasOutput ? 'disabled' : ''}>View Output</button></span>`;
+          return `<tr><td class="cell-muted">${escapeHtml(created)}</td><td class="cell-mono" title="${escapeHtml(r.license_key || '')}">${escapeHtml(key)}</td><td class="cell-mono" title="${escapeHtml(r.installation_id || '')}">${escapeHtml(inst)}</td><td><span class="badge ${statusClass}">${escapeHtml(r.status)}</span></td><td>${r.http_status_code ?? '—'}</td><td>${r.duration_ms != null ? r.duration_ms + ' ms' : '—'}</td><td class="cell-muted" title="${escapeHtml(r.error_message || '')}">${escapeHtml(err)}</td><td>${viewBtns}</td></tr>`;
+        }).join('');
+        document.querySelectorAll('.link-view-json').forEach(btn => {
+          if (btn.disabled) return;
+          btn.addEventListener('click', () => openJsonViewer(parseInt(btn.dataset.index, 10), btn.dataset.jsonType));
+        });
+        tableWrap.style.display = 'block';
+
+        const totalPages = Math.ceil(total / EXTRACT_PAGE_SIZE) || 1;
+        const start = (extractPage - 1) * EXTRACT_PAGE_SIZE + 1;
+        const end = Math.min(extractPage * EXTRACT_PAGE_SIZE, total);
+        if (total > EXTRACT_PAGE_SIZE) {
+          pagination.style.display = 'flex';
+          document.getElementById('extract-pagination-info').textContent = `Showing ${start}–${end} of ${total}`;
+          document.getElementById('extract-page-nums').textContent = `Page ${extractPage} of ${totalPages}`;
+          document.getElementById('extract-prev').disabled = extractPage <= 1;
+          document.getElementById('extract-next').disabled = extractPage >= totalPages;
+        }
+      } catch (err) {
+        loading.style.display = 'none';
+        emptyState.style.display = 'block';
+        emptyState.textContent = 'Error: ' + (err.message || 'Failed to load');
+      }
+    }
+    document.getElementById('extract-filter-status').addEventListener('change', () => { extractPage = 1; loadExtractItems(); });
+    document.getElementById('extract-refresh').addEventListener('click', () => loadExtractItems());
+    document.getElementById('extract-search-input').addEventListener('input', () => {
+      clearTimeout(extractSearchDebounce);
+      extractSearchDebounce = setTimeout(() => { extractPage = 1; loadExtractItems(); }, 300);
+    });
+    document.getElementById('extract-search-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { clearTimeout(extractSearchDebounce); extractPage = 1; loadExtractItems(); }
+    });
+    document.getElementById('extract-prev').addEventListener('click', () => { if (extractPage > 1) loadExtractItems(extractPage - 1); });
+    document.getElementById('extract-next').addEventListener('click', () => { loadExtractItems(extractPage + 1); });
+
+    function openJsonViewer(index, type) {
+      const item = extractItems[index];
+      if (!item) return;
+      const raw = type === 'input' ? item.input_json : item.output_json;
+      const title = type === 'input' ? 'Input JSON' : 'Output JSON';
+      const desc = type === 'input' ? 'Request payload sent to the extract-actions API' : 'Response payload from the LLM';
+      document.getElementById('json-viewer-title').textContent = title;
+      document.getElementById('json-viewer-desc').textContent = desc;
+      let pretty = raw || '{}';
+      try {
+        const parsed = JSON.parse(pretty);
+        pretty = JSON.stringify(parsed, null, 2);
+      } catch (_) {
+        pretty = raw;
+      }
+      document.getElementById('json-viewer-pre').textContent = pretty;
+      document.getElementById('json-viewer-pre').dataset.raw = raw || '';
+      document.getElementById('json-viewer-modal').classList.add('open');
+    }
+
+    const jsonCopyIcon = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="8" height="8" rx="1"/><path d="M2 10V3a1 1 0 011-1h7"/></svg>';
+    const jsonCheckIcon = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l3 3 5-6"/></svg>';
+    document.getElementById('json-viewer-copy').addEventListener('click', async () => {
+      const pre = document.getElementById('json-viewer-pre');
+      const text = pre.textContent || pre.dataset.raw || '';
+      try {
+        await navigator.clipboard.writeText(text);
+        const btn = document.getElementById('json-viewer-copy');
+        btn.innerHTML = jsonCheckIcon;
+        btn.classList.add('copied');
+        setTimeout(() => { btn.innerHTML = jsonCopyIcon; btn.classList.remove('copied'); }, 2000);
+      } catch (_) {}
+    });
+
+    document.getElementById('json-viewer-close').addEventListener('click', () => document.getElementById('json-viewer-modal').classList.remove('open'));
+    document.getElementById('json-viewer-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'json-viewer-modal') document.getElementById('json-viewer-modal').classList.remove('open');
+    });
+
+    const copyIcon = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="8" height="8" rx="1"/><path d="M2 10V3a1 1 0 011-1h7"/></svg>';
+    const checkIcon = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l3 3 5-6"/></svg>';
+    const trashIcon = '<svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h9M5 4V3a1 1 0 011-1h3a1 1 0 011 1v1m2 0v8a1 1 0 01-1 1H4a1 1 0 01-1-1V4h10z"/><path d="M6 7v4M9 7v4"/></svg>';
+
+    async function loadLicenses() {
+      const loading = document.getElementById('loading');
+      const tableWrap = document.getElementById('table-wrap');
+      const emptyState = document.getElementById('empty-state');
+      const tbody = document.getElementById('table-body');
+      const summary = document.getElementById('license-summary');
+
+      loading.style.display = 'block';
+      tableWrap.style.display = 'none';
+      emptyState.style.display = 'none';
+
+      try {
+        const res = await fetch(API + '/list');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Failed to load');
+        allLicenses = data.licenses || [];
+        loading.style.display = 'none';
+        updateSummary(allLicenses);
+        filterAndRender(allLicenses);
+      } catch (err) {
+        loading.style.display = 'none';
+        emptyState.style.display = 'block';
+        document.getElementById('empty-msg').textContent = 'Error: ' + (err.message || 'Failed to load licenses');
+        summary.textContent = 'Error loading';
+      }
+    }
+
+    function updateSummary(licenses) {
+      const total = licenses.length;
+      const active = licenses.filter(l => {
+        const expiry = l.expiry_date ? new Date(l.expiry_date) : null;
+        return !expiry || expiry >= new Date();
+      }).filter(l => (l.status || 'active') !== 'revoked').length;
+      document.getElementById('license-summary').textContent = `${total} license${total !== 1 ? 's' : ''} total · ${active} active`;
+    }
+
+    function filterAndRender(licenses) {
+      const query = (document.getElementById('search-input').value || '').toLowerCase().trim();
+      const filtered = query ? licenses.filter(l => (l.email || '').toLowerCase().includes(query) || (l.license_key || '').toLowerCase().includes(query)) : licenses;
+      const tableWrap = document.getElementById('table-wrap');
+      const emptyState = document.getElementById('empty-state');
+      const tbody = document.getElementById('table-body');
+
+      if (filtered.length === 0) {
+        emptyState.style.display = 'block';
+        document.getElementById('empty-msg').textContent = query ? 'No matching licenses.' : 'No licenses yet. Click "Generate License" to create one.';
+        tableWrap.style.display = 'none';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(l => {
+        const created = l.created_at ? formatDate(l.created_at) : '—';
+        const expiry = l.expiry_date ? formatDate(l.expiry_date) : '—';
+        const days = l.days != null ? l.days : '—';
+        const expiryDate = l.expiry_date ? new Date(l.expiry_date) : null;
+        const isExpired = expiryDate && expiryDate < new Date();
+        const isRevoked = (l.status || '').toLowerCase() === 'revoked';
+        let statusClass = 'badge-active', statusText = 'Active';
+        if (isRevoked) { statusClass = 'badge-revoked'; statusText = 'Revoked'; }
+        else if (isExpired) { statusClass = 'badge-expired'; statusText = 'Expired'; }
+        return `<tr><td class="cell-email">${escapeHtml(l.email)}</td><td><div class="license-key-cell"><span class="license-key-pill" title="${escapeHtml(l.license_key)}">${escapeHtml(l.license_key)}</span><button type="button" class="copy-btn" data-key="${escapeHtml(l.license_key)}">${copyIcon}</button></div></td><td class="cell-muted">${days}</td><td class="cell-muted">${created}</td><td class="cell-muted">${expiry}</td><td><span class="badge ${statusClass}">${statusText}</span></td><td><button type="button" class="delete-btn" data-id="${l.id}" data-email="${escapeHtml(l.email)}">${trashIcon}</button></td></tr>`;
+      }).join('');
+
+      tableWrap.style.display = 'block';
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => copyToClipboard(e.currentTarget.dataset.key, e.currentTarget));
+      });
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => openDeleteModal(parseInt(btn.dataset.id), btn.dataset.email));
+      });
+    }
+
+    async function copyToClipboard(text, btn) {
+      try {
+        await navigator.clipboard.writeText(text);
+        if (btn) { btn.classList.add('copied'); btn.innerHTML = checkIcon; setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = copyIcon; }, 2000); }
+      } catch (_) {}
+    }
+
+    function formatDate(iso) {
+      return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    document.getElementById('search-input').addEventListener('input', () => filterAndRender(allLicenses));
+
+    document.getElementById('open-create-modal').addEventListener('click', () => {
+      document.getElementById('create-modal').classList.add('open');
+      document.getElementById('create-email').value = '';
+      document.getElementById('create-days').value = '365';
+      document.getElementById('create-error').style.display = 'none';
+      document.getElementById('create-success').style.display = 'none';
+    });
+
+    document.getElementById('create-cancel').addEventListener('click', () => document.getElementById('create-modal').classList.remove('open'));
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('create-email').value.trim();
+      const days = parseInt(document.getElementById('create-days').value, 10) || 365;
+      const btn = document.getElementById('create-btn');
+      const errEl = document.getElementById('create-error');
+      const successEl = document.getElementById('create-success');
+      errEl.style.display = 'none';
+      successEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Creating…';
+      try {
+        const res = await fetch(API + '/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, days }) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || data.error || 'Failed to create');
+        successEl.textContent = 'License created: ' + data.license_key;
+        successEl.style.display = 'block';
+        document.getElementById('create-email').value = '';
+        await loadLicenses();
+        setTimeout(() => { document.getElementById('create-modal').classList.remove('open'); successEl.style.display = 'none'; }, 2000);
+      } catch (err) {
+        errEl.textContent = err.message || 'Failed to create license';
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate';
+      }
+    });
+
+    function openDeleteModal(id, email) {
+      deleteTargetId = id;
+      document.getElementById('delete-modal-desc').textContent = `Delete license for ${email}? This will permanently remove it. Users with this key will lose access.`;
+      document.getElementById('delete-modal').classList.add('open');
+    }
+
+    document.getElementById('delete-cancel').addEventListener('click', () => { document.getElementById('delete-modal').classList.remove('open'); deleteTargetId = null; });
+
+    document.getElementById('delete-confirm').addEventListener('click', async () => {
+      if (!deleteTargetId) return;
+      const btn = document.getElementById('delete-confirm');
+      btn.disabled = true;
+      try {
+        const res = await fetch(API + '/' + deleteTargetId, { method: 'DELETE' });
+        if (!res.ok) { const data = await res.json(); throw new Error(data.detail || 'Failed to delete'); }
+        document.getElementById('delete-modal').classList.remove('open');
+        deleteTargetId = null;
+        await loadLicenses();
+      } catch (err) { alert(err.message || 'Failed to delete'); }
+      finally { btn.disabled = false; }
+    });
+
+    document.getElementById('delete-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'delete-modal') { document.getElementById('delete-modal').classList.remove('open'); deleteTargetId = null; }
+    });
+
+    document.getElementById('create-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'create-modal') document.getElementById('create-modal').classList.remove('open');
+    });
+
+    // Restore session on page load (e.g. browser refresh)
+    if (sessionStorage.getItem('adminLoggedIn')) {
+      document.getElementById('login-page').classList.remove('active');
+      document.getElementById('dashboard-page').classList.add('active');
+      loadLicenses();
+      renderAuditLog();
+      const tab = sessionStorage.getItem('adminTab') || 'licenses';
+      document.querySelectorAll('.dash-nav-btn').forEach(b => { b.classList.toggle('active', b.dataset.tab === tab); });
+      document.querySelectorAll('.dash-tab').forEach(t => { t.classList.toggle('active', t.id === 'tab-' + tab); });
+      if (tab === 'extract') loadExtractItems();
+    }
+  </script>
+</body>
+</html>

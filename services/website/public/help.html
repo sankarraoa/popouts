@@ -65,7 +65,7 @@
     .help-page .contact-modal .modal-form { padding: 24px; }
     .help-page .contact-modal .modal-label { display: block; font-size: 12px; font-weight: 500; color: var(--color-secondary); margin-bottom: 8px; }
     .help-page .contact-modal .modal-input, .help-page .contact-modal .modal-textarea { width: 100%; padding: 12px 14px; font-size: 14px; border: 1px solid rgba(0,0,0,0.1); border-radius: 14px; font-family: inherit; margin-bottom: 20px; }
-    .help-page .contact-modal .modal-textarea { min-height: 85px; resize: vertical; }
+    .help-page .contact-modal .modal-textarea { min-height: 120px; resize: vertical; }
     .help-page .contact-modal .modal-input:focus, .help-page .contact-modal .modal-textarea:focus { outline: none; border-color: var(--color-primary); }
     .help-page .contact-modal .modal-submit { width: 100%; padding: 12px 24px; background: var(--color-primary); color: white; border: none; border-radius: 14px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .help-page .contact-modal .modal-submit:hover:not(:disabled) { opacity: 0.9; }
@@ -621,7 +621,7 @@
         <label class="modal-label" for="support-email">Your email address</label>
         <input class="modal-input" id="support-email" type="email" placeholder="you@company.com" required>
         <label class="modal-label" for="support-message">Message <span style="color: var(--color-muted); font-weight: 400;">(optional)</span></label>
-        <textarea class="modal-textarea" id="support-message" placeholder="How can we help?"></textarea>
+        <textarea class="modal-textarea" id="support-message" placeholder="How can we help?" rows="4"></textarea>
         <button type="submit" class="modal-submit" id="support-submit">
           <img src="assets/icon-send.svg" alt="" width="16" height="16">
           Send Request
@@ -697,7 +697,7 @@
         setTimeout(closeContactModal, 2000);
       })
       .catch(function() {
-        supportError.textContent = 'Something went wrong. Please try again or email us directly at asankarrao@gmail.com.';
+        supportError.textContent = 'Something went wrong. Please try again';
         supportError.style.display = 'block';
         supportSubmit.disabled = false;
         supportSubmit.innerHTML = '<img src="assets/icon-send.svg" alt="" width="16" height="16"> Send Request';

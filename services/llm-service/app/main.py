@@ -1,9 +1,12 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pathlib import Path
+
 from app.api.routes import router
 from app.config import settings
+from app.middleware.request_logger import RequestLoggingMiddleware
 from app.utils.logger import setup_logging
 
 setup_logging()
@@ -21,6 +24,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+if settings.database_service_url:
+    app.add_middleware(RequestLoggingMiddleware)
 
 app.include_router(router)
 
