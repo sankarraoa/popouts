@@ -38,6 +38,7 @@ services:
     volumes:
       - ./license-service/app:/app/app
       - ./license-service/public:/app/public
+      - ./db-data:/data
     depends_on:
       - database-service
     restart: unless-stopped

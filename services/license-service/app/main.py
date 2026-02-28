@@ -48,6 +48,17 @@ async def status():
     }
 
 
+@app.get("/debug/sqlite-licenses")
+async def debug_sqlite_licenses():
+    """
+    Read licenses from local SQLite using fixed paths only (no .env).
+    Tries: /data/licenses.db (Railway/Docker), services/db-data, license-service/data.
+    """
+    from app.sqlite_reader import get_licenses_from_sqlite
+
+    return get_licenses_from_sqlite()
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host=settings.host, port=settings.port, reload=True)
