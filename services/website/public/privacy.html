@@ -16,6 +16,7 @@
     .privacy-page h1 { font-size: 32px; font-weight: 600; margin-bottom: 8px; }
     .privacy-page .updated { font-size: 14px; color: var(--color-muted); margin-bottom: 40px; }
     .privacy-page h2 { font-size: 18px; font-weight: 600; margin-top: 32px; margin-bottom: 12px; }
+    .privacy-page h3 { font-size: 16px; font-weight: 600; margin-top: 20px; margin-bottom: 8px; }
     .privacy-page p { font-size: 15px; line-height: 1.7; color: var(--color-secondary); margin-bottom: 16px; }
     .privacy-page ul { margin: 0 0 16px 24px; color: var(--color-secondary); line-height: 1.7; }
     .privacy-page li { margin-bottom: 8px; }
@@ -45,106 +46,231 @@
       <p class="updated">Last updated: February 2026</p>
 
       <p>
-        Popouts ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, store, and protect information when you use the Popouts Chrome extension and our website at www.popouts.app.
+        Popouts ("Popouts", "we", "our", or "us") respects your privacy and is committed to protecting your data. This Privacy Policy explains what information we collect, how we use it, and your rights.
+      </p>
+      <p>
+        This policy applies to the Popouts Chrome Extension, our website at www.popouts.app, and related services.
       </p>
 
-      <h2>1. Overview</h2>
+      <h2>1. Information We Collect</h2>
       <p>
-        Popouts is a productivity tool that helps you manage meeting agendas, capture notes, and extract action items — all from your browser. We are designed with privacy in mind: most of your data stays on your device. This policy describes the limited circumstances in which data is transmitted and how we handle it.
+        Popouts collects only the minimum information necessary to provide its functionality.
       </p>
 
-      <h2>2. Information We Collect</h2>
-
-      <h3>2.1 Chrome Extension — Data Stored Locally</h3>
+      <h3>A. Information you provide</h3>
       <p>
-        The Popouts extension stores the following data <strong>entirely on your device</strong> using your browser's local storage (IndexedDB and Chrome storage API):
+        When you use Popouts, you may provide:
       </p>
       <ul>
-        <li>Meeting names and categories (e.g., 1:1s, recurring meetings)</li>
-        <li>Agenda items you create</li>
-        <li>Meeting notes you write</li>
-        <li>Action items (both manually added and automatically extracted)</li>
-        <li>Your environment preference (development vs. production API)</li>
+        <li>Meeting notes and text content</li>
+        <li>License key (if applicable)</li>
+        <li>Email address (if you use the "Request Access" or website contact forms)</li>
       </ul>
       <p>
-        This data is never automatically sent to our servers. It remains under your control and is only accessible to the extension running in your browser.
+        Meeting notes and related meeting information are stored locally in your browser and may also be securely transmitted to and stored on Popouts servers to provide features such as action item extraction, synchronization, reliability, and service operation.
+      </p>
+      <p>
+        This information is required to provide the core functionality of extracting and managing action items and operating the service.
       </p>
 
-      <h3>2.2 Chrome Extension — Data Sent to Our API</h3>
+      <h3>B. Automatically collected information</h3>
       <p>
-        When you use the automatic action item extraction feature, the extension sends the following to our backend service:
+        We collect minimal operational metadata, including:
       </p>
       <ul>
-        <li>Meeting notes (the text you typed)</li>
-        <li>Meeting metadata (meeting series name, meeting instance identifier)</li>
+        <li>License key</li>
+        <li>Request timestamps</li>
+        <li>Request status (success or failure)</li>
       </ul>
       <p>
-        This data is sent only when extraction is triggered (e.g., after you stop typing for a period). It is used solely to generate action items from your notes and is not stored permanently on our servers. The API processes the request and returns extracted action items; we do not retain copies of your notes for longer than necessary to complete the request.
+        We do NOT collect meeting note content in logs.
       </p>
 
-      <h3>2.3 Website — Email Address</h3>
-      <p>
-        If you use the "Request Access" or "Want to keep using Popouts after beta?" form on our website, we collect your email address. We use this only to notify you about access to Popouts after the beta period and to respond to your request. We do not add you to marketing lists or share your email with third parties for advertising.
-      </p>
-
-      <h3>2.4 Website — Usage Information</h3>
+      <h3>C. Website usage</h3>
       <p>
         Our website is a static landing page. We do not use analytics cookies, tracking pixels, or third-party advertising. We do not collect information about how you browse our website.
       </p>
 
-      <h2>3. How We Use Your Information</h2>
+      <h2>2. How We Use Information</h2>
+      <p>
+        Your data is used ONLY to provide the extension's functionality, including:
+      </p>
       <ul>
-        <li><strong>Action extraction:</strong> Meeting notes and metadata are sent to our LLM service to extract action items. The response is returned to your browser and stored locally.</li>
-        <li><strong>Beta access requests:</strong> Your email is used to contact you about Popouts access after the beta. We may store it to fulfill this purpose.</li>
-        <li><strong>Support:</strong> If you contact us, we may use the information you provide to respond to your inquiry.</li>
+        <li>Extracting action items from meeting notes</li>
+        <li>Providing extension features</li>
+        <li>Validating licenses</li>
+        <li>Operating and maintaining the service</li>
+        <li>Beta access requests (your email is used to contact you about Popouts access after the beta)</li>
+        <li>Support (if you contact us, we may use the information you provide to respond)</li>
+      </ul>
+      <p>
+        Meeting note processing occurs only when explicitly initiated by the user.
+      </p>
+      <p>
+        Your data is NOT used for:
+      </p>
+      <ul>
+        <li>Training AI models</li>
+        <li>Advertising</li>
+        <li>Analytics profiling</li>
+        <li>Selling or monetizing data</li>
+        <li>Research purposes</li>
       </ul>
 
-      <h2>4. Third-Party Services</h2>
+      <h2>3. AI Processing and Third-Party Service Providers</h2>
       <p>
-        We use the following third-party services to operate Popouts:
+        To provide functionality, Popouts sends meeting note text securely to AI processing providers, including:
+      </p>
+      <ul>
+        <li>OpenAI</li>
+        <li>Anthropic (future fallback provider)</li>
+        <li>Grok or similar providers (future fallback provider)</li>
+      </ul>
+      <p>
+        These providers process data solely to provide the requested functionality.
+      </p>
+      <p>
+        Data is NOT used by Popouts to train AI models.
+      </p>
+      <p>
+        We also use the following third-party services to operate Popouts:
       </p>
       <ul>
         <li><strong>Google Chrome Web Store:</strong> The extension is distributed through the Chrome Web Store. Google's privacy policy applies to the installation process: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.</li>
         <li><strong>Railway:</strong> Our backend services (LLM API, website) are hosted on Railway. Data sent to our API is processed on Railway's infrastructure. See <a href="https://railway.app/legal/privacy" target="_blank" rel="noopener">Railway's privacy policy</a>.</li>
         <li><strong>Resend:</strong> We use Resend to send emails (e.g., beta access notifications). Your email address may be processed by Resend. See <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener">Resend's privacy policy</a>.</li>
-        <li><strong>LLM Provider:</strong> Our action extraction feature may use an AI/LLM provider (e.g., OpenAI or a similar service) to process your meeting notes. Notes are sent to this provider only for the purpose of extraction and are subject to that provider's data processing terms.</li>
       </ul>
+      <p>
+        Meeting note content may be temporarily or persistently stored on Popouts servers as part of processing, reliability, debugging, and service operation. Storage occurs solely to provide the extension's functionality and is not used for advertising, profiling, or unrelated purposes.
+      </p>
 
-      <h2>5. Data Retention</h2>
+      <h2>4. Data Storage and Retention</h2>
+      <p>
+        Meeting notes and related data are stored locally in your browser and are also securely transmitted to and stored on Popouts servers located in the United States to provide functionality such as action item extraction, data reliability, and service operation.
+      </p>
+      <p>
+        Data retention period:
+      </p>
       <ul>
-        <li><strong>Local data:</strong> Data stored in your browser remains until you uninstall the extension or clear your browser data. We have no access to delete it remotely.</li>
-        <li><strong>API processing:</strong> Meeting notes sent for action extraction are not stored long-term. They are processed and discarded after the response is returned.</li>
-        <li><strong>Email addresses:</strong> We retain beta access request emails for as long as needed to fulfill your request and communicate about Popouts.</li>
+        <li>Meeting notes and related data are stored for up to 1 year</li>
+        <li>Users may request deletion at any time</li>
       </ul>
+      <p>
+        Minimal operational logs are retained for service reliability and debugging. Operational logs are retained for up to 30 days unless required longer for security or legal obligations.
+      </p>
+      <p>
+        Local data stored in your browser (meeting names, agenda items, notes, action items) remains until you uninstall the extension or clear your browser data. We have no access to delete it remotely.
+      </p>
+
+      <h2>5. Data Sharing</h2>
+      <p>
+        We do NOT sell, rent, or trade your data.
+      </p>
+      <p>
+        We only share data with third-party providers strictly necessary to provide the service, including:
+      </p>
+      <ul>
+        <li>AI processing providers (OpenAI, Anthropic, Grok)</li>
+        <li>Infrastructure providers</li>
+      </ul>
+      <p>
+        These providers process data solely on our behalf. Third-party providers are contractually prohibited from using your data for advertising, profiling, or their own independent purposes.
+      </p>
+      <p>
+        Revenue comes solely from subscription and license fees.
+      </p>
+      <p>
+        Popouts stores and processes user data only as necessary to provide the extension's core functionality.
+      </p>
 
       <h2>6. Data Security</h2>
       <p>
-        We use HTTPS for all communications. Data in transit is encrypted. Local data in your browser is protected by your browser's security model and your device's access controls. We do not store passwords or sensitive authentication data.
+        We implement strong security measures to protect your data, including:
       </p>
-
-      <h2>7. Your Rights and Choices</h2>
       <ul>
-        <li><strong>Access and deletion:</strong> You can delete all local data by uninstalling the Popouts extension. For email-related requests, contact us.</li>
-        <li><strong>Opt-out of API:</strong> You can use Popouts without the automatic action extraction feature. Add action items manually instead.</li>
-        <li><strong>Opt-out of emails:</strong> Do not submit the beta access form if you do not wish to receive emails. You can ask us to remove your email at any time.</li>
+        <li>HTTPS encryption for all data transmission</li>
+        <li>Encryption of data at rest</li>
+        <li>Secure authentication and access controls</li>
+        <li>Protection of API keys and credentials</li>
+        <li>Restricted access to production systems</li>
       </ul>
-
-      <h2>8. Children's Privacy</h2>
       <p>
-        Popouts is not directed at children under 13. We do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us and we will delete it.
+        No system can guarantee absolute security, but we take reasonable measures to protect your data.
       </p>
 
-      <h2>9. Changes to This Policy</h2>
+      <h2>7. Your Rights and Data Deletion</h2>
       <p>
-        We may update this Privacy Policy from time to time. We will post the updated policy on this page and update the "Last updated" date. Continued use of Popouts after changes constitutes acceptance of the updated policy.
+        You may request deletion of your data at any time.
       </p>
-
-      <h2>10. Contact Us</h2>
       <p>
-        If you have questions about this Privacy Policy or our data practices, contact us at:
+        Upon deletion request, data will be permanently deleted from our systems and from third-party processing providers where applicable.
+      </p>
+      <p>
+        To request deletion, contact:
       </p>
       <p>
         <a href="mailto:asankarrao@gmail.com">asankarrao@gmail.com</a>
+      </p>
+      <p>
+        We will process deletion requests within a reasonable timeframe.
+      </p>
+      <p>
+        You can delete all local data by uninstalling the Popouts extension. You can use Popouts without the automatic action extraction feature by adding action items manually instead.
+      </p>
+
+      <h2>8. Chrome Extension Permissions</h2>
+      <p>
+        Popouts uses only minimal Chrome permissions required for functionality, including:
+      </p>
+      <ul>
+        <li>storage — to store extension settings locally</li>
+      </ul>
+      <p>
+        Popouts does NOT access:
+      </p>
+      <ul>
+        <li>Browsing history</li>
+        <li>Website content outside user input</li>
+        <li>Personal Chrome account data</li>
+      </ul>
+      <p>
+        Popouts is reviewed and distributed through the Chrome Web Store and complies with Chrome Web Store Developer Program Policies.
+      </p>
+
+      <h2>9. Children's Privacy</h2>
+      <p>
+        Popouts is not intended for children under 13 and does not knowingly collect personal data from children. If you believe we have collected information from a child, please contact us and we will delete it.
+      </p>
+
+      <h2>10. Changes to This Policy</h2>
+      <p>
+        We may update this Privacy Policy from time to time.
+      </p>
+      <p>
+        Updates will be posted at:
+      </p>
+      <p>
+        <a href="https://www.popouts.app/privacy.html" target="_blank" rel="noopener">https://www.popouts.app/privacy.html</a>
+      </p>
+      <p>
+        Continued use of Popouts after changes constitutes acceptance of the updated policy.
+      </p>
+
+      <h2>11. Contact</h2>
+      <p>
+        If you have questions or requests regarding your data, contact:
+      </p>
+      <p>
+        <a href="mailto:asankarrao@gmail.com">asankarrao@gmail.com</a>
+      </p>
+
+      <h2>12. Data Transfer</h2>
+      <p>
+        Popouts transfers meeting note content securely to our servers and AI processing providers solely to provide functionality. All transfers occur over encrypted HTTPS connections and only when initiated by the user. Meeting note content may be stored on Popouts servers as part of providing the service and retained according to the retention period described in this policy.
+      </p>
+
+      <p style="margin-top: 40px;">
+        By using Popouts, you agree to this Privacy Policy.
       </p>
     </div>
   </main>

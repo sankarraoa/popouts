@@ -1,5 +1,8 @@
+import json
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 
 from app.api.routes import router
 from app.config import settings
@@ -56,7 +59,11 @@ async def debug_sqlite_licenses():
     """
     from app.sqlite_reader import get_licenses_from_sqlite
 
-    return get_licenses_from_sqlite()
+    data = get_licenses_from_sqlite()
+    return Response(
+        content=json.dumps(data, indent=2),
+        media_type="application/json",
+    )
 
 
 if __name__ == "__main__":

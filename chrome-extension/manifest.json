@@ -1,9 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Popouts",
-  "version": "1.0.0",
-  "description": "Productivity tools that pop out of your browser - like digital post-its",
-  "permissions": ["storage", "sidePanel"],
+  "version": "1.0",
+  "description": "Extract and manage action items from meeting notes using secure AI processing.",
+  "minimum_chrome_version": "114",
+  "homepage_url": "https://www.popouts.app",
+  "permissions": ["storage"],
   "host_permissions": [
     "http://localhost:8000/*",
     "http://localhost:8001/*",
