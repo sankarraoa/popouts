@@ -17,9 +17,11 @@
   <meta name="twitter:title" content="Popouts — Two things. Done right.">
   <meta name="twitter:description" content="Know what you want from a meeting. Know what to do after it. Popouts makes both ridiculously easy — right from your browser.">
   <meta name="twitter:image" content="https://www.popouts.app/assets/hero-screenshot.png">
+  <link rel="preload" as="image" href="assets/logo.png" fetchpriority="high">
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <script type="application/ld+json">
@@ -77,7 +79,7 @@
   <nav class="nav" id="nav">
     <div class="nav-inner">
       <a href="#" class="nav-logo">
-        <img src="assets/logo.png" alt="Popouts" class="nav-logo-img">
+        <img src="assets/logo.png" alt="Popouts" class="nav-logo-img" width="32" height="32" decoding="async" fetchpriority="high">
         <span class="nav-logo-text">Popouts</span>
       </a>
       <div class="nav-right">
@@ -112,30 +114,33 @@
         </p>
         <div class="hero-actions">
           <a href="https://chromewebstore.google.com" class="btn btn-dark btn-lg" target="_blank" rel="noopener">
-            <img src="assets/icon-chrome.svg" alt="" class="btn-icon">
+            <img src="assets/icon-chrome.svg" alt="" class="btn-icon" width="20" height="20" decoding="async">
             Add to Chrome — It's Free
           </a>
           <a href="#how-it-works" class="btn btn-ghost btn-lg">See how it works ↓</a>
         </div>
+        <p class="hero-visual-caption">
+          Need product details first? <a href="/help" class="inline-link">Visit the help center</a> or review the <a href="/privacy" class="inline-link">privacy policy</a>.
+        </p>
         <div class="hero-visual">
           <div class="hero-flow-cards">
             <div class="hero-card hero-card-agenda">
               <div class="hero-card-icon">
-                <img src="assets/icon-agenda.svg" alt="">
+                <img src="assets/icon-agenda.svg" alt="" width="28" height="28" decoding="async">
               </div>
               <span class="hero-card-label">Agenda</span>
             </div>
             <div class="hero-flow">→</div>
             <div class="hero-card hero-card-notes">
               <div class="hero-card-icon">
-                <img src="assets/icon-notes.svg" alt="">
+                <img src="assets/icon-notes.svg" alt="" width="28" height="28" decoding="async">
               </div>
               <span class="hero-card-label">Notes</span>
             </div>
             <div class="hero-flow">→</div>
             <div class="hero-card hero-card-actions">
               <div class="hero-card-icon">
-                <img src="assets/icon-actions.svg" alt="">
+                <img src="assets/icon-actions.svg" alt="" width="28" height="28" decoding="async">
               </div>
               <span class="hero-card-label">Actions</span>
               <span class="hero-card-badge">AI extracted</span>
@@ -153,9 +158,13 @@
         <p class="section-label">See it in action</p>
         <h2 class="section-title">Two minutes. <span class="text-muted">That's all you need.</span></h2>
         <div class="video-placeholder">
-          <img src="assets/videodemo_800.gif" alt="Popouts — copy meeting title with visual feedback" class="video-demo-gif">
+          <img src="assets/hero-screenshot.png" data-animated-src="assets/videodemo_800.gif" alt="Popouts — copy meeting title with visual feedback" class="video-demo-gif" id="video-demo-image" width="800" height="600" loading="lazy" decoding="async">
+          <noscript>
+            <img src="assets/videodemo_800.gif" alt="Popouts — copy meeting title with visual feedback" class="video-demo-gif" width="800" height="600">
+          </noscript>
         </div>
         <p class="section-caption">A quick walkthrough of how Popouts helps you prep, capture, and act — all from your browser.</p>
+        <p class="section-caption">Want the full product walkthrough? <a href="/help#how-to-use" class="inline-link">Read the usage guide</a>.</p>
       </div>
     </section>
 
@@ -183,26 +192,27 @@
         <div class="features-grid">
           <div class="feature-card">
             <div class="feature-icon feature-icon-indigo">
-              <img src="assets/icon-agenda.svg" alt="">
+              <img src="assets/icon-agenda.svg" alt="" width="20" height="20" loading="lazy" decoding="async">
             </div>
             <h3 class="feature-title">Set your agenda.</h3>
             <p class="feature-desc">Before the meeting starts, write down what you want to achieve. Three meeting types — standup, one-on-one, and review — keep things structured without overthinking it.</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon feature-icon-cyan">
-              <img src="assets/icon-notes.svg" alt="">
+              <img src="assets/icon-notes.svg" alt="" width="20" height="20" loading="lazy" decoding="async">
             </div>
             <h3 class="feature-title">Capture your notes.</h3>
             <p class="feature-desc">During or after the meeting, jot down what happened. No templates, no formatting rules — just write. It's as fast as scribbling on a napkin, but you won't lose it.</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon feature-icon-amber">
-              <img src="assets/icon-actions.svg" alt="">
+              <img src="assets/icon-actions.svg" alt="" width="20" height="20" loading="lazy" decoding="async">
             </div>
             <h3 class="feature-title">Get your action items.</h3>
             <p class="feature-desc">Popouts reads your notes and pulls out the action items automatically. Clear tasks, assigned owners, due dates — ready for you to knock out before the next meeting.</p>
           </div>
         </div>
+        <p class="section-caption">Questions about setup, licenses, exports, or AI actions? <a href="/help" class="inline-link">Browse the help center</a>.</p>
       </div>
     </section>
 
@@ -215,7 +225,7 @@
         <div class="why-cards">
           <div class="why-card">
             <div class="why-card-illustration">
-              <img src="assets/illustration-before.png" alt="Person preparing for meeting">
+              <img src="assets/illustration-before.png" alt="Person preparing for meeting" width="800" height="1200" loading="lazy" decoding="async">
             </div>
             <p class="why-card-label">Before the meeting</p>
             <h3 class="why-card-title">"What do I want to achieve?"</h3>
@@ -240,7 +250,7 @@
 
           <div class="why-card">
             <div class="why-card-illustration">
-              <img src="assets/illustration-after.png" alt="Person capturing notes on laptop">
+              <img src="assets/illustration-after.png" alt="Person capturing notes on laptop" width="800" height="1200" loading="lazy" decoding="async">
             </div>
             <p class="why-card-label">After the meeting</p>
             <h3 class="why-card-title">"What do I need to do next?"</h3>
@@ -438,6 +448,7 @@
             <p class="pricing-bottom-note">Drop your email and we'll make sure you're covered.</p>
           </div>
         </div>
+        <p class="section-caption">Before installing, you can review how support works in the <a href="/help" class="inline-link">help center</a> and how data is handled in the <a href="/privacy" class="inline-link">privacy policy</a>.</p>
       </div>
     </section>
   </main>
@@ -447,7 +458,7 @@
     <div class="container">
       <div class="footer-inner">
         <a href="#" class="footer-logo">
-          <img src="assets/logo.png" alt="Popouts" class="footer-logo-img">
+          <img src="assets/logo.png" alt="Popouts" class="footer-logo-img" width="32" height="32" loading="lazy" decoding="async">
           <span class="footer-logo-text">Popouts</span>
         </a>
         <div class="footer-links">
@@ -455,7 +466,7 @@
           <a href="#how-it-works">How it works</a>
           <a href="#pricing">Pricing</a>
           <a href="/help">Help</a>
-          <a href="/privacy.html">Privacy Policy</a>
+          <a href="/privacy">Privacy Policy</a>
           <a href="mailto:asankarrao@gmail.com">Contact</a>
         </div>
         <p class="footer-copyright">© 2026 Popouts</p>
@@ -509,6 +520,35 @@
         }
       });
     });
+
+    var videoDemoImage = document.getElementById('video-demo-image');
+    if (videoDemoImage && videoDemoImage.dataset.animatedSrc) {
+      var animatedDemoLoaded = false;
+      var loadAnimatedDemo = function() {
+        if (animatedDemoLoaded) return;
+        animatedDemoLoaded = true;
+        var animatedImage = new Image();
+        animatedImage.decoding = 'async';
+        animatedImage.src = videoDemoImage.dataset.animatedSrc;
+        animatedImage.onload = function() {
+          videoDemoImage.src = videoDemoImage.dataset.animatedSrc;
+        };
+      };
+
+      if ('IntersectionObserver' in window) {
+        var videoObserver = new IntersectionObserver(function(entries, observer) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              loadAnimatedDemo();
+              observer.disconnect();
+            }
+          });
+        }, { rootMargin: '200px 0px' });
+        videoObserver.observe(videoDemoImage);
+      } else {
+        loadAnimatedDemo();
+      }
+    }
 
     var overlay = document.getElementById('modal-overlay');
     var emailInput = document.getElementById('email-input');

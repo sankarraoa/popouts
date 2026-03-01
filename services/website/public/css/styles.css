@@ -57,6 +57,16 @@ a {
   text-decoration: none;
 }
 
+.inline-link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inline-link:hover {
+  opacity: 0.8;
+}
+
 main {
   overflow-x: hidden;
   min-width: 0;

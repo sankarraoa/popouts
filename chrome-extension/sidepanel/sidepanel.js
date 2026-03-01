@@ -375,11 +375,24 @@ function setupDeferredEventListeners() {
   
   // Add Action input handlers (lazy-loads consolidated-actions)
   if (elements.addActionInput) {
+    const autoResizeAddAction = (textarea) => {
+      textarea.style.height = 'auto';
+      const lineHeight = 18;
+      const maxHeight = lineHeight * 3;
+      textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
+    };
+
+    elements.addActionInput.addEventListener('input', (e) => {
+      autoResizeAddAction(e.target);
+    });
+
     elements.addActionInput.addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         const mod = await ensureConsolidatedActionsReady();
         await mod.handleAddAction();
+      } else if (e.key === 'Enter' && e.shiftKey) {
+        requestAnimationFrame(() => autoResizeAddAction(e.target));
       } else if (e.key === 'Escape') {
         e.preventDefault();
         const mod = await ensureConsolidatedActionsReady();
