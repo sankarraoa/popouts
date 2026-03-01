@@ -107,6 +107,39 @@ async def create_license(email: str, license_key: str, expiry_date: str, status:
         return {"success": False, "error": str(e)}
 
 
+async def update_license(
+    license_id: int,
+    email: str,
+    license_key: str,
+    expiry_date: str,
+) -> Dict:
+    """Update license by id. Email, license_key, expiry_date are editable. Returns success/error."""
+    try:
+        async with get_async_session() as session:
+            result = await session.execute(select(License).where(License.id == license_id))
+            lic = result.scalar_one_or_none()
+            if not lic:
+                return {"success": False, "error": "License not found"}
+
+            # Check license_key uniqueness (exclude current license)
+            if license_key != lic.license_key:
+                dup = await session.execute(
+                    select(License).where(License.license_key == license_key, License.id != license_id)
+                )
+                if dup.scalar_one_or_none():
+                    return {"success": False, "error": "License key already exists"}
+
+            lic.email = email.lower()
+            lic.license_key = license_key
+            lic.expiry_date = expiry_date
+            await session.flush()
+            logger.info(f"[Update] License id={license_id} updated")
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"[Update] Error: {e}")
+        return {"success": False, "error": str(e)}
+
+
 async def delete_license(license_id: int) -> Dict:
     """Delete license by id."""
     try:

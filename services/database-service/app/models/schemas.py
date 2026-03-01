@@ -24,6 +24,12 @@ class CreateLicenseWithDaysBody(BaseModel):
     days: int = Field(365, description="Days until expiry", ge=1, le=3650)
 
 
+class UpdateLicenseBody(BaseModel):
+    email: str = Field(..., description="User email")
+    license_key: str = Field(..., description="License key")
+    expiry_date: str = Field(..., description="Expiry date (ISO format)")
+
+
 class LogApiRequestBody(BaseModel):
     service: str = Field(..., description="Service name (e.g. llm)")
     endpoint: str = Field(..., description="API endpoint")

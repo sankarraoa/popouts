@@ -11,6 +11,7 @@ from app.models.schemas import (
     LogApiRequestBody,
     ReplaceOldestInstallationBody,
     UpdateExtractActionItemBody,
+    UpdateLicenseBody,
 )
 
 router = APIRouter(prefix="/api/v1/db", tags=["db"])
@@ -91,6 +92,20 @@ async def create_license_with_days(body: CreateLicenseWithDaysBody):
     if not result.get("success"):
         raise HTTPException(status_code=400, detail=result.get("error", "Unknown error"))
     return {"success": True, "email": body.email, "license_key": license_key, "expiry": expiry_date}
+
+
+@router.patch("/license/{license_id}")
+async def update_license(license_id: int, body: UpdateLicenseBody):
+    """Update license email, license_key, expiry_date."""
+    result = await license_repository.update_license(
+        license_id=license_id,
+        email=body.email,
+        license_key=body.license_key,
+        expiry_date=body.expiry_date,
+    )
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Unknown error"))
+    return result
 
 
 @router.delete("/license/{license_id}")

@@ -404,9 +404,12 @@
     .badge-active { background: var(--color-green-bg); color: var(--color-green-text); }
     .badge-expired { background: var(--color-red-bg); color: var(--color-red-text); }
     .badge-revoked { background: var(--color-bg-subtle); color: var(--color-secondary); }
-    .delete-btn { background: none; border: none; cursor: pointer; padding: 4px; color: var(--color-secondary); }
+    .action-btns { display: flex; gap: 4px; align-items: center; }
+    .edit-btn, .delete-btn { background: none; border: none; cursor: pointer; padding: 4px; color: var(--color-secondary); }
+    .edit-btn:hover { color: var(--color-primary); }
     .delete-btn:hover { color: var(--color-red-text); }
-    .delete-btn svg { width: 15px; height: 15px; }
+    .edit-btn svg, .delete-btn svg { width: 15px; height: 15px; }
+    .form-readonly { background: var(--color-bg-alt); color: var(--color-secondary); cursor: default; }
     .empty-state { padding: 48px 24px; text-align: center; color: var(--color-muted); font-size: 14px; }
     .empty-state svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
     .loading { padding: 48px; text-align: center; color: var(--color-muted); }
@@ -574,10 +577,16 @@
               <h1 class="page-title">License Keys</h1>
               <p class="page-summary" id="license-summary">Loading…</p>
             </div>
-            <button type="button" class="btn btn-dark btn-generate" id="open-create-modal">
-              <svg class="btn-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
-              Generate License
-            </button>
+            <div style="display:flex;gap:12px;align-items:center;">
+              <button type="button" class="btn btn-dark btn-generate" id="refresh-btn" title="Refresh license list">
+                <svg class="btn-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 8a6 6 0 01-6 6 6 6 0 010-12c2 2 0 011.5.5"/><path d="M10 2v4h4"/></svg>
+                Refresh
+              </button>
+              <button type="button" class="btn btn-dark btn-generate" id="open-create-modal">
+                <svg class="btn-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
+                Generate License
+              </button>
+            </div>
           </div>
           <div class="search-wrap">
             <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M11 11l3.5 3.5"/></svg>
@@ -588,7 +597,7 @@
               <div class="loading" id="loading">Loading licenses…</div>
               <div class="table-wrap" id="table-wrap" style="display:none;">
                 <table>
-                  <thead><tr><th>Email</th><th>License Key</th><th>Days</th><th>Generated</th><th>Expires</th><th>Status</th><th style="width:60px"></th></tr></thead>
+                  <thead><tr><th>Email</th><th>License Key</th><th>Days</th><th>Generated</th><th>Expires</th><th>Status</th><th style="width:100px">Actions</th></tr></thead>
                   <tbody id="table-body"></tbody>
                 </table>
               </div>
@@ -693,6 +702,42 @@
         </button>
       </div>
       <pre class="json-viewer-pre" id="json-viewer-pre"></pre>
+    </div>
+  </div>
+
+  <!-- Edit License Modal -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <h3 class="modal-title">Edit License</h3>
+      <p class="modal-desc">Update email, license key, or expiry date. Generated date and status are read-only.</p>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id">
+        <div class="form-group">
+          <label class="form-label" for="edit-email">Email address</label>
+          <input class="form-input" id="edit-email" type="email" placeholder="user@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit-license-key">License key</label>
+          <input class="form-input" id="edit-license-key" type="text" placeholder="user-example-com-20270223-XXXX" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit-expiry">Expiry date</label>
+          <input class="form-input" id="edit-expiry" type="datetime-local" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Generated</label>
+          <input class="form-input form-readonly" id="edit-created" type="text" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <input class="form-input form-readonly" id="edit-status" type="text" readonly>
+        </div>
+        <div id="edit-error" class="error-msg" style="display:none;"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="edit-cancel">Cancel</button>
+          <button type="submit" class="btn btn-dark" id="edit-btn">Save changes</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -979,6 +1024,7 @@
 
     const copyIcon = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="8" height="8" rx="1"/><path d="M2 10V3a1 1 0 011-1h7"/></svg>';
     const checkIcon = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l3 3 5-6"/></svg>';
+    const editIcon = '<svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3H3a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1V7M11 2l3 3-7 7H4v-3l7-7"/></svg>';
     const trashIcon = '<svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h9M5 4V3a1 1 0 011-1h3a1 1 0 011 1v1m2 0v8a1 1 0 01-1 1H4a1 1 0 01-1-1V4h10z"/><path d="M6 7v4M9 7v4"/></svg>';
 
     async function loadLicenses() {
@@ -993,7 +1039,7 @@
       emptyState.style.display = 'none';
 
       try {
-        const res = await fetch(API + '/list');
+        const res = await fetch(API + '/list', { cache: 'no-store' });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Failed to load');
         allLicenses = data.licenses || [];
@@ -1041,12 +1087,18 @@
         let statusClass = 'badge-active', statusText = 'Active';
         if (isRevoked) { statusClass = 'badge-revoked'; statusText = 'Revoked'; }
         else if (isExpired) { statusClass = 'badge-expired'; statusText = 'Expired'; }
-        return `<tr><td class="cell-email">${escapeHtml(l.email)}</td><td><div class="license-key-cell"><span class="license-key-pill" title="${escapeHtml(l.license_key)}">${escapeHtml(l.license_key)}</span><button type="button" class="copy-btn" data-key="${escapeHtml(l.license_key)}">${copyIcon}</button></div></td><td class="cell-muted">${days}</td><td class="cell-muted">${created}</td><td class="cell-muted">${expiry}</td><td><span class="badge ${statusClass}">${statusText}</span></td><td><button type="button" class="delete-btn" data-id="${l.id}" data-email="${escapeHtml(l.email)}">${trashIcon}</button></td></tr>`;
+        return `<tr><td class="cell-email">${escapeHtml(l.email)}</td><td><div class="license-key-cell"><span class="license-key-pill" title="${escapeHtml(l.license_key)}">${escapeHtml(l.license_key)}</span><button type="button" class="copy-btn" data-key="${escapeHtml(l.license_key)}">${copyIcon}</button></div></td><td class="cell-muted">${days}</td><td class="cell-muted">${created}</td><td class="cell-muted">${expiry}</td><td><span class="badge ${statusClass}">${statusText}</span></td><td><div class="action-btns"><button type="button" class="edit-btn" data-id="${l.id}" title="Edit">${editIcon}</button><button type="button" class="delete-btn" data-id="${l.id}" data-email="${escapeHtml(l.email)}">${trashIcon}</button></div></td></tr>`;
       }).join('');
 
       tableWrap.style.display = 'block';
       document.querySelectorAll('.copy-btn').forEach(btn => {
         btn.addEventListener('click', (e) => copyToClipboard(e.currentTarget.dataset.key, e.currentTarget));
+      });
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const l = allLicenses.find(x => x.id === parseInt(btn.dataset.id));
+          if (l) openEditModal(l);
+        });
       });
       document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', () => openDeleteModal(parseInt(btn.dataset.id), btn.dataset.email));
@@ -1065,6 +1117,8 @@
     }
 
     document.getElementById('search-input').addEventListener('input', () => filterAndRender(allLicenses));
+
+    document.getElementById('refresh-btn').addEventListener('click', () => loadLicenses());
 
     document.getElementById('open-create-modal').addEventListener('click', () => {
       document.getElementById('create-modal').classList.add('open');
@@ -1105,6 +1159,51 @@
       }
     });
 
+    function openEditModal(l) {
+      document.getElementById('edit-id').value = l.id;
+      document.getElementById('edit-email').value = l.email || '';
+      document.getElementById('edit-license-key').value = l.license_key || '';
+      const raw = l.expiry_date || '';
+      document.getElementById('edit-expiry').value = raw ? raw.replace(' ', 'T').slice(0, 16) : '';
+      document.getElementById('edit-created').value = l.created_at ? formatDate(l.created_at) : '—';
+      document.getElementById('edit-status').value = (l.status || 'active').charAt(0).toUpperCase() + (l.status || 'active').slice(1);
+      document.getElementById('edit-error').style.display = 'none';
+      document.getElementById('edit-modal').classList.add('open');
+    }
+
+    document.getElementById('edit-cancel').addEventListener('click', () => document.getElementById('edit-modal').classList.remove('open'));
+
+    document.getElementById('edit-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('edit-id').value, 10);
+      const email = document.getElementById('edit-email').value.trim();
+      const license_key = document.getElementById('edit-license-key').value.trim();
+      const expiryVal = document.getElementById('edit-expiry').value;
+      const expiry_date = expiryVal ? new Date(expiryVal).toISOString() : '';
+      const btn = document.getElementById('edit-btn');
+      const errEl = document.getElementById('edit-error');
+      errEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      try {
+        const res = await fetch(API + '/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, license_key, expiry_date }) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || data.error || 'Failed to update');
+        document.getElementById('edit-modal').classList.remove('open');
+        await loadLicenses();
+      } catch (err) {
+        errEl.textContent = err.message || 'Failed to update license';
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save changes';
+      }
+    });
+
+    document.getElementById('edit-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'edit-modal') document.getElementById('edit-modal').classList.remove('open');
+    });
+
     function openDeleteModal(id, email) {
       deleteTargetId = id;
       document.getElementById('delete-modal-desc').textContent = `Delete license for ${email}? This will permanently remove it. Users with this key will lose access.`;
@@ -1133,6 +1232,10 @@
 
     document.getElementById('create-modal').addEventListener('click', (e) => {
       if (e.target.id === 'create-modal') document.getElementById('create-modal').classList.remove('open');
+    });
+
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted && sessionStorage.getItem('adminLoggedIn')) loadLicenses();
     });
 
     // Restore session on page load (e.g. browser refresh)
