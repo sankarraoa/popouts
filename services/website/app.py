@@ -3,7 +3,7 @@ import httpx
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr
 
 app = FastAPI()
@@ -134,8 +134,23 @@ async def health():
     return {"status": "healthy"}
 
 
+@app.get("/")
+async def home():
+    return FileResponse(PUBLIC_DIR / "index.html")
+
+
+@app.get("/index.html")
+async def home_html():
+    return RedirectResponse(url="/", status_code=301)
+
+
 @app.get("/privacy")
 async def privacy():
+    return RedirectResponse(url="/privacy.html", status_code=301)
+
+
+@app.get("/privacy.html")
+async def privacy_html():
     """Privacy policy page — required for Chrome Web Store."""
     return FileResponse(PUBLIC_DIR / "privacy.html")
 
@@ -146,7 +161,13 @@ async def help_page():
     return FileResponse(PUBLIC_DIR / "help.html")
 
 
-app.mount("/", StaticFiles(directory="public", html=True), name="static")
+@app.get("/help.html")
+async def help_html():
+    return RedirectResponse(url="/help", status_code=301)
+
+
+app.mount("/assets", StaticFiles(directory=str(PUBLIC_DIR / "assets")), name="assets")
+app.mount("/css", StaticFiles(directory=str(PUBLIC_DIR / "css")), name="css")
 
 
 if __name__ == "__main__":
