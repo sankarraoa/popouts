@@ -1,6 +1,6 @@
 // Centralized configuration for the extension.
-// Set POPOUTS_ENV to 'production' to use Railway URLs,
-// or 'development' (default).
+// Use Settings → Environment: "development" hits local services (run llm + license + db),
+// "production" uses Railway URLs.
 
 const ENV_KEY = 'popouts_env';
 
@@ -8,7 +8,7 @@ const ENVIRONMENTS = {
   development: {
     LLM_SERVICE_URL: 'http://localhost:8000',
     LICENSE_SERVICE_URL: 'http://localhost:8001',
-    WEBSITE_URL: 'http://localhost:8080',
+    WEBSITE_URL: 'https://www.popouts.app',
   },
   production: {
     LLM_SERVICE_URL: 'https://llm-service-production-22b1.up.railway.app',

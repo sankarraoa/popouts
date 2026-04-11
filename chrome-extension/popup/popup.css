@@ -22,7 +22,7 @@
 
 /* Popup scaling - adjust for larger/smaller feel (1.15 = 15% larger) */
 :root {
-  --popup-scale: 1.10;
+  --popup-scale: 1.15;
 }
 
 /* Prevent scrollbars on popup window - content scrolls within its areas only */
@@ -1186,6 +1186,11 @@ body {
   letter-spacing: 0.0645px;
 }
 
+/* [hidden] must win over display:flex above (author CSS was overriding the attribute) */
+.meeting-tab[hidden] {
+  display: none !important;
+}
+
 .meeting-tab > * {
   margin: 0;
   padding: 0;
@@ -1299,6 +1304,264 @@ body {
 
 .view-content.active {
   display: flex;
+}
+
+/* Interview-only: Summary tab (aligned with filter / muted controls) */
+#interview-summary-view.view-content {
+  overflow: hidden;
+  align-items: stretch;
+}
+
+#interview-summary-view.interview-summary-view {
+  align-items: stretch;
+  justify-content: flex-start;
+  flex: 1;
+  min-height: 0;
+}
+
+.interview-summary-view {
+  width: 100%;
+  padding: 0 2px 2px;
+  box-sizing: border-box;
+}
+
+.interview-summary-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.interview-summary-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 16px 8px;
+  box-sizing: border-box;
+}
+
+.interview-summary-empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 220px;
+  text-align: center;
+}
+
+.interview-summary-empty-hint {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
+  font-weight: 400;
+  color: #717182;
+  letter-spacing: 0.02px;
+}
+
+.interview-summary-empty.interview-summary-loading {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.interview-summary-error {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #b42318;
+  background: rgba(180, 35, 24, 0.08);
+  border: 1px solid rgba(180, 35, 24, 0.2);
+  box-sizing: border-box;
+}
+
+.interview-summary-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-bottom: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #47475c;
+}
+
+.interview-summary-meta-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.interview-summary-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #47475c;
+  background: rgba(3, 2, 19, 0.06);
+  border: 1px solid rgba(3, 2, 19, 0.1);
+  flex-shrink: 0;
+}
+
+.interview-summary-security {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  line-height: 1.45;
+  color: #7c2d12;
+  background: rgba(234, 88, 12, 0.1);
+  border: 1px solid rgba(234, 88, 12, 0.25);
+}
+
+.interview-summary-btn {
+  padding: 5px 11px;
+  border: 1px solid rgba(3, 2, 19, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 15px;
+  letter-spacing: 0.06px;
+  color: #030213;
+  cursor: pointer;
+}
+
+.interview-summary-btn:hover {
+  background: rgba(3, 2, 19, 0.04);
+}
+
+.interview-summary-btn:active {
+  background: rgba(3, 2, 19, 0.07);
+}
+
+.interview-summary-btn-ghost {
+  color: #717182;
+}
+
+.interview-summary-btn-ghost:hover {
+  color: #030213;
+}
+
+.interview-summary-result {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  gap: 0;
+}
+
+.interview-summary-toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 4px 2px 6px 0;
+}
+
+.interview-summary-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgba(3, 2, 19, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  color: #717182;
+  cursor: pointer;
+}
+
+.interview-summary-icon-btn:hover {
+  background: rgba(3, 2, 19, 0.04);
+  color: #030213;
+}
+
+.interview-summary-icon-btn:active {
+  background: rgba(3, 2, 19, 0.07);
+}
+
+.interview-summary-output {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(3, 2, 19, 0.1);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #030213;
+  box-sizing: border-box;
+  background: #fafafa;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.interview-summary-output:focus {
+  outline: none;
+  border-color: rgba(3, 2, 19, 0.18);
+}
+
+.interview-summary-heading {
+  margin: 14px 0 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  color: #030213;
+}
+
+.interview-summary-heading:first-child {
+  margin-top: 0;
+}
+
+.interview-summary-para {
+  margin: 0 0 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #1a1a22;
+  white-space: pre-wrap;
+}
+
+.interview-summary-bullets {
+  margin: 0 0 10px;
+  padding-left: 18px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #1a1a22;
+}
+
+.interview-summary-bullets li {
+  margin-bottom: 4px;
+}
+
+.interview-summary-muted {
+  margin: 0 0 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #717182;
+  font-style: italic;
 }
 
 /* Consolidated actions view should override view-content when shown */
@@ -1420,7 +1683,7 @@ body {
 .agenda-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 2px;
   width: 100%;
   flex-shrink: 0;
 }
@@ -1495,12 +1758,12 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 6px;
+  padding: 7px 6px;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s;
   position: relative;
-  min-height: 22px;
+  min-height: 28px;
   flex-shrink: 0;
 }
 
@@ -1550,7 +1813,7 @@ body {
 .agenda-item-text {
   flex: 1;
   min-width: 0;
-  padding: 0 0 0 30px;
+  padding: 1px 0px 0px 30px;
   margin-left: 0;
   border-radius: 0px;
   font-family: 'Inter';
@@ -1863,7 +2126,7 @@ body {
   width: calc(100% - 24px);
   margin-left: 12px;
   position: absolute;
-  top: 8px;
+  top: 0;
   transform: none;
   min-height: 27px;
   margin-top: 0;
@@ -1980,11 +2243,10 @@ body {
   width: 16px;
   text-align: right;
   flex-shrink: 0;
-  height: 68.5px;
+  height: 16.5px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-end;
-  position: relative;
 }
 
 .notes-empty-placeholder {
@@ -2265,15 +2527,8 @@ body {
   line-height: 18px;
   color: #0a0a0a;
   outline: none;
+  height: 18px;
   padding: 0;
-  min-height: 18px;
-  max-height: 54px;
-  resize: none;
-  overflow-y: auto;
-  overflow-x: hidden;
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-wrap: break-word;
 }
 
 .add-action-input::placeholder {
@@ -2368,17 +2623,13 @@ body {
 .actions-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
   width: 100%;
   flex-shrink: 0;
 }
 
 #actions-view .action-item {
   flex-shrink: 0;
-}
-
-#actions-view .actions-list {
-  gap: 0;
 }
 
 .actions-empty-state {
@@ -2447,7 +2698,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 10px;
   position: relative;
   cursor: pointer;
@@ -2456,14 +2707,14 @@ body {
 
 .action-item-meeting-specific {
   align-items: center;
-  padding: 4px 6px;
+  padding: 7px 6px;
   border-radius: 8px;
-  min-height: 22px;
+  min-height: 28px;
   flex-shrink: 0;
 }
 
 .action-item-consolidated {
-  min-height: 44px;
+  min-height: 38px;
   flex-shrink: 0;
   width: 100%;
 }
@@ -2479,7 +2730,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: center;
+  margin-top: 1px;
 }
 
 .action-item-meeting-specific .action-item-checkbox-container {
@@ -2522,8 +2773,7 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .action-item-meeting-specific .action-item-content {
@@ -2549,7 +2799,7 @@ body {
 .action-item-meeting-specific .action-item-text {
   flex: 1;
   min-width: 0;
-  padding: 0 0 0 30px;
+  padding: 1px 0px 0px 30px;
   margin-left: 0;
   border-radius: 0px;
   font-family: 'Inter';
@@ -2574,9 +2824,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 17.5px;
-  padding-left: 0;
-  flex-wrap: wrap;
+  height: 17.5px;
 }
 
 .action-item-meeting-badge {
@@ -3331,6 +3579,15 @@ select.settings-input {
 
 .extraction-status-bar.failed .extraction-status-text {
   color: #dc2626;
+}
+
+.extraction-status-bar.summary-fetching .extraction-status-indicator {
+  background: #dc2626;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.extraction-status-bar.summary-fetching .extraction-status-text {
+  color: #b91c1c;
 }
 
 .extraction-status-bar.license-required {

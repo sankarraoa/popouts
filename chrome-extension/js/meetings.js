@@ -3,6 +3,7 @@ import { db } from './db.js';
 
 const MeetingType = {
   ONE_ON_ONE: '1:1s',
+  INTERVIEWS: 'interviews',
   RECURRING: 'recurring',
   ADHOC: 'adhoc'
 };
@@ -45,6 +46,15 @@ export async function deleteMeetingSeries(id) {
   await db.meetingInstances.where('seriesId').equals(id).delete();
   await db.agendaItems.where('seriesId').equals(id).delete();
   await db.actionItems.where('seriesId').equals(id).delete();
+}
+
+/** Persist LLM interview summary on the series (included in backup/export JSON). */
+export async function saveInterviewSummaryForSeries(seriesId, summaryPayload) {
+  await db.ensureReady();
+  await db.meetingSeries.update(seriesId, {
+    interviewSummary: summaryPayload,
+    interviewSummaryUpdatedAt: new Date()
+  });
 }
 
 // Create a meeting instance

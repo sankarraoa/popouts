@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import BaseModel, Field, field_validator, model_validator
+from typing import Optional, List, Literal
 from datetime import datetime
 
 
@@ -62,3 +62,60 @@ class ActionExtractionResponse(BaseModel):
     notes_with_actions: List[NoteWithActions] = Field(
         ..., description="Meeting notes with their associated extracted action items"
     )
+
+
+class SummarySection(BaseModel):
+    """One section of the interview summary: optional prose plus bullet list."""
+
+    paragraph: Optional[str] = Field(
+        default=None,
+        description="Short paragraph(s); omit or empty if bullets alone suffice",
+    )
+    bullets: List[str] = Field(
+        default_factory=list,
+        description="Concise bullet points; use when listing fits better than prose",
+    )
+
+
+class InterviewSummaryCore(BaseModel):
+    """LLM output (and shared fields) before server adds series/meeting ids."""
+
+    candidate_name: Optional[str] = Field(default=None, description="Name or identifier from notes")
+    role_applied_for: Optional[str] = Field(default=None, description="Role or title if stated")
+    overview: SummarySection = Field(..., description="Role, background, context")
+    strengths: SummarySection = Field(..., description="Strengths and positive signals")
+    concerns: SummarySection = Field(..., description="Gaps, risks, or concerns")
+    evidence_level: Literal["rich", "moderate", "sparse"] = Field(
+        default="sparse",
+        description="Density of detail in the notes",
+    )
+    security_flag: Optional[str] = Field(
+        default=None,
+        description='null or "suspicious_content_detected"',
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def ensure_sections(cls, data):  # type: ignore[no-untyped-def]
+        if isinstance(data, dict):
+            data = dict(data)
+            for key in ("overview", "strengths", "concerns"):
+                if key not in data or data[key] is None:
+                    data[key] = {"paragraph": None, "bullets": []}
+        return data
+
+    @field_validator("evidence_level", mode="before")
+    @classmethod
+    def coerce_evidence_level(cls, v):  # type: ignore[no-untyped-def]
+        if v in ("rich", "moderate", "sparse"):
+            return v
+        return "sparse"
+
+
+class InterviewSummaryResponse(InterviewSummaryCore):
+    series_id: str = Field(..., description="Meeting series ID")
+    meeting_id: str = Field(..., description="Meeting instance ID")
+
+
+class InterviewSummaryRequest(BaseModel):
+    meeting_details: MeetingDetails

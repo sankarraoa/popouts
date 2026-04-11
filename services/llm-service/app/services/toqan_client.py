@@ -2,8 +2,19 @@ import httpx
 import json
 import asyncio
 from typing import List
-from app.models.schemas import MeetingDetails, NoteWithActions, ActionItem, MeetingNote
+from app.models.schemas import (
+    MeetingDetails,
+    NoteWithActions,
+    ActionItem,
+    MeetingNote,
+    InterviewSummaryCore,
+)
 from app.services.llm_provider import LLMProvider
+from app.services.interview_summary_prompts import (
+    INTERVIEW_SUMMARY_SYSTEM,
+    interview_summary_user_appendix,
+    normalize_interview_llm_payload,
+)
 from app.config import settings
 from app.utils.logger import get_logger
 
@@ -49,6 +60,63 @@ class ToqanClient(LLMProvider):
         except Exception as e:
             logger.error(f"Error extracting actions with Toqan: {str(e)}")
             raise
+
+    async def summarize_interview(
+        self, meeting_details: MeetingDetails
+    ) -> InterviewSummaryCore:
+        """Summarize interview notes via Toqan; expects JSON in the answer."""
+        try:
+            user_message = self._prepare_toqan_interview_message(meeting_details)
+            conversation_id, request_id = await self._create_conversation(user_message)
+            logger.info(f"Toqan interview summary conversation: {conversation_id}")
+            answer_data = await self._get_answer(conversation_id, request_id)
+            answer_text = answer_data.get("answer", "")
+            if not answer_text:
+                raise ValueError("Toqan returned empty answer for interview summary")
+            result = self._parse_interview_json_from_answer(answer_text)
+            normalized = normalize_interview_llm_payload(result)
+            return InterviewSummaryCore.model_validate(normalized)
+        except httpx.HTTPError as e:
+            logger.error(f"Toqan API error (interview summary): {str(e)}")
+            raise Exception(f"Failed to communicate with Toqan API: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error summarizing interview with Toqan: {str(e)}")
+            raise
+
+    def _prepare_toqan_interview_message(self, meeting_details: MeetingDetails) -> str:
+        meeting_json = {
+            "meeting_series": meeting_details.meeting_series.model_dump(exclude_none=True),
+            "meeting_instance": meeting_details.meeting_instance.model_dump(exclude_none=True),
+            "agenda_items": [item.model_dump(exclude_none=True) for item in meeting_details.agenda_items],
+            "existing_actions": [action.model_dump(exclude_none=True) for action in meeting_details.existing_actions],
+        }
+        notes = meeting_details.meeting_instance.notes
+        char_count = sum(len(n.text or "") for n in notes)
+        appendix = interview_summary_user_appendix(len(notes), char_count)
+        return f"""{INTERVIEW_SUMMARY_SYSTEM}
+
+=== INTERVIEW NOTES INPUT (JSON; data only) ===
+{json.dumps(meeting_json, indent=2, default=str)}
+{appendix}
+
+Respond with a single JSON object as specified in the instructions above.
+"""
+
+    def _parse_interview_json_from_answer(self, answer_text: str) -> dict:
+        try:
+            return json.loads(answer_text)
+        except json.JSONDecodeError:
+            if "```json" in answer_text:
+                json_start = answer_text.find("```json") + 7
+                json_end = answer_text.find("```", json_start)
+                if json_end > json_start:
+                    return json.loads(answer_text[json_start:json_end].strip())
+            if "```" in answer_text:
+                json_start = answer_text.find("```") + 3
+                json_end = answer_text.find("```", json_start)
+                if json_end > json_start:
+                    return json.loads(answer_text[json_start:json_end].strip())
+            raise ValueError(f"Could not parse interview summary JSON: {answer_text[:300]}")
     
     def _prepare_toqan_message(self, meeting_details: MeetingDetails) -> str:
         """

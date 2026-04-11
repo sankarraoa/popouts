@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000  # Railway overrides via PORT env var
 
-    llm_provider: Literal["toqan", "openai"] = "openai"
+    llm_provider: Literal["toqan", "openai"] = "toqan"
 
     toqan_api_key: str = ""
     openai_api_key: str = ""

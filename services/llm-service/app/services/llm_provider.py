@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from app.models.schemas import MeetingDetails, NoteWithActions
+from app.models.schemas import MeetingDetails, NoteWithActions, InterviewSummaryCore
 
 
 class LLMProvider(ABC):
@@ -18,6 +18,13 @@ class LLMProvider(ABC):
             List of notes with their associated action items.
             Each note can have 0, 1, or multiple action items.
         """
+        pass
+
+    @abstractmethod
+    async def summarize_interview(
+        self, meeting_details: MeetingDetails
+    ) -> InterviewSummaryCore:
+        """Summarize interview notes per hiring workflow schema (see prompts file)."""
         pass
     
     @abstractmethod

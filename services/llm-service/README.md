@@ -25,11 +25,13 @@ Microservice for extracting action items from meeting notes using LLM providers 
 cp .env.example .env
 ```
 
-2. Configure your API keys in `.env`:
+2. Configure your API keys in `.env` (default provider is **Toqan**; set `LLM_PROVIDER=openai` to use OpenAI):
 ```env
-LLM_PROVIDER=toqan  # or "openai"
+LLM_PROVIDER=toqan
 TOQAN_API_KEY=your_toqan_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
+
+# OpenAI (optional): set LLM_PROVIDER=openai and uncomment:
+# OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 3. Install dependencies:
@@ -113,6 +115,10 @@ Extract action items from meeting notes.
 }
 ```
 
+#### POST `/api/v1/summarize-interview`
+
+Summarizes interview notes for hiring workflows: **candidate_name**, **role_applied_for**, **overview**, **strengths**, **concerns**, **evidence_level** (`rich` \| `moderate` \| `sparse`), **security_flag**. Request body matches extract-actions: `{ "meeting_details": { ... } }`. Response adds **series_id** and **meeting_id**. Same license headers as extract-actions (`X-License-Key`, `X-Installation-Id`). Prompt text lives in `app/prompts/interview_summary_system.txt`.
+
 #### GET `/api/v1/health`
 
 Health check endpoint.
@@ -122,14 +128,14 @@ Health check endpoint.
 1. Connect your GitHub repository to Railway
 2. Set the root directory to `services/llm-service`
 3. Add environment variables in Railway dashboard:
-   - `LLM_PROVIDER`
+   - `LLM_PROVIDER` — use `toqan` or `openai` (must match which key you set)
    - `TOQAN_API_KEY` (if using Toqan)
    - `OPENAI_API_KEY` (if using OpenAI)
 4. Railway will automatically detect the Dockerfile and deploy
 
 ## Environment Variables
 
-- `LLM_PROVIDER`: Default provider ("toqan" or "openai")
+- `LLM_PROVIDER`: Provider to use — default in code is **toqan**; set to `openai` if you use OpenAI only
 - `TOQAN_API_KEY`: Toqan API key (starts with `sk_`)
 - `OPENAI_API_KEY`: OpenAI API key
 - `OPENAI_MODEL`: OpenAI model to use (default: "gpt-4")

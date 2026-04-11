@@ -179,7 +179,6 @@ export async function showAddActionSection() {
   
   elements.addActionContainer.style.display = 'block';
   if (elements.addActionInput) {
-    elements.addActionInput.style.height = 'auto';
     elements.addActionInput.focus();
   }
   
@@ -199,7 +198,6 @@ export function hideAddActionSection() {
   elements.addActionContainer.style.display = 'none';
   if (elements.addActionInput) {
     elements.addActionInput.value = '';
-    elements.addActionInput.style.height = 'auto';
   }
   if (elements.addActionDropdown) {
     elements.addActionDropdown.style.display = 'none';

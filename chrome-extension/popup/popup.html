@@ -123,6 +123,46 @@
             </div>
           </div>
 
+          <!-- Interviews Section -->
+          <div class="category-section">
+            <div class="category-header">
+              <button class="category-toggle" data-category="interviews">
+                <span class="category-icon"><img src="../icons/category-closed-icon.png?v=1" alt="Closed" width="12" height="12"></span>
+                <span class="category-dot" style="background-color: #0d9488;"></span>
+                <span class="category-name">Interviews</span>
+                <span class="category-count">0</span>
+              </button>
+              <button class="add-button" data-category="interviews">+ Add</button>
+            </div>
+            <div class="meeting-list" data-category="interviews">
+              <div class="meeting-list-empty-state" data-category="interviews" style="display: none;">
+                <div class="add-meeting-input-container">
+                  <textarea class="add-meeting-input" placeholder='e.g. Candidate — PM role' data-category="interviews" rows="1"></textarea>
+                  <div class="add-meeting-helper">
+                    <span class="add-meeting-helper-text">Enter to add · Esc to cancel</span>
+                    <button class="add-meeting-cancel" data-category="interviews" title="Cancel">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="rgba(113, 113, 130, 0.4)" stroke-width="0.833333" stroke-linecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="add-meeting-input-container" data-category="interviews" style="display: none;">
+                <textarea class="add-meeting-input" placeholder='Interview…' data-category="interviews" rows="1"></textarea>
+                <div class="add-meeting-helper">
+                  <span class="add-meeting-helper-text">Enter to add · Esc to cancel</span>
+                  <button class="add-meeting-cancel" data-category="interviews" title="Cancel">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="rgba(113, 113, 130, 0.4)" stroke-width="0.833333" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <!-- Meetings will be inserted here -->
+            </div>
+          </div>
+
           <!-- Recurring Section -->
           <div class="category-section">
             <div class="category-header">
@@ -249,7 +289,7 @@
           <!-- Add Action Input Section (hidden by default) -->
           <div id="add-action-container" class="add-action-container" style="display: none;">
             <div class="add-action-input-wrapper">
-              <textarea class="add-action-input" id="add-action-input" placeholder="Enter what needs to be done. Shift+Enter for a new line. Press Enter to save or Escape to cancel." rows="1"></textarea>
+              <input type="text" class="add-action-input" id="add-action-input" placeholder="Enter what needs to be done and press Enter or Escape">
               <div class="add-action-dropdown-button" id="add-action-dropdown-button">
                 <span class="add-action-dropdown-selected" id="add-action-dropdown-selected">Select meeting</span>
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" class="add-action-dropdown-chevron">
@@ -325,6 +365,15 @@
                 <img src="../icons/tab-actions.png" alt="Actions" width="13" height="13">
               <span class="tab-label">Actions</span>
               <span class="tab-badge" id="actions-detail-count">0</span>
+            </button>
+            <button type="button" class="meeting-tab meeting-tab-interview-only" data-view="interview-summary" hidden aria-hidden="true">
+              <span class="tab-icon" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3.25 2.4375H9.75C10.0261 2.4375 10.25 2.66136 10.25 2.9375V10.5625C10.25 10.8386 10.0261 11.0625 9.75 11.0625H3.25C2.97386 11.0625 2.75 10.8386 2.75 10.5625V2.9375C2.75 2.66136 2.97386 2.4375 3.25 2.4375Z" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M4.0625 4.0625H8.9375M4.0625 6.5H8.9375M4.0625 8.9375H7.3125" stroke="currentColor" stroke-width="0.9" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="tab-label">Summary</span>
             </button>
           </div>
           <div class="meeting-content">
@@ -402,6 +451,40 @@
                 </div>
                 <p class="actions-empty-title">No action items yet</p>
                 <p class="actions-empty-description">Start typing below to add your first item.</p>
+              </div>
+            </div>
+
+            <!-- Interview-only: Summary -->
+            <div id="interview-summary-view" class="view-content interview-summary-view">
+              <div class="interview-summary-shell">
+                <div id="interview-summary-empty" class="interview-summary-empty">
+                  <div class="interview-summary-empty-inner">
+                    <button type="button" id="interview-summary-generate-btn" class="interview-summary-btn">
+                      Generate summary
+                    </button>
+                    <p class="interview-summary-empty-hint">Summarizes all notes in this interview (overview, pros, cons).</p>
+                  </div>
+                </div>
+                <p id="interview-summary-error" class="interview-summary-error" style="display: none;" role="alert"></p>
+                <div id="interview-summary-result" class="interview-summary-result" style="display: none;">
+                  <div class="interview-summary-toolbar" role="toolbar" aria-label="Summary actions">
+                    <button type="button" id="interview-summary-regenerate-btn" class="interview-summary-icon-btn" title="Regenerate summary">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M21 3v5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M3 21v-5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                    <button type="button" id="interview-summary-copy-btn" class="interview-summary-icon-btn" title="Copy to clipboard">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <div id="interview-summary-output" class="interview-summary-output" aria-live="polite"></div>
+                </div>
               </div>
             </div>
           </div>

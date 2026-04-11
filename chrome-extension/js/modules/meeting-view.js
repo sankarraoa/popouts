@@ -4,6 +4,7 @@ import { formatLastDate } from './utils.js';
 import { loadAgenda } from './agenda-tab.js';
 import { loadNotes } from './notes-tab.js';
 import { loadActions } from './actions-tab.js';
+import { loadInterviewSummary } from './interview-summary-tab.js';
 import { getMeetingStats } from '../meetings.js';
 
 // Placeholder for elements object, will be passed from main orchestrator
@@ -37,6 +38,17 @@ export async function selectMeeting(meetingId) {
     if (elements.agendaView) elements.agendaView.classList.remove('active');
     if (elements.notesView) elements.notesView.classList.remove('active');
     if (elements.actionsView) elements.actionsView.classList.remove('active');
+    if (elements.interviewSummaryView) elements.interviewSummaryView.classList.remove('active');
+    const summaryTabClear = document.querySelector('.meeting-tab[data-view="interview-summary"]');
+    if (summaryTabClear) {
+      summaryTabClear.hidden = true;
+      summaryTabClear.setAttribute('aria-hidden', 'true');
+    }
+    const actionsTabClear = document.querySelector('.meeting-tab[data-view="actions"]');
+    if (actionsTabClear) {
+      actionsTabClear.hidden = false;
+      actionsTabClear.setAttribute('aria-hidden', 'false');
+    }
     
     // Remove selected class from all meeting items
     const allItems = document.querySelectorAll('.meeting-item');
@@ -96,6 +108,27 @@ export async function selectMeeting(meetingId) {
     }
   }
   
+  const isInterview = meeting.type === 'interviews';
+  const summaryTabEl = document.querySelector('.meeting-tab[data-view="interview-summary"]');
+  if (summaryTabEl) {
+    summaryTabEl.hidden = !isInterview;
+    summaryTabEl.setAttribute('aria-hidden', isInterview ? 'false' : 'true');
+  }
+  const actionsTabEl = document.querySelector('.meeting-tab[data-view="actions"]');
+  if (actionsTabEl) {
+    actionsTabEl.hidden = isInterview;
+    actionsTabEl.setAttribute('aria-hidden', isInterview ? 'true' : 'false');
+  }
+  if (isInterview && state.currentView === 'actions') {
+    state.currentView = 'agenda';
+  }
+  if (!isInterview && state.currentView === 'interview-summary') {
+    state.currentView = 'agenda';
+  }
+  if (elements.interviewSummaryView && !isInterview) {
+    elements.interviewSummaryView.classList.remove('active');
+  }
+  
   // Update tab counts
   if (elements.agendaCount) {
     elements.agendaCount.textContent = stats.openAgendaCount || 0;
@@ -124,13 +157,22 @@ export async function switchView(view) {
   if (!state.currentMeetingId) {
     return;
   }
-  
+
+  if (view === 'actions') {
+    const { getMeetingSeries } = await import('../meetings.js');
+    const m = await getMeetingSeries(state.currentMeetingId);
+    if (m?.type === 'interviews') {
+      view = 'agenda';
+    }
+  }
+
   state.currentView = view;
   
   // Hide all views
   if (elements.agendaView) elements.agendaView.classList.remove('active');
   if (elements.notesView) elements.notesView.classList.remove('active');
   if (elements.actionsView) elements.actionsView.classList.remove('active');
+  if (elements.interviewSummaryView) elements.interviewSummaryView.classList.remove('active');
   
   // Remove active class from all tabs
   if (elements.meetingTabs) {
@@ -180,6 +222,33 @@ export async function switchView(view) {
           }, 150);
         }
       }
+      break;
+      
+    case 'interview-summary': {
+      const { getMeetingSeries } = await import('../meetings.js');
+      const m = await getMeetingSeries(state.currentMeetingId);
+      if (!m || m.type !== 'interviews') {
+        state.currentView = 'agenda';
+        if (elements.agendaView) elements.agendaView.classList.add('active');
+        const agendaTabFallback = document.querySelector('.meeting-tab[data-view="agenda"]');
+        if (agendaTabFallback) agendaTabFallback.classList.add('active');
+        await loadAgenda();
+        break;
+      }
+      if (elements.interviewSummaryView) elements.interviewSummaryView.classList.add('active');
+      const summaryTab = document.querySelector('.meeting-tab[data-view="interview-summary"]');
+      if (summaryTab) summaryTab.classList.add('active');
+      await loadInterviewSummary();
+      break;
+    }
+      
+    default:
+      // Unknown or legacy view value — show agenda
+      state.currentView = 'agenda';
+      if (elements.agendaView) elements.agendaView.classList.add('active');
+      const fallbackAgendaTab = document.querySelector('.meeting-tab[data-view="agenda"]');
+      if (fallbackAgendaTab) fallbackAgendaTab.classList.add('active');
+      await loadAgenda();
       break;
   }
   

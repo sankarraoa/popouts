@@ -49,6 +49,7 @@ export async function restoreState(elements) {
       
       // Expand 1:1s category by default, collapse others
       const categoryToggle1 = document.querySelector('.category-toggle[data-category="1:1s"]');
+      const categoryToggleInterviews = document.querySelector('.category-toggle[data-category="interviews"]');
       const categoryToggle2 = document.querySelector('.category-toggle[data-category="recurring"]');
       const categoryToggle3 = document.querySelector('.category-toggle[data-category="adhoc"]');
       
@@ -73,6 +74,17 @@ export async function restoreState(elements) {
             setTimeout(() => emptyInput.focus(), 200);
         }
       }
+      }
+      
+      // Collapse Interviews
+      if (categoryToggleInterviews) {
+        categoryToggleInterviews.classList.remove('active');
+        const listInterviews = document.querySelector('.meeting-list[data-category="interviews"]');
+        const iconInterviews = categoryToggleInterviews.querySelector('.category-icon');
+        if (listInterviews) listInterviews.style.display = 'none';
+        if (iconInterviews) {
+          iconInterviews.innerHTML = '<img src="../icons/category-closed-icon.png?v=' + Date.now() + '" alt="Closed" width="12" height="12">';
+        }
       }
       
       // Collapse Recurring

@@ -797,8 +797,10 @@ async function handleExportData() {
       db.actionItems.toArray()
     ]);
 
+    const interviewSummaryCount = meetingSeries.filter((s) => s && s.interviewSummary != null).length;
+
     const payload = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       exportedAt: new Date().toISOString(),
       source: 'popouts-sidepanel',
       data: {
@@ -820,8 +822,12 @@ async function handleExportData() {
     downloadLink.click();
     URL.revokeObjectURL(url);
 
+    const summaryPart =
+      interviewSummaryCount > 0
+        ? ` ${interviewSummaryCount} interview summar${interviewSummaryCount === 1 ? 'y' : 'ies'},`
+        : '';
     setDataTransferStatus(
-      `Exported ${meetingSeries.length} meetings, ${meetingInstances.length} instances, ${agendaItems.length} agenda items, and ${actionItems.length} action items.`,
+      `Exported ${meetingSeries.length} meetings,${summaryPart} ${meetingInstances.length} instances, ${agendaItems.length} agenda items, and ${actionItems.length} action items.`,
       'success'
     );
   } catch (error) {
@@ -865,8 +871,9 @@ async function handleImportDataFileSelected() {
     await loadMeetings(elements);
     await updateCounts(elements);
 
+    const impSummary = result.interviewSummaries > 0 ? `, ${result.interviewSummaries} interview summaries` : '';
     setDataTransferStatus(
-      `Imported ${result.meetingSeries} meetings, ${result.meetingInstances} instances, ${result.agendaItems} agenda items, and ${result.actionItems} action items.`,
+      `Imported ${result.meetingSeries} meetings, ${result.meetingInstances} instances, ${result.agendaItems} agenda items, and ${result.actionItems} action items${impSummary}.`,
       'success'
     );
   } catch (error) {
@@ -917,17 +924,21 @@ async function importDataPayload(payload) {
     meetingSeries: 0,
     meetingInstances: 0,
     agendaItems: 0,
-    actionItems: 0
+    actionItems: 0,
+    interviewSummaries: 0
   };
 
   await db.ensureReady();
   await db.transaction('rw', db.meetingSeries, db.meetingInstances, db.agendaItems, db.actionItems, async () => {
     for (const rawSeries of meetingSeries) {
       const { id: originalSeriesId, ...seriesWithoutId } = rawSeries || {};
-      const seriesToInsert = normalizeRecordDates(seriesWithoutId, ['createdAt']);
+      const seriesToInsert = normalizeRecordDates(seriesWithoutId, ['createdAt', 'interviewSummaryUpdatedAt']);
       const newSeriesId = await db.meetingSeries.add(seriesToInsert);
       if (originalSeriesId !== undefined && originalSeriesId !== null) {
         seriesIdMap.set(originalSeriesId, newSeriesId);
+      }
+      if (seriesToInsert.interviewSummary != null) {
+        importedCounts.interviewSummaries += 1;
       }
       importedCounts.meetingSeries += 1;
     }

@@ -9,7 +9,7 @@
 // 4. If popup closes: timer is lost. Next open triggers extraction via step 1.
 
 import { db } from '../db.js';
-import { getAllMeetingSeries } from '../meetings.js';
+import { getAllMeetingSeries, getMeetingSeries } from '../meetings.js';
 import { getNotesByDate } from '../notes.js';
 import { getAgendaItems } from '../agenda.js';
 import { getActionItems, createActionItem, updateActionItem, deleteActionItem } from '../actions.js';
@@ -130,10 +130,21 @@ class ActionExtractionService {
     }
   }
 
+  async isInterviewMeeting(meetingId) {
+    meetingId = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
+    const m = await getMeetingSeries(meetingId);
+    return m?.type === 'interviews';
+  }
+
   // Schedule extraction with debounce
   async scheduleExtraction(meetingId) {
     console.log(`[ActionExtraction] scheduleExtraction called for meeting ${meetingId}`);
-    
+    meetingId = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
+    if (await this.isInterviewMeeting(meetingId)) {
+      console.log('[ActionExtraction] Skipping schedule — interview meeting');
+      return;
+    }
+
     // If there's an in-flight call, wait for it to complete
     if (this.inFlightCalls.has(meetingId)) {
       console.log(`[ActionExtraction] Extraction already in progress for meeting ${meetingId}, waiting for completion...`);
@@ -195,6 +206,11 @@ class ActionExtractionService {
     const now = Date.now();
     
     for (const [meetingId, data] of Object.entries(pendingExtractions)) {
+      const mid = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
+      if (await this.isInterviewMeeting(mid)) {
+        await this.clearPendingExtraction(meetingId);
+        continue;
+      }
       const timeSinceLastNote = now - data.last_note_time;
       
       if (timeSinceLastNote >= DEBOUNCE_DELAY) {
@@ -234,6 +250,9 @@ class ActionExtractionService {
       
       // First, check all meetings and collect which ones need extraction
       for (const meeting of allMeetings) {
+        if (meeting.type === 'interviews') {
+          continue;
+        }
         const notesToExtract = await this.getNotesToExtract(meeting.id);
         
         if (notesToExtract.length > 0) {
@@ -301,7 +320,11 @@ class ActionExtractionService {
     // Dexie auto-increment keys are numbers; coerce string IDs from chrome.storage
     meetingId = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
     console.log(`[ActionExtraction] extractActions called for meeting ${meetingId}`);
-    
+    if (await this.isInterviewMeeting(meetingId)) {
+      console.log('[ActionExtraction] Skipping extract — interview meeting');
+      return;
+    }
+
     // Check license access
     const access = await licenseManager.hasLLMAccess();
     if (!access.hasAccess) {

@@ -146,6 +146,7 @@ export async function loadMeetings(elements) {
     // Group by type and sort by creation time (newest first)
     const meetingsByType = {
       '1:1s': [],
+      'interviews': [],
       'recurring': [],
       'adhoc': []
     };
@@ -169,12 +170,14 @@ export async function loadMeetings(elements) {
     
     // Update counts
     const count1 = meetingsByType['1:1s'].length;
-    const count2 = meetingsByType['recurring'].length;
-    const count3 = meetingsByType['adhoc'].length;
+    const count2 = meetingsByType['interviews'].length;
+    const count3 = meetingsByType['recurring'].length;
+    const count4 = meetingsByType['adhoc'].length;
     
     const countEl1 = document.querySelector('[data-category="1:1s"] .category-count');
-    const countEl2 = document.querySelector('[data-category="recurring"] .category-count');
-    const countEl3 = document.querySelector('[data-category="adhoc"] .category-count');
+    const countEl2 = document.querySelector('[data-category="interviews"] .category-count');
+    const countEl3 = document.querySelector('[data-category="recurring"] .category-count');
+    const countEl4 = document.querySelector('[data-category="adhoc"] .category-count');
     
     if (countEl1) {
       countEl1.textContent = count1;
@@ -187,6 +190,10 @@ export async function loadMeetings(elements) {
     if (countEl3) {
       countEl3.textContent = count3;
       countEl3.title = count3 === 1 ? '1 meeting' : `${count3} meetings`;
+    }
+    if (countEl4) {
+      countEl4.textContent = count4;
+      countEl4.title = count4 === 1 ? '1 meeting' : `${count4} meetings`;
     }
     
     // Render meetings for each category

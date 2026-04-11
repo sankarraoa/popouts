@@ -8,7 +8,9 @@ import httpx
 from fastapi import APIRouter, HTTPException, Request
 from app.models.schemas import (
     ActionExtractionRequest,
-    ActionExtractionResponse
+    ActionExtractionResponse,
+    InterviewSummaryRequest,
+    InterviewSummaryResponse,
 )
 from app.services.llm_provider import LLMProvider
 from app.services.toqan_client import ToqanClient
@@ -340,6 +342,41 @@ async def extract_actions(http_request: Request, request: ActionExtractionReques
         raise HTTPException(
             status_code=500,
             detail=f"Failed to extract actions: {str(e)}",
+        )
+
+
+@router.post("/summarize-interview", response_model=InterviewSummaryResponse)
+async def summarize_interview_endpoint(http_request: Request, request: InterviewSummaryRequest):
+    """
+    Summarize interview notes (hiring workflow: overview, strengths, concerns, evidence_level, etc.).
+    Same auth headers as extract-actions (X-License-Key, X-Installation-Id).
+    """
+    license_key = http_request.headers.get("X-License-Key") or http_request.headers.get("x-license-key")
+    await _validate_license(license_key)
+
+    notes = request.meeting_details.meeting_instance.notes
+    if not notes:
+        raise HTTPException(status_code=400, detail="No notes to summarize")
+
+    start = time.perf_counter()
+    try:
+        provider = get_llm_provider()
+        logger.info(f"Interview summary using {provider.get_provider_name()} provider")
+        core = await provider.summarize_interview(request.meeting_details)
+        duration_ms = int((time.perf_counter() - start) * 1000)
+        logger.info(f"Interview summary completed in {duration_ms}ms")
+        return InterviewSummaryResponse(
+            series_id=request.meeting_details.meeting_series.id,
+            meeting_id=request.meeting_details.meeting_instance.id,
+            **core.model_dump(),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error summarizing interview: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to summarize interview: {str(e)}",
         )
 
 
