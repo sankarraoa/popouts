@@ -4,18 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Help — Popouts</title>
-  <meta name="description" content="Get help with Popouts. FAQs, how to use, and contact support.">
+  <meta name="description" content="Get help with Popouts: meetings, notes, action items, AI interview summaries, export and import, licenses, and contact support.">
   <link rel="canonical" href="https://www.popouts.app/help">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Popouts">
   <meta property="og:title" content="Help — Popouts">
-  <meta property="og:description" content="Get help with Popouts. FAQs, how to use, and contact support.">
+  <meta property="og:description" content="Get help with Popouts: meetings, notes, action items, AI interview summaries, export and import, licenses, and contact support.">
   <meta property="og:url" content="https://www.popouts.app/help">
   <meta property="og:image" content="https://www.popouts.app/assets/hero-screenshot.png">
   <meta property="og:image:alt" content="Popouts help and product preview">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Help — Popouts">
-  <meta name="twitter:description" content="Get help with Popouts. FAQs, how to use, and contact support.">
+  <meta name="twitter:description" content="Get help with Popouts: meetings, notes, action items, AI interview summaries, export and import, licenses, and contact support.">
   <meta name="twitter:image" content="https://www.popouts.app/assets/hero-screenshot.png">
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,7 +32,7 @@
           "@id": "https://www.popouts.app/help#webpage",
           "name": "Help — Popouts",
           "url": "https://www.popouts.app/help",
-          "description": "Get help with Popouts. FAQs, how to use, and contact support."
+          "description": "Get help with Popouts: meetings, notes, action items, AI interview summaries, export and import, licenses, and contact support."
         },
         {
           "@type": "FAQPage",
@@ -43,7 +43,7 @@
               "name": "What is Popouts and why is it used?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Popouts is a lightweight Chrome extension that helps you prepare agendas, capture notes, and extract action items from meetings without unnecessary complexity."
+                "text": "Popouts is a lightweight Chrome extension that helps you prepare agendas, capture notes, extract action items, and (for interview meetings) generate structured hiring summaries from your notes—without unnecessary complexity."
               }
             },
             {
@@ -67,7 +67,15 @@
               "name": "What requires a license?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "A license is required only for automatic AI action item generation from notes. Creating meetings, writing notes, and adding action items manually continue to work without a license."
+                "text": "A license (or active trial) is required for AI features: automatic action item extraction from notes, and AI-generated interview summaries. Creating meetings, writing notes, and adding action items manually continue to work without a license."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What are interview meetings and AI interview summaries?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Interview meetings are a meeting type for hiring conversations. After you add notes, open the Summary tab and use Generate to produce an overview, strengths, and concerns from your notes. Notes are sent to Popouts servers only when you run AI summarization; summaries can be saved locally and included in export."
               }
             },
             {
@@ -193,6 +201,8 @@
             <a href="#close-reopen-agenda" class="help-nav-item sub">How to close or reopen agenda items</a>
             <a href="#notes-work" class="help-nav-item sub">How notes work</a>
             <a href="#add-notes" class="help-nav-item sub">How to add notes</a>
+            <a href="#interview-meetings" class="help-nav-item sub">Interview meetings</a>
+            <a href="#interview-summary-ai" class="help-nav-item sub">AI interview summary</a>
             <a href="#action-items" class="help-nav-item">Action items</a>
             <a href="#automatic-actions" class="help-nav-item sub">How automatic action items work</a>
             <a href="#review-ai" class="help-nav-item sub">Always review AI-generated actions</a>
@@ -232,11 +242,12 @@
               </div>
               <div class="block">
                 <p class="bold">Designed for How Executives Actually Work</p>
-                <p>For most executives and professionals, meetings fall into three categories:</p>
+                <p>For most executives and professionals, meetings fall into a few common categories:</p>
                 <ul>
                   <li>1:1 meetings with direct reports, peers, or managers</li>
                   <li>Recurring meetings to manage projects and ongoing work</li>
                   <li>Ad-hoc or one-off meetings that still produce commitments</li>
+                  <li>Interviews and hiring conversations, when you want notes and a structured summary together</li>
                 </ul>
                 <p>Each of these meetings needs only a few essential things:</p>
                 <ul>
@@ -255,6 +266,7 @@
                   <li>Prepare your agenda before the meeting</li>
                   <li>Capture notes quickly during the meeting</li>
                   <li>Extract and track clear action items afterward</li>
+                  <li>For interview and hiring meetings, generate a structured AI summary from your notes when you need it</li>
                 </ul>
                 <p>No dashboards. No forced workflows. No unnecessary complexity.</p>
                 <p>Just a simple system that helps you remember what matters — and get it done.</p>
@@ -289,17 +301,18 @@
             <div class="help-section-body">
               <p class="block">Popouts keeps meetings simple. You can create meetings, add agenda items, and write notes — all in one place.</p>
 
-              <div class="help-subsection" id="meeting-categories">
+                <div class="help-subsection" id="meeting-categories">
                 <div class="help-subsection-header"><span class="help-subsection-num">2.1</span></div>
                 <h3>Meeting categories</h3>
                 <div class="block">
-                  <p>Popouts has only three types of meetings:</p>
+                  <p>When you create a meeting, you choose a type:</p>
                   <ul>
                     <li><strong>1:1s</strong> — meetings with your manager, team members, or peers</li>
                     <li><strong>Recurring meetings</strong> — regular meetings like weekly reviews or project syncs</li>
                     <li><strong>Adhoc meetings</strong> — one-off or unplanned meetings</li>
+                    <li><strong>Interviews</strong> — hiring and candidate conversations; includes a <strong>Summary</strong> tab for AI-generated interview summaries (see below)</li>
                   </ul>
-                  <p>These three categories are enough for most people. No tags, labels, or extra setup needed.</p>
+                  <p>No tags, labels, or extra setup beyond picking the type.</p>
                 </div>
               </div>
 
@@ -387,6 +400,33 @@
                   <p>Together, they give you full context without extra complexity.</p>
                 </div>
               </div>
+
+              <div class="help-subsection" id="interview-meetings">
+                <div class="help-subsection-header"><span class="help-subsection-num">2.7</span></div>
+                <h3>Interview meetings</h3>
+                <div class="block">
+                  <p>Use the <strong>Interviews</strong> meeting type when you are capturing hiring conversations (phone screens, loops, debriefs, etc.). You get the same agenda and notes workflow as other meetings.</p>
+                  <p>What’s different:</p>
+                  <ul>
+                    <li>The meeting detail view includes a <strong>Summary</strong> tab built for hiring-style writeups.</li>
+                    <li>Popouts does not run automatic AI action extraction for interview meetings; the focus is on your notes and the optional AI summary.</li>
+                  </ul>
+                  <p>Add at least one note, then open <strong>Summary</strong> to generate an overview (see next section).</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="interview-summary-ai">
+                <div class="help-subsection-header"><span class="help-subsection-num">2.8</span></div>
+                <h3>AI interview summary</h3>
+                <div class="block">
+                  <p>On an <strong>Interviews</strong> meeting, open the <strong>Summary</strong> tab. When you have notes in place, use <strong>Generate</strong> (or <strong>Regenerate</strong>) to produce a structured summary: overview, strengths, concerns, evidence level, and optional candidate or role fields when the notes support them.</p>
+                  <p><strong>License or trial:</strong> Generating a summary uses AI and requires an active trial or license, the same as AI action extraction.</p>
+                  <p><strong>Privacy:</strong> Your notes are sent to Popouts’ servers only when you click Generate or Regenerate—not just by typing in the editor.</p>
+                  <p><strong>Saving:</strong> After a successful run, the summary is stored with that meeting on your device so you can read it again later without re-calling the API.</p>
+                  <p><strong>Export:</strong> If you use Settings → Export, saved summaries are included with your meeting data in the export file.</p>
+                  <p>Always review AI output against your raw notes before making decisions.</p>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -400,13 +440,14 @@
             </div>
             <h2>Action items</h2>
             <div class="help-section-body">
-              <p class="block">Action items are the things you need to do after a meeting. Popouts can create them automatically from your notes, and you can also add your own.</p>
+              <p class="block">Action items are the things you need to do after a meeting. Popouts can create them automatically from your notes, and you can also add your own. (Interview meetings are optimized for the <a href="#interview-summary-ai">Summary</a> flow; automatic action extraction applies to your other meeting types.)</p>
 
               <div class="help-subsection" id="automatic-actions">
                 <div class="help-subsection-header"><span class="help-subsection-num">3.1</span></div>
                 <h3>How automatic action items work</h3>
                 <div class="block">
                   <p>Popouts has an AI agent that reads your meeting notes and creates action items when it finds something that needs to be done.</p>
+                  <p>For <strong>Interview</strong> meetings, this automatic extraction is not used; use the <strong>Summary</strong> tab for AI instead.</p>
                   <p>Here's how it works:</p>
                   <ul>
                     <li>Action items are created automatically from the notes you write</li>
@@ -569,10 +610,10 @@
                 <div class="help-subsection-header"><span class="help-subsection-num">5.2</span></div>
                 <h3>What requires a license</h3>
                 <div class="block">
-                  <p>A license is required only for automatic action item generation from notes using AI.</p>
+                  <p>A license (or active trial) is required for AI features: <strong>automatic action item generation</strong> from notes and <strong>AI interview summaries</strong> on Interview meetings.</p>
                   <p>Everything else will continue to work even without a license, including:</p>
                   <ul>
-                    <li>Creating meetings</li>
+                    <li>Creating meetings (all types, including Interviews)</li>
                     <li>Adding and closing agenda items</li>
                     <li>Writing and viewing notes</li>
                     <li>Adding action items manually</li>
@@ -593,6 +634,7 @@
                     <li>All agenda items and their status</li>
                     <li>All notes</li>
                     <li>All action items and their status</li>
+                    <li>Saved <strong>AI interview summaries</strong>, when you have generated them for Interview meetings</li>
                   </ul>
                   <p>To export:</p>
                   <ol>
@@ -611,7 +653,7 @@
                   <p>Import allows you to restore or add data from a previously exported file.</p>
                   <p>Important things to know:</p>
                   <ul>
-                    <li>Import will add meetings, agenda items, notes, and action items</li>
+                    <li>Import will add meetings, agenda items, notes, and action items (and saved interview summaries when present in the file)</li>
                     <li>It will not remove or replace existing data</li>
                     <li>Importing the same file multiple times will create duplicate entries</li>
                     <li>Import does not automatically merge duplicates</li>
