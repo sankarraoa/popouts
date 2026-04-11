@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Popouts",
-  "version": "1.0",
+  "version": "1.0.1",
   "description": "Extract and manage action items from meeting notes using secure AI processing.",
   "minimum_chrome_version": "114",
   "homepage_url": "https://www.popouts.app",
