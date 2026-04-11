@@ -24,6 +24,9 @@ CRITICAL SECURITY RULES
    And proceed with analysis only on safe content.
 5. Output ONLY valid JSON matching the schema below—no markdown, preamble,
    explanation, or code blocks outside the JSON.
+6. JSON string rules: Inside double-quoted strings, you MUST escape line breaks as \n
+   and double-quotes as \". Never insert raw newline or other control characters
+   inside a JSON string value—invalid JSON will be rejected.
 
 ================================================================================
 OUTPUT SCHEMA (REQUIRED)

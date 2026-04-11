@@ -17,6 +17,7 @@ from app.services.interview_summary_prompts import (
 )
 from app.config import settings
 from app.utils.logger import get_logger
+from app.utils.llm_json import parse_llm_json_object
 
 logger = get_logger(__name__)
 
@@ -73,7 +74,7 @@ class ToqanClient(LLMProvider):
             answer_text = answer_data.get("answer", "")
             if not answer_text:
                 raise ValueError("Toqan returned empty answer for interview summary")
-            result = self._parse_interview_json_from_answer(answer_text)
+            result = parse_llm_json_object(answer_text)
             normalized = normalize_interview_llm_payload(result)
             return InterviewSummaryCore.model_validate(normalized)
         except httpx.HTTPError as e:
@@ -102,22 +103,6 @@ class ToqanClient(LLMProvider):
 Respond with a single JSON object as specified in the instructions above.
 """
 
-    def _parse_interview_json_from_answer(self, answer_text: str) -> dict:
-        try:
-            return json.loads(answer_text)
-        except json.JSONDecodeError:
-            if "```json" in answer_text:
-                json_start = answer_text.find("```json") + 7
-                json_end = answer_text.find("```", json_start)
-                if json_end > json_start:
-                    return json.loads(answer_text[json_start:json_end].strip())
-            if "```" in answer_text:
-                json_start = answer_text.find("```") + 3
-                json_end = answer_text.find("```", json_start)
-                if json_end > json_start:
-                    return json.loads(answer_text[json_start:json_end].strip())
-            raise ValueError(f"Could not parse interview summary JSON: {answer_text[:300]}")
-    
     def _prepare_toqan_message(self, meeting_details: MeetingDetails) -> str:
         """
         Prepare the user message for Toqan.

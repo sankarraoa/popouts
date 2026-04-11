@@ -14,6 +14,7 @@ from app.services.interview_summary_prompts import (
 )
 from app.config import settings
 from app.utils.logger import get_logger
+from app.utils.llm_json import parse_llm_json_object
 import json
 
 logger = get_logger(__name__)
@@ -85,7 +86,7 @@ class OpenAIClient(LLMProvider):
                 temperature=0.35,
             )
             content = response.choices[0].message.content
-            data = json.loads(content)
+            data = parse_llm_json_object(content)
             normalized = normalize_interview_llm_payload(data)
             return InterviewSummaryCore.model_validate(normalized)
         except Exception as e:

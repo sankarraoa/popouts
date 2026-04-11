@@ -44,7 +44,144 @@ let allNotesByDate = [];
 export function setNotesDependencies(els, updateCountsCb) {
   elements = els;
   updateCountsCallback = updateCountsCb;
+  initNotesCopySelection();
 }
+
+/** Ordered list of note rows in #notes-container (for multi-row copy). */
+function allNoteRowsOrdered() {
+  const c = document.getElementById('notes-container');
+  if (!c) return [];
+  return [...c.querySelectorAll('.notes-note-row')];
+}
+
+function clearNotesCopySelection() {
+  document
+    .querySelectorAll('#notes-container .notes-note-row.notes-row-copy-selected')
+    .forEach((el) => el.classList.remove('notes-row-copy-selected'));
+}
+
+function applyNotesCopySelection(lo, hi) {
+  const rows = allNoteRowsOrdered();
+  clearNotesCopySelection();
+  if (!rows.length || lo < 0 || hi < 0) return;
+  const a = Math.min(lo, hi, rows.length - 1);
+  const b = Math.max(lo, hi, 0);
+  for (let i = a; i <= b; i++) {
+    rows[i].classList.add('notes-row-copy-selected');
+  }
+}
+
+/**
+ * Drag across multiple .notes-note-text blocks does not extend native selection.
+ * When the pointer moves into another note row while button is down, we select
+ * a contiguous range of rows and handle Ctrl+C on the copy event.
+ */
+function initNotesCopySelection() {
+  if (initNotesCopySelection.wired) return;
+  initNotesCopySelection.wired = true;
+
+  const state = {
+    pointerDown: false,
+    startRowIndex: -1,
+    draggingMulti: false
+  };
+
+  window.addEventListener(
+    'pointerdown',
+    (e) => {
+      if (e.button !== 0) return;
+
+      const multi = document.querySelectorAll(
+        '#notes-container .notes-note-row.notes-row-copy-selected'
+      );
+      if (multi.length > 1 && e.target.closest('.notes-note-text')) {
+        clearNotesCopySelection();
+        return;
+      }
+
+      const notesContainer = document.getElementById('notes-container');
+      const row = e.target.closest?.('.notes-note-row');
+      if (!row || !notesContainer?.contains(row)) {
+        return;
+      }
+      if (e.target.closest('textarea.notes-input')) return;
+
+      const rows = allNoteRowsOrdered();
+      const idx = rows.indexOf(row);
+      if (idx < 0) return;
+
+      state.pointerDown = true;
+      state.startRowIndex = idx;
+      state.draggingMulti = false;
+    },
+    true
+  );
+
+  window.addEventListener(
+    'pointermove',
+    (e) => {
+      if (!state.pointerDown || e.buttons !== 1 || state.startRowIndex < 0) return;
+
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const row = el?.closest?.('.notes-note-row');
+      const notesContainer = document.getElementById('notes-container');
+      if (!row || !notesContainer?.contains(row)) return;
+
+      const rows = allNoteRowsOrdered();
+      const idx = rows.indexOf(row);
+      if (idx < 0) return;
+
+      if (idx !== state.startRowIndex) {
+        state.draggingMulti = true;
+        try {
+          window.getSelection()?.removeAllRanges();
+        } catch {
+          /* ignore */
+        }
+        const lo = Math.min(state.startRowIndex, idx);
+        const hi = Math.max(state.startRowIndex, idx);
+        applyNotesCopySelection(lo, hi);
+      }
+    },
+    true
+  );
+
+  const endPointer = () => {
+    state.pointerDown = false;
+    state.startRowIndex = -1;
+    state.draggingMulti = false;
+  };
+
+  window.addEventListener('pointerup', endPointer, true);
+  window.addEventListener('pointercancel', endPointer, true);
+
+  window.addEventListener(
+    'copy',
+    (e) => {
+      const selected = document.querySelectorAll(
+        '#notes-container .notes-note-row.notes-row-copy-selected'
+      );
+      if (selected.length === 0) return;
+      const texts = [...selected].map((r) => {
+        const t = r.querySelector('.notes-note-text');
+        return (t?.textContent || '').replace(/\u00a0/g, ' ').trim();
+      });
+      e.clipboardData?.setData('text/plain', texts.join('\n'));
+      e.preventDefault();
+      clearNotesCopySelection();
+    },
+    true
+  );
+
+  window.addEventListener(
+    'keydown',
+    (e) => {
+      if (e.key === 'Escape') clearNotesCopySelection();
+    },
+    true
+  );
+}
+initNotesCopySelection.wired = false;
 
 // Load notes grouped by date
 export async function loadNotes(resetPagination = true) {
