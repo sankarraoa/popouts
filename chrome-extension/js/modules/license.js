@@ -3,6 +3,9 @@
 
 import { getConfig, onEnvChange } from '../config.js';
 
+/** Verbose license / install logging (may include identifiers). Off in production builds. */
+const DEBUG = false;
+
 const LICENSE_STORAGE_KEY = 'user_license';
 const INSTALLATION_ID_KEY = 'installation_id';
 const INSTALL_DATE_KEY = 'install_date';
@@ -20,15 +23,15 @@ onEnvChange(() => { _apiBaseUrl = null; });
 
 // Generate or get installation ID (device fingerprint)
 async function getInstallationId() {
-  console.log('[License] getInstallationId: starting');
+  if (DEBUG) console.log('[License] getInstallationId: starting');
   try {
     const stored = await chrome.storage.local.get(INSTALLATION_ID_KEY);
     if (stored[INSTALLATION_ID_KEY]) {
-      console.log('[License] getInstallationId: found existing', stored[INSTALLATION_ID_KEY]);
+      if (DEBUG) console.log('[License] getInstallationId: found existing', stored[INSTALLATION_ID_KEY]);
       return stored[INSTALLATION_ID_KEY];
     }
 
-    console.log('[License] getInstallationId: generating new (navigator:', !!navigator, ', screen:', typeof screen !== 'undefined' ? `${screen?.width}x${screen?.height}` : 'N/A', ')');
+    if (DEBUG) console.log('[License] getInstallationId: generating new (navigator:', !!navigator, ', screen:', typeof screen !== 'undefined' ? `${screen?.width}x${screen?.height}` : 'N/A', ')');
     // Generate installation ID based on browser/device characteristics
     const fingerprint = [
       navigator?.userAgent ?? 'unknown',
@@ -48,7 +51,7 @@ async function getInstallationId() {
 
     const installationId = Math.abs(hash).toString(16).substring(0, 16).toUpperCase();
     await chrome.storage.local.set({ [INSTALLATION_ID_KEY]: installationId });
-    console.log('[License] getInstallationId: created and stored', installationId);
+    if (DEBUG) console.log('[License] getInstallationId: created and stored', installationId);
     return installationId;
   } catch (err) {
     console.error('[License] getInstallationId: error', err);
@@ -61,14 +64,14 @@ async function getInstallDate() {
   const stored = await chrome.storage.local.get(INSTALL_DATE_KEY);
   if (stored[INSTALL_DATE_KEY]) {
     const date = new Date(stored[INSTALL_DATE_KEY]);
-    console.log(`[License] Install date loaded: ${date.toISOString()}`);
+    if (DEBUG) console.log(`[License] Install date loaded: ${date.toISOString()}`);
     return date;
   }
   
   // First install - store current date
   const installDate = new Date();
   await chrome.storage.local.set({ [INSTALL_DATE_KEY]: installDate.toISOString() });
-  console.log(`[License] First install detected - Storing install date: ${installDate.toISOString()}`);
+  if (DEBUG) console.log(`[License] First install detected - Storing install date: ${installDate.toISOString()}`);
   return installDate;
 }
 
@@ -95,7 +98,7 @@ async function isFreeTrialActive() {
   trialEndDate.setDate(trialEndDate.getDate() + FREE_TRIAL_DAYS);
   const isActive = new Date() < trialEndDate;
   
-  console.log(`[License] Free trial check - Install date: ${installDate.toISOString()}, Trial ends: ${trialEndDate.toISOString()}, Active: ${isActive}`);
+  if (DEBUG) console.log(`[License] Free trial check - Install date: ${installDate.toISOString()}, Trial ends: ${trialEndDate.toISOString()}, Active: ${isActive}`);
   
   return isActive;
 }
@@ -282,24 +285,24 @@ async function hasLLMAccess() {
     const expiryDate = new Date(license.expiry);
     const now = new Date();
     if (expiryDate > now) {
-      console.log(`[License] LLM access granted - Paid license active, expires: ${expiryDate.toISOString()}`);
+      if (DEBUG) console.log(`[License] LLM access granted - Paid license active, expires: ${expiryDate.toISOString()}`);
       return { hasAccess: true, reason: 'license' };
     } else {
-      console.log(`[License] Paid license expired - Expiry: ${expiryDate.toISOString()}, Now: ${now.toISOString()}`);
+      if (DEBUG) console.log(`[License] Paid license expired - Expiry: ${expiryDate.toISOString()}, Now: ${now.toISOString()}`);
     }
   } else {
-    console.log(`[License] No paid license found - Checking free trial...`);
+    if (DEBUG) console.log(`[License] No paid license found - Checking free trial...`);
   }
   
   // Fallback to free trial
   const freeTrialActive = await isFreeTrialActive();
   if (freeTrialActive) {
     const daysRemaining = await getFreeTrialDaysRemaining();
-    console.log(`[License] LLM access granted - Free trial active, ${daysRemaining} days remaining`);
+    if (DEBUG) console.log(`[License] LLM access granted - Free trial active, ${daysRemaining} days remaining`);
     return { hasAccess: true, reason: 'free_trial' };
   }
   
-  console.log(`[License] LLM access denied - No license and free trial expired`);
+  if (DEBUG) console.log(`[License] LLM access denied - No license and free trial expired`);
   return { hasAccess: false, reason: 'no_access' };
 }
 

@@ -5,6 +5,9 @@
 import * as licenseManager from './license.js';
 import { getConfig, getEnv, setEnv } from '../config.js';
 
+// Environment selector (#settings-env-field) is hidden by default; popup.js / sidepanel.js reveal it
+// after five quick taps on the Settings title (developer-only local testing).
+
 let _hydrated = false;
 
 export async function displaySettingsView(elements, callbacks = {}) {
@@ -66,6 +69,15 @@ export async function hydrateSettingsView(elements, callbacks = {}) {
     envSelect.value = await getEnv();
     envSelect.addEventListener('change', async () => {
       await setEnv(envSelect.value);
+    });
+  }
+
+  const privacyLink = document.getElementById('settings-privacy-link');
+  if (privacyLink) {
+    privacyLink.addEventListener('click', async () => {
+      const cfg = await getConfig();
+      const base = (cfg.WEBSITE_URL || 'https://www.popouts.app').replace(/\/$/, '');
+      chrome.tabs.create({ url: `${base}/privacy` });
     });
   }
 

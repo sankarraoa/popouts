@@ -4,6 +4,8 @@ import { state } from './state.js';
 import { isToday } from './utils.js';
 import { actionExtractionService } from './action-extraction.js';
 
+const DEBUG = false;
+
 // Placeholder for elements object, will be passed from main orchestrator
 let elements = {};
 // Placeholder for updateCounts callback
@@ -186,11 +188,11 @@ initNotesCopySelection.wired = false;
 // Load notes grouped by date
 export async function loadNotes(resetPagination = true) {
   try {
-    console.log('=== loadNotes called ===');
-    console.log('currentMeetingId:', state.currentMeetingId);
+    if (DEBUG) console.log('=== loadNotes called ===');
+    if (DEBUG) console.log('currentMeetingId:', state.currentMeetingId);
     
     if (!state.currentMeetingId) {
-      console.log('No currentMeetingId, returning');
+      if (DEBUG) console.log('No currentMeetingId, returning');
       return;
     }
     
@@ -205,8 +207,8 @@ export async function loadNotes(resetPagination = true) {
     }
     
     const notesByDate = await getNotesByDate(state.currentMeetingId);
-    console.log('notesByDate:', notesByDate);
-    console.log('notesByDate.length:', notesByDate.length);
+    if (DEBUG) console.log('notesByDate:', notesByDate);
+    if (DEBUG) console.log('notesByDate.length:', notesByDate.length);
     
     // Store all notes for pagination
     allNotesByDate = notesByDate;
@@ -228,7 +230,7 @@ export async function loadNotes(resetPagination = true) {
     
     if (notesByDate.length === 0) {
       // Show empty state and ensure input field is present and functional
-      console.log('No notes found, showing empty state');
+      if (DEBUG) console.log('No notes found, showing empty state');
       // Hide notes container when showing empty state
       if (elements.notesContainer) {
         elements.notesContainer.style.display = 'none';
@@ -345,14 +347,14 @@ export async function loadNotes(resetPagination = true) {
                 
                 // Schedule action extraction AFTER focusing (fire-and-forget, don't await)
                 if (state.currentMeetingId) {
-                  console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (empty state)`);
+                  if (DEBUG) console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (empty state)`);
                   // Don't await - let it run in background
                   actionExtractionService.scheduleExtraction(state.currentMeetingId).catch(err => {
                     console.error('[NotesTab] Error scheduling extraction:', err);
                   });
                   
                   // Also check all meetings for unprocessed notes (fire-and-forget)
-                  console.log(`[NotesTab] Checking all meetings for unprocessed notes...`);
+                  if (DEBUG) console.log(`[NotesTab] Checking all meetings for unprocessed notes...`);
                   actionExtractionService.checkAllMeetingsForExtraction().catch(err => {
                     console.error('[NotesTab] Error checking all meetings:', err);
                   });
@@ -371,7 +373,7 @@ export async function loadNotes(resetPagination = true) {
           inputRow.appendChild(input);
         }
       }
-      console.log('Notes loaded successfully (empty state)');
+      if (DEBUG) console.log('Notes loaded successfully (empty state)');
       return;
     }
     
@@ -381,13 +383,13 @@ export async function loadNotes(resetPagination = true) {
     }
     
     // Hide empty state since we have notes
-    console.log('Notes found, hiding empty state');
+    if (DEBUG) console.log('Notes found, hiding empty state');
     if (notesEmptyState) notesEmptyState.style.display = 'none';
     
     // Always create a "Today" card with input field if it doesn't exist (insert at the beginning)
-    console.log('hasTodayCard:', hasTodayCard);
+    if (DEBUG) console.log('hasTodayCard:', hasTodayCard);
     if (!hasTodayCard) {
-      console.log('Creating Today card with input field');
+      if (DEBUG) console.log('Creating Today card with input field');
       const todayCard = createDateCard({
         date: today,
         instanceId: null,
@@ -396,7 +398,7 @@ export async function loadNotes(resetPagination = true) {
       // Insert at the beginning (top) so it appears first
       elements.notesContainer.insertBefore(todayCard, elements.notesContainer.firstChild);
     } else {
-      console.log('Today card already exists, not creating duplicate');
+      if (DEBUG) console.log('Today card already exists, not creating duplicate');
     }
     
     // Calculate pagination based on date cards
@@ -406,7 +408,7 @@ export async function loadNotes(resetPagination = true) {
     // Render date cards with pagination
     let cardsRendered = 0;
     
-    console.log('Rendering notes with pagination. Total cards:', totalCards, 'Cards to show:', cardsToShow);
+    if (DEBUG) console.log('Rendering notes with pagination. Total cards:', totalCards, 'Cards to show:', cardsToShow);
     
     // Get Show More container - try multiple ways to find it BEFORE removing
     let showMoreContainer = document.getElementById('notes-show-more');
@@ -442,14 +444,14 @@ export async function loadNotes(resetPagination = true) {
       const dateGroup = notesByDate[i];
       const cardNotesCount = dateGroup.notes.length;
       
-      console.log(`Rendering card ${cardsRendered + 1}:`, dateGroup.date, 'with', cardNotesCount, 'notes');
+      if (DEBUG) console.log(`Rendering card ${cardsRendered + 1}:`, dateGroup.date, 'with', cardNotesCount, 'notes');
       const card = createDateCard(dateGroup);
       elements.notesContainer.appendChild(card);
       cardsRendered++;
     }
     
     // Append "Show More" button right after the last card if there are more cards
-    console.log('Show More check: cardsRendered =', cardsRendered, 'totalCards =', totalCards, 'showMoreContainer =', showMoreContainer);
+    if (DEBUG) console.log('Show More check: cardsRendered =', cardsRendered, 'totalCards =', totalCards, 'showMoreContainer =', showMoreContainer);
     if (cardsRendered < totalCards) {
       if (!showMoreContainer && elements.notesContainer) {
         // Create the Show More container if it doesn't exist
@@ -460,11 +462,11 @@ export async function loadNotes(resetPagination = true) {
         button.className = 'notes-show-more-button';
         button.textContent = 'Show More';
         showMoreContainer.appendChild(button);
-        console.log('Created Show More container dynamically');
+        if (DEBUG) console.log('Created Show More container dynamically');
       }
       
       if (showMoreContainer && elements.notesContainer) {
-        console.log('Showing Show More button');
+        if (DEBUG) console.log('Showing Show More button');
         showMoreContainer.style.display = 'flex';
         // Append to notes container so it scrolls with content and appears right after last card
         elements.notesContainer.appendChild(showMoreContainer);
@@ -475,13 +477,13 @@ export async function loadNotes(resetPagination = true) {
         });
       }
     } else {
-      console.log('All cards rendered, hiding Show More button');
+      if (DEBUG) console.log('All cards rendered, hiding Show More button');
       if (showMoreContainer) {
         showMoreContainer.style.display = 'none';
       }
     }
     
-    console.log('Notes loaded successfully. Rendered:', cardsRendered, 'of', totalCards, 'date cards');
+    if (DEBUG) console.log('Notes loaded successfully. Rendered:', cardsRendered, 'of', totalCards, 'date cards');
   } catch (error) {
     console.error('Error loading notes:', error);
     console.error('Stack:', error.stack);
@@ -608,7 +610,7 @@ function createNoteRow(note, displayIndex, originalIndex, date, isEditable) {
         }
         // Schedule action extraction for this meeting AND check all meetings
         if (state.currentMeetingId) {
-          console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (note deleted)`);
+          if (DEBUG) console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (note deleted)`);
           actionExtractionService.scheduleExtraction(state.currentMeetingId).catch(err => {
             console.error('[NotesTab] Error scheduling extraction:', err);
           });
@@ -625,7 +627,7 @@ function createNoteRow(note, displayIndex, originalIndex, date, isEditable) {
         }
         // Schedule action extraction for this meeting AND check all meetings
         if (state.currentMeetingId) {
-          console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (note updated)`);
+          if (DEBUG) console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (note updated)`);
           actionExtractionService.scheduleExtraction(state.currentMeetingId).catch(err => {
             console.error('[NotesTab] Error scheduling extraction:', err);
           });
@@ -649,6 +651,14 @@ function createNoteRow(note, displayIndex, originalIndex, date, isEditable) {
           await loadNotes();
           if (updateCountsCallback) {
             await updateCountsCallback();
+          }
+          if (state.currentMeetingId) {
+            actionExtractionService.scheduleExtraction(state.currentMeetingId).catch(err => {
+              console.error('[NotesTab] Error scheduling extraction:', err);
+            });
+            actionExtractionService.checkAllMeetingsForExtraction().catch(err => {
+              console.error('[NotesTab] Error checking all meetings:', err);
+            });
           }
         }
         
@@ -1045,14 +1055,14 @@ function createNoteInputRow(nextNumber) {
         
         // Schedule action extraction AFTER focusing (fire-and-forget, don't await)
         if (state.currentMeetingId) {
-          console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (note edit)`);
+          if (DEBUG) console.log(`[NotesTab] Scheduling extraction for meeting ${state.currentMeetingId} (note edit)`);
           // Don't await - let it run in background
           actionExtractionService.scheduleExtraction(state.currentMeetingId).catch(err => {
             console.error('[NotesTab] Error scheduling extraction:', err);
           });
           
           // Also check all meetings for unprocessed notes (fire-and-forget)
-          console.log(`[NotesTab] Checking all meetings for unprocessed notes...`);
+          if (DEBUG) console.log(`[NotesTab] Checking all meetings for unprocessed notes...`);
           actionExtractionService.checkAllMeetingsForExtraction().catch(err => {
             console.error('[NotesTab] Error checking all meetings:', err);
           });

@@ -1,5 +1,8 @@
 // State management and persistence
 
+/** Set true only when debugging this module; keeps verbose logs out of production. */
+const DEBUG = false;
+
 // Shared state object
 export const state = {
   currentMeetingId: null,
@@ -32,7 +35,7 @@ export async function saveState(elements) {
     };
     
     await chrome.storage.local.set({ popupState: savedState });
-    console.log('State saved:', savedState);
+    if (DEBUG) console.log('State saved:', savedState);
   } catch (error) {
     console.error('Error saving state:', error);
   }
@@ -45,7 +48,7 @@ export async function restoreState(elements) {
     
     if (!savedState) {
       // First time - set default state
-      console.log('No saved state, using defaults');
+      if (DEBUG) console.log('No saved state, using defaults');
       
       // Expand 1:1s category by default, collapse others
       const categoryToggle1 = document.querySelector('.category-toggle[data-category="1:1s"]');
@@ -134,7 +137,7 @@ export async function restoreState(elements) {
       return;
     }
     
-    console.log('Restoring state:', savedState);
+    if (DEBUG) console.log('Restoring state:', savedState);
     
     // Restore expanded categories
     if (savedState.expandedCategories && Array.isArray(savedState.expandedCategories)) {

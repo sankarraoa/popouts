@@ -4,8 +4,8 @@
 // Approach 1 (no service worker):
 // 1. On popup/sidepanel open: checkPendingExtractions and checkAllMeetingsForExtraction run.
 //    If notes have waited >= DEBOUNCE_DELAY, extract immediately.
-// 2. When a note is saved: scheduleExtraction sets a 5-min timer.
-// 3. If popup stays open 5 min: timer fires, extraction runs.
+// 2. When a note is saved: scheduleExtraction sets a debounced timer.
+// 3. If the popup stays open until the timer fires: extraction runs.
 // 4. If popup closes: timer is lost. Next open triggers extraction via step 1.
 
 import { db } from '../db.js';
@@ -16,7 +16,10 @@ import { getActionItems, createActionItem, updateActionItem, deleteActionItem } 
 import * as licenseManager from './license.js';
 import { getConfig, onEnvChange } from '../config.js';
 
-const DEBOUNCE_DELAY = 100; // 5 * 60 * 1000; // Set to 0 for testing; use 5 min for production
+/** Set true only when debugging extraction flow; avoids noisy / sensitive logs in production. */
+const DEBUG = false;
+
+const DEBOUNCE_DELAY = 100;
 
 const RETRY_DELAYS = [10000, 30000];
 const MAX_RETRIES = 3;
@@ -60,13 +63,13 @@ class ActionExtractionService {
   // Run on popup/sidepanel load: migrate stuck notes, process any stored results, then extract for ALL meetings
   async runExtractionOnLoad() {
     try {
-      console.log('[ActionExtraction] runExtractionOnLoad starting');
+      if (DEBUG) console.log('[ActionExtraction] runExtractionOnLoad starting');
       await db.ensureReady();
       await this.migrateActionInProgressToCompleted();
       await this.processPendingExtractionResults();
       await this.checkPendingExtractions();
       await this.checkAllMeetingsForExtraction();
-      console.log('[ActionExtraction] runExtractionOnLoad complete');
+      if (DEBUG) console.log('[ActionExtraction] runExtractionOnLoad complete');
     } catch (err) {
       console.error('[ActionExtraction] Error on load extraction check:', err);
     }
@@ -88,7 +91,7 @@ class ActionExtractionService {
           await this.saveExtractedActions(meetingId, result.data.notes_with_actions);
           await this.markProcessedNotesStatus(meetingId, result.data.notes_with_actions, 'action_completed');
           await this.updateExtractionStatus(meetingId, 'completed', result.data);
-          console.log(`[ActionExtraction] Applied stored extraction result for meeting ${meetingId}`);
+          if (DEBUG) console.log(`[ActionExtraction] Applied stored extraction result for meeting ${meetingId}`);
         } catch (err) {
           console.error(`[ActionExtraction] Error applying stored result for meeting ${meetingId}:`, err);
         }
@@ -126,7 +129,7 @@ class ActionExtractionService {
     }
 
     if (totalConverted > 0) {
-      console.log(`[ActionExtraction] Migrated ${totalConverted} action_in_progress note(s) to action_failed (will retry extraction)`);
+      if (DEBUG) console.log(`[ActionExtraction] Migrated ${totalConverted} action_in_progress note(s) to action_failed (will retry extraction)`);
     }
   }
 
@@ -138,16 +141,16 @@ class ActionExtractionService {
 
   // Schedule extraction with debounce
   async scheduleExtraction(meetingId) {
-    console.log(`[ActionExtraction] scheduleExtraction called for meeting ${meetingId}`);
+    if (DEBUG) console.log(`[ActionExtraction] scheduleExtraction called for meeting ${meetingId}`);
     meetingId = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
     if (await this.isInterviewMeeting(meetingId)) {
-      console.log('[ActionExtraction] Skipping schedule — interview meeting');
+      if (DEBUG) console.log('[ActionExtraction] Skipping schedule — interview meeting');
       return;
     }
 
     // If there's an in-flight call, wait for it to complete
     if (this.inFlightCalls.has(meetingId)) {
-      console.log(`[ActionExtraction] Extraction already in progress for meeting ${meetingId}, waiting for completion...`);
+      if (DEBUG) console.log(`[ActionExtraction] Extraction already in progress for meeting ${meetingId}, waiting for completion...`);
       try {
         await this.inFlightCalls.get(meetingId);
       } catch (error) {
@@ -156,25 +159,25 @@ class ActionExtractionService {
       // After waiting, check if we still need to extract (new notes might have been added)
       const notesToExtract = await this.getNotesToExtract(meetingId);
       if (notesToExtract.length === 0) {
-        console.log(`[ActionExtraction] No notes to extract after waiting for in-flight call`);
+        if (DEBUG) console.log(`[ActionExtraction] No notes to extract after waiting for in-flight call`);
         return;
       }
     }
 
     // Clear existing timer for this meeting
     if (this.timers.has(meetingId)) {
-      console.log(`[ActionExtraction] Clearing existing timer for meeting ${meetingId}`);
+      if (DEBUG) console.log(`[ActionExtraction] Clearing existing timer for meeting ${meetingId}`);
       clearTimeout(this.timers.get(meetingId));
     }
 
     // Store pending extraction
     this.savePendingExtraction(meetingId);
 
-    console.log(`[ActionExtraction] Setting timer for meeting ${meetingId}, delay: ${DEBOUNCE_DELAY}ms`);
+    if (DEBUG) console.log(`[ActionExtraction] Setting timer for meeting ${meetingId}, delay: ${DEBOUNCE_DELAY}ms`);
     
     // Set new timer
     const timerId = setTimeout(async () => {
-      console.log(`[ActionExtraction] Timer expired for meeting ${meetingId}, calling extractActions`);
+      if (DEBUG) console.log(`[ActionExtraction] Timer expired for meeting ${meetingId}, calling extractActions`);
       await this.extractActions(meetingId);
       this.timers.delete(meetingId);
     }, DEBOUNCE_DELAY);
@@ -235,7 +238,7 @@ class ActionExtractionService {
   async checkAllMeetingsForExtraction() {
     try {
       const allMeetings = await getAllMeetingSeries();
-      console.log(`[ActionExtraction] checkAllMeetingsForExtraction: ${allMeetings.length} meetings`);
+      if (DEBUG) console.log(`[ActionExtraction] checkAllMeetingsForExtraction: ${allMeetings.length} meetings`);
 
       // Early exit if no meetings
       if (allMeetings.length === 0) {
@@ -271,9 +274,9 @@ class ActionExtractionService {
       }
       
       if (meetingsWithNotes.length > 0) {
-        console.log(`[ActionExtraction] Found ${meetingsWithNotes.length} meeting(s) with unextracted notes:`, meetingsWithNotes.map(m => m.meeting.name));
+        if (DEBUG) console.log(`[ActionExtraction] Found ${meetingsWithNotes.length} meeting(s) with unextracted notes:`, meetingsWithNotes.map(m => m.meeting.name));
       } else {
-        console.log(`[ActionExtraction] No meetings with not_actioned/action_failed notes to extract`);
+        if (DEBUG) console.log(`[ActionExtraction] No meetings with not_actioned/action_failed notes to extract`);
       }
       
       if (meetingsWithNotes.length === 0) {
@@ -319,23 +322,23 @@ class ActionExtractionService {
   async extractActions(meetingId, options = {}) {
     // Dexie auto-increment keys are numbers; coerce string IDs from chrome.storage
     meetingId = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
-    console.log(`[ActionExtraction] extractActions called for meeting ${meetingId}`);
+    if (DEBUG) console.log(`[ActionExtraction] extractActions called for meeting ${meetingId}`);
     if (await this.isInterviewMeeting(meetingId)) {
-      console.log('[ActionExtraction] Skipping extract — interview meeting');
+      if (DEBUG) console.log('[ActionExtraction] Skipping extract — interview meeting');
       return;
     }
 
     // Check license access
     const access = await licenseManager.hasLLMAccess();
     if (!access.hasAccess) {
-      console.log(`[ActionExtraction] Access denied - no license`);
+      if (DEBUG) console.log(`[ActionExtraction] Access denied - no license`);
       await this.showLicenseRequiredMessage(meetingId);
       return;
     }
     
     // Check if there's already an in-flight call
     if (this.inFlightCalls.has(meetingId)) {
-      console.log(`[ActionExtraction] Extraction already in progress for meeting ${meetingId}, waiting for it to complete...`);
+      if (DEBUG) console.log(`[ActionExtraction] Extraction already in progress for meeting ${meetingId}, waiting for it to complete...`);
       // Wait for the existing extraction to complete
       await this.inFlightCalls.get(meetingId);
       return;
@@ -344,14 +347,14 @@ class ActionExtractionService {
     // Create extraction promise and track it
     const extractionPromise = (async () => {
       try {
-        console.log(`[ActionExtraction] Starting extraction for meeting ${meetingId}`);
+        if (DEBUG) console.log(`[ActionExtraction] Starting extraction for meeting ${meetingId}`);
         
         // Get notes that need extraction
         const notesToExtract = await this.getNotesToExtract(meetingId);
-        console.log(`[ActionExtraction] Found ${notesToExtract.length} notes to extract`);
+        if (DEBUG) console.log(`[ActionExtraction] Found ${notesToExtract.length} notes to extract`);
         
         if (notesToExtract.length === 0) {
-          console.log(`[ActionExtraction] No notes to extract for meeting ${meetingId} - all notes already processed`);
+          if (DEBUG) console.log(`[ActionExtraction] No notes to extract for meeting ${meetingId} - all notes already processed`);
           return;
         }
 
@@ -359,30 +362,30 @@ class ActionExtractionService {
         await this.showStatusBar('extracting', meetingId, options);
 
         // Ensure installation_id exists in storage so the background script can send it with the API request
-        console.log(`[ActionExtraction] Ensuring installation_id in storage...`);
+        if (DEBUG) console.log(`[ActionExtraction] Ensuring installation_id in storage...`);
         await licenseManager.getInstallationId();
-        console.log(`[ActionExtraction] installation_id ready`);
+        if (DEBUG) console.log(`[ActionExtraction] installation_id ready`);
 
         // Get meeting details (pass notes to extract so we don't filter again after marking as in_progress)
-        console.log(`[ActionExtraction] Getting meeting details for API call`);
+        if (DEBUG) console.log(`[ActionExtraction] Getting meeting details for API call`);
         const meetingDetails = await this.getMeetingDetails(meetingId, notesToExtract);
         
         if (!meetingDetails || !meetingDetails.meeting_instance.notes.length) {
-          console.log(`[ActionExtraction] No notes to extract for meeting ${meetingId}`);
+          if (DEBUG) console.log(`[ActionExtraction] No notes to extract for meeting ${meetingId}`);
           this.hideStatusBar();
           return;
         }
 
         // Mark notes as action_in_progress AFTER getting meeting details
-        console.log(`[ActionExtraction] Marking ${notesToExtract.length} notes as action_in_progress`);
+        if (DEBUG) console.log(`[ActionExtraction] Marking ${notesToExtract.length} notes as action_in_progress`);
         await this.markNotesStatus(meetingId, notesToExtract, 'action_in_progress');
 
-        console.log(`[ActionExtraction] Calling LLM API with ${meetingDetails.meeting_instance.notes.length} notes`);
+        if (DEBUG) console.log(`[ActionExtraction] Calling LLM API with ${meetingDetails.meeting_instance.notes.length} notes`);
         
         // Extract with retry logic
-        console.log(`[ActionExtraction] Sending message to background script...`);
+        if (DEBUG) console.log(`[ActionExtraction] Sending message to background script...`);
         const result = await this.extractWithRetry(meetingId, meetingDetails);
-        console.log(`[ActionExtraction] Background responded:`, result?.success ? 'success' : 'failed', result?.error || '');
+        if (DEBUG) console.log(`[ActionExtraction] Background responded:`, result?.success ? 'success' : 'failed', result?.error || '');
 
         if (result.success) {
           // Save extracted actions
@@ -564,7 +567,7 @@ class ActionExtractionService {
   async extractWithRetry(meetingId, meetingDetails, retryCount = 0) {
     try {
       const apiUrl = await getApiUrl();
-      console.log(`[ActionExtraction] extractWithRetry attempt ${retryCount + 1}, apiUrl=${apiUrl}`);
+      if (DEBUG) console.log(`[ActionExtraction] extractWithRetry attempt ${retryCount + 1}, apiUrl=${apiUrl}`);
 
       const result = await new Promise((resolve, reject) => {
         const timeoutId = setTimeout(() => {
@@ -572,7 +575,7 @@ class ActionExtractionService {
           reject(new Error(`Extraction timed out after ${EXTRACTION_TIMEOUT_MS / 1000} seconds. The LLM service may be slow or unavailable.`));
         }, EXTRACTION_TIMEOUT_MS);
 
-        console.log(`[ActionExtraction] Sending EXTRACT_ACTIONS to background, meetingId=${meetingId}`);
+        if (DEBUG) console.log(`[ActionExtraction] Sending EXTRACT_ACTIONS to background, meetingId=${meetingId}`);
         chrome.runtime.sendMessage(
           {
             type: 'EXTRACT_ACTIONS',
@@ -587,14 +590,14 @@ class ActionExtractionService {
               reject(new Error(chrome.runtime.lastError.message));
               return;
             }
-            console.log('[ActionExtraction] Background response received:', response?.success ? 'success' : 'failed');
+            if (DEBUG) console.log('[ActionExtraction] Background response received:', response?.success ? 'success' : 'failed');
             resolve(response);
           }
         );
       });
 
       if (result.success) {
-        console.log(`[ActionExtraction] API response success, ${result.data?.notes_with_actions?.length ?? 0} notes processed`);
+        if (DEBUG) console.log(`[ActionExtraction] API response success, ${result.data?.notes_with_actions?.length ?? 0} notes processed`);
         return { success: true, data: result.data };
       }
 
@@ -617,7 +620,7 @@ class ActionExtractionService {
 
       if (retryCount < MAX_RETRIES - 1) {
         const delay = RETRY_DELAYS[retryCount] || 30000;
-        console.log(`[ActionExtraction] Waiting ${delay}ms before retry...`);
+        if (DEBUG) console.log(`[ActionExtraction] Waiting ${delay}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, delay));
         return this.extractWithRetry(meetingId, meetingDetails, retryCount + 1);
       } else {
@@ -764,7 +767,7 @@ class ActionExtractionService {
       }
     }
 
-    console.log(`[ActionExtraction] Saved actions: created=${created}, skipped=${skipped} (duplicates)`);
+    if (DEBUG) console.log(`[ActionExtraction] Saved actions: created=${created}, skipped=${skipped} (duplicates)`);
 
     return processedNoteIds;
   }

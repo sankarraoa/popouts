@@ -3253,6 +3253,24 @@ select.settings-input {
   margin: 0;
 }
 
+.settings-privacy-disclosure.settings-field-help {
+  margin-bottom: 8px;
+}
+
+.settings-inline-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: #2b7fff;
+  cursor: pointer;
+  text-decoration: underline;
+  display: inline;
+}
+
 #settings-data-transfer-status.settings-field-help {
   margin: 0 0 16px 28px;
 }

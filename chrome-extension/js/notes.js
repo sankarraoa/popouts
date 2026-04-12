@@ -1,6 +1,8 @@
 // Notes management - multiple notes per instance
 import { db } from './db.js';
 
+const DEBUG = false;
+
 // Add a note to an instance (or create instance if it doesn't exist)
 export async function addNote(seriesId, noteText, date = new Date()) {
   // Normalize date to start of day for grouping
@@ -37,7 +39,7 @@ export async function addNote(seriesId, noteText, date = new Date()) {
     createdAt: new Date(),
     actionStatus: 'not_actioned' // not_actioned, action_in_progress, action_completed, action_failed
   };
-  console.log(`[Notes] Adding note with actionStatus: ${newNote.actionStatus}`, newNote);
+  if (DEBUG) console.log(`[Notes] Adding note with actionStatus: ${newNote.actionStatus}`);
   notes.push(newNote);
   
   await db.meetingInstances.update(instance.id, {

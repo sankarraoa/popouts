@@ -8,8 +8,10 @@ const PENDING_EXTRACTION_RESULTS_KEY = 'pending_extraction_results';
 const LICENSE_STORAGE_KEY = 'user_license';
 const INSTALLATION_ID_KEY = 'installation_id';
 
+const DEBUG = false;
+
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('Popouts extension installed');
+  if (DEBUG) console.log('Popouts extension installed');
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -27,22 +29,22 @@ const FETCH_TIMEOUT_MS = 115000; // Slightly less than client timeout (2 min)
 
 async function handleExtractActions(message, sendResponse) {
   const { meetingId, meetingDetails, apiUrl } = message;
-  console.log('[Background] handleExtractActions: received', { meetingId, apiUrl });
+  if (DEBUG) console.log('[Background] handleExtractActions: received', { meetingId, apiUrl: typeof apiUrl === 'string' ? apiUrl.slice(0, 80) : '(bad url)' });
   let timeoutId;
   try {
     const stored = await chrome.storage.local.get([LICENSE_STORAGE_KEY, INSTALLATION_ID_KEY]);
     const license = stored[LICENSE_STORAGE_KEY];
     const installationId = stored[INSTALLATION_ID_KEY];
-    console.log('[Background] Storage: license_key=', !!license?.license_key, ', installation_id=', installationId || '(none)');
+    if (DEBUG) console.log('[Background] Storage: has_license_key=', !!license?.license_key, 'has_installation_id=', !!installationId);
 
     const headers = { 'Content-Type': 'application/json' };
     if (license?.license_key) headers['X-License-Key'] = license.license_key;
     if (installationId) headers['X-Installation-Id'] = installationId;
 
-    console.log('[Background] Starting fetch to', apiUrl);
+    if (DEBUG) console.log('[Background] Starting fetch to', typeof apiUrl === 'string' ? apiUrl.slice(0, 80) : apiUrl);
     const controller = new AbortController();
     timeoutId = setTimeout(() => {
-      console.log('[Background] Fetch TIMEOUT - aborting');
+      if (DEBUG) console.log('[Background] Fetch TIMEOUT - aborting');
       controller.abort();
     }, FETCH_TIMEOUT_MS);
 
@@ -53,7 +55,7 @@ async function handleExtractActions(message, sendResponse) {
       signal: controller.signal
     });
     clearTimeout(timeoutId);
-    console.log('[Background] Fetch completed, status=', response.status);
+    if (DEBUG) console.log('[Background] Fetch completed, status=', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -80,7 +82,7 @@ async function handleExtractActions(message, sendResponse) {
     };
     await chrome.storage.local.set({ [PENDING_EXTRACTION_RESULTS_KEY]: pending });
 
-    console.log('[Background] Sending success response');
+    if (DEBUG) console.log('[Background] Sending success response');
     sendResponse(result);
   } catch (error) {
     if (timeoutId) clearTimeout(timeoutId);
@@ -89,14 +91,14 @@ async function handleExtractActions(message, sendResponse) {
     const errorMsg = isTimeout
       ? `Request timed out after ${FETCH_TIMEOUT_MS / 1000} seconds. The LLM service may be slow or unavailable.`
       : (error?.message || String(error));
-    console.log('[Background] Sending error response:', errorMsg);
+    if (DEBUG) console.log('[Background] Sending error response:', errorMsg);
     sendResponse({ success: false, error: errorMsg });
   }
 }
 
 async function handleSummarizeInterview(message, sendResponse) {
   const { meetingDetails, apiUrl } = message;
-  console.log('[Background] handleSummarizeInterview:', { apiUrl });
+  if (DEBUG) console.log('[Background] handleSummarizeInterview:', { apiUrl: typeof apiUrl === 'string' ? apiUrl.slice(0, 80) : '(bad url)' });
   let timeoutId;
   try {
     const stored = await chrome.storage.local.get([LICENSE_STORAGE_KEY, INSTALLATION_ID_KEY]);

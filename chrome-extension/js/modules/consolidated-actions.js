@@ -5,6 +5,9 @@ import { state } from './state.js';
 import { createActionItemElement } from './actions-tab.js';
 import { db } from '../db.js'; // Correct path - modules/ is inside js/
 
+/** Set true only when debugging this module; keeps verbose logs out of production. */
+const DEBUG = false;
+
 // Placeholder for elements object, will be passed from main orchestrator
 let elements = {};
 // Placeholder for callbacks
@@ -22,7 +25,7 @@ export function setConsolidatedActionsDependencies(els, updateCountsCb) {
 
 // Load consolidated action items (all meetings)
 export async function loadConsolidatedActions(resetPagination = true) {
-  console.log('=== loadConsolidatedActions called ===');
+  if (DEBUG) console.log('=== loadConsolidatedActions called ===');
   const filter = state.currentActionFilter || 'all';
   
   // Reset pagination when filter/search changes
@@ -44,7 +47,7 @@ export async function loadConsolidatedActions(resetPagination = true) {
   // Store all filtered items for pagination
   allFilteredItems = items;
   
-  console.log('Items found:', items.length, 'Filter:', filter, 'Search:', state.currentActionSearchQuery);
+  if (DEBUG) console.log('Items found:', items.length, 'Filter:', filter, 'Search:', state.currentActionSearchQuery);
   
   if (!elements.consolidatedActionsList) {
     console.error('consolidatedActionsList not found!');
@@ -59,7 +62,7 @@ export async function loadConsolidatedActions(resetPagination = true) {
   const openItems = allItems.filter(item => item.status === 'open');
   const closedItems = allItems.filter(item => item.status === 'closed');
   
-  console.log('All items:', allItems.length, 'Open:', openItems.length, 'Closed:', closedItems.length);
+  if (DEBUG) console.log('All items:', allItems.length, 'Open:', openItems.length, 'Closed:', closedItems.length);
   
   if (elements.consolidatedActionsFilters && elements.consolidatedActionsFilters.length > 0) {
     elements.consolidatedActionsFilters.forEach(btn => {
@@ -80,7 +83,7 @@ export async function loadConsolidatedActions(resetPagination = true) {
   // Show/hide empty state
   const emptyState = document.getElementById('consolidated-actions-empty-state');
   
-  console.log('Empty state element:', emptyState);
+  if (DEBUG) console.log('Empty state element:', emptyState);
   
   const emptyTitle = emptyState ? emptyState.querySelector('.actions-empty-title') : null;
   const emptyDescription = emptyState ? emptyState.querySelector('.actions-empty-description') : null;
@@ -92,10 +95,10 @@ export async function loadConsolidatedActions(resetPagination = true) {
   }
   
   if (items.length === 0) {
-    console.log('No items, showing empty state');
+    if (DEBUG) console.log('No items, showing empty state');
     if (emptyState) {
       emptyState.style.display = 'flex';
-      console.log('Empty state display set to flex');
+      if (DEBUG) console.log('Empty state display set to flex');
     }
     
     if (emptyTitle) {
@@ -116,7 +119,7 @@ export async function loadConsolidatedActions(resetPagination = true) {
       }
     }
   } else {
-    console.log('Items found, hiding empty state and rendering items');
+    if (DEBUG) console.log('Items found, hiding empty state and rendering items');
     if (emptyState) emptyState.style.display = 'none';
     
     // Calculate pagination
@@ -124,7 +127,7 @@ export async function loadConsolidatedActions(resetPagination = true) {
     const itemsToRender = items.slice(0, itemsToShow);
     const hasMore = items.length > itemsToShow;
     
-    console.log('Pagination: currentPage =', currentPage, 'itemsToShow =', itemsToShow, 'totalItems =', items.length, 'hasMore =', hasMore);
+    if (DEBUG) console.log('Pagination: currentPage =', currentPage, 'itemsToShow =', itemsToShow, 'totalItems =', items.length, 'hasMore =', hasMore);
     
     // Render items
     for (const item of itemsToRender) {
@@ -158,18 +161,18 @@ export async function loadConsolidatedActions(resetPagination = true) {
       showMoreContainer.style.display = 'flex';
       // Append to list container so it scrolls with content
       elements.consolidatedActionsList.appendChild(showMoreContainer);
-      console.log('Show More button displayed, currentPage:', currentPage, 'itemsToShow:', itemsToShow, 'totalItems:', items.length);
+      if (DEBUG) console.log('Show More button displayed, currentPage:', currentPage, 'itemsToShow:', itemsToShow, 'totalItems:', items.length);
     } else {
-      console.log('All items shown, no Show More button needed');
+      if (DEBUG) console.log('All items shown, no Show More button needed');
     }
   }
 }
 
 // Handle "Show More" button click
 export async function handleShowMore() {
-  console.log('handleShowMore called, currentPage before:', currentPage, 'filter:', state.currentActionFilter);
+  if (DEBUG) console.log('handleShowMore called, currentPage before:', currentPage, 'filter:', state.currentActionFilter);
   currentPage++;
-  console.log('handleShowMore called, currentPage after:', currentPage);
+  if (DEBUG) console.log('handleShowMore called, currentPage after:', currentPage);
   await loadConsolidatedActions(false); // Don't reset pagination
 }
 
