@@ -2821,6 +2821,64 @@ body {
   text-align: left;
 }
 
+/* Keep Agenda typography/styling identical to meeting-specific Actions. */
+.agenda-item,
+.action-item-meeting-specific {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+  min-height: 28px;
+  flex-shrink: 0;
+}
+
+.agenda-item-checkbox,
+.action-item-meeting-specific .action-item-checkbox {
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-shrink: 0;
+  background-image: url('../icons/icon-cirlce-not-completed.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  box-sizing: border-box;
+  transition: all 0.2s;
+}
+
+.agenda-item-text,
+.action-item-meeting-specific .action-item-text {
+  flex: 1;
+  min-width: 0;
+  padding: 1px 0px 0px 30px;
+  margin-left: 0;
+  border-radius: 0px;
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #0A0A0A;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: left;
+}
+
 .action-item.closed .action-item-text {
   text-decoration: line-through;
   text-decoration-skip-ink: none;
@@ -3811,4 +3869,37 @@ select.settings-input {
 }
 .empty-state {
   overflow: hidden;
+}
+
+/* Force Agenda to match meeting-specific Actions (more-specific selectors). */
+#agenda-view .agenda-input,
+#actions-view .actions-input {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #0A0A0A;
+}
+
+#agenda-view .agenda-item-text {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #0A0A0A;
+}
+
+/* Match Notes row density (tighter vertical rhythm). */
+#agenda-view .agenda-list,
+#actions-view .actions-list {
+  gap: 0;
+}
+
+#agenda-view .agenda-item,
+#actions-view .action-item-meeting-specific {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  min-height: 25.5px;
 }

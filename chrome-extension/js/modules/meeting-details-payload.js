@@ -4,6 +4,7 @@ import { db } from '../db.js';
 import { getNotesByDate } from '../notes.js';
 import { getAgendaItems } from '../agenda.js';
 import { getActionItems } from '../actions.js';
+import { coerceMeetingId } from '../meetings.js';
 
 /**
  * Full meeting payload including every note in the series (for interview summary, etc.).
@@ -11,10 +12,7 @@ import { getActionItems } from '../actions.js';
  * @returns {Promise<object|null>}
  */
 export async function getMeetingDetailsAllNotes(meetingId) {
-  meetingId =
-    typeof meetingId === 'string' && /^\d+$/.test(meetingId)
-      ? parseInt(meetingId, 10)
-      : meetingId;
+  meetingId = coerceMeetingId(meetingId);
   const meeting = await db.meetingSeries.get(meetingId);
   if (!meeting) return null;
 

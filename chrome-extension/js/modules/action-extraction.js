@@ -9,7 +9,7 @@
 // 4. If popup closes: timer is lost. Next open triggers extraction via step 1.
 
 import { db } from '../db.js';
-import { getAllMeetingSeries, getMeetingSeries } from '../meetings.js';
+import { getAllMeetingSeries, getMeetingSeries, coerceMeetingId } from '../meetings.js';
 import { getNotesByDate } from '../notes.js';
 import { getAgendaItems } from '../agenda.js';
 import { getActionItems, createActionItem, updateActionItem, deleteActionItem } from '../actions.js';
@@ -34,6 +34,14 @@ async function getApiUrl() {
   return _apiUrl;
 }
 onEnvChange(() => { _apiUrl = null; });
+
+/** Collapse whitespace for deduping LLM action lines that differ only by spacing. */
+function normalizeActionTextForDedup(text) {
+  return String(text || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
 
 // Storage keys
 const EXTRACTION_STATUS_KEY = 'extraction_status';
@@ -83,7 +91,7 @@ class ActionExtractionService {
       if (Object.keys(pending).length === 0) return;
 
       for (const [meetingIdStr, entry] of Object.entries(pending)) {
-        const meetingId = parseInt(meetingIdStr, 10);
+        const meetingId = coerceMeetingId(meetingIdStr);
         const { result, timestamp } = entry;
         if (!result?.success || !result.data?.notes_with_actions) continue;
 
@@ -134,7 +142,7 @@ class ActionExtractionService {
   }
 
   async isInterviewMeeting(meetingId) {
-    meetingId = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
+    meetingId = coerceMeetingId(meetingId);
     const m = await getMeetingSeries(meetingId);
     return m?.type === 'interviews';
   }
@@ -142,7 +150,7 @@ class ActionExtractionService {
   // Schedule extraction with debounce
   async scheduleExtraction(meetingId) {
     if (DEBUG) console.log(`[ActionExtraction] scheduleExtraction called for meeting ${meetingId}`);
-    meetingId = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
+    meetingId = coerceMeetingId(meetingId);
     if (await this.isInterviewMeeting(meetingId)) {
       if (DEBUG) console.log('[ActionExtraction] Skipping schedule — interview meeting');
       return;
@@ -209,7 +217,7 @@ class ActionExtractionService {
     const now = Date.now();
     
     for (const [meetingId, data] of Object.entries(pendingExtractions)) {
-      const mid = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
+      const mid = coerceMeetingId(meetingId);
       if (await this.isInterviewMeeting(mid)) {
         await this.clearPendingExtraction(meetingId);
         continue;
@@ -218,17 +226,17 @@ class ActionExtractionService {
       
       if (timeSinceLastNote >= DEBOUNCE_DELAY) {
         // More than debounce delay passed, extract immediately
-        await this.extractActions(meetingId);
+        await this.extractActions(mid);
       } else {
         // Resume timer
         const remainingTime = DEBOUNCE_DELAY - timeSinceLastNote;
         const timerId = setTimeout(async () => {
-          await this.extractActions(meetingId);
-          this.timers.delete(meetingId);
+          await this.extractActions(mid);
+          this.timers.delete(mid);
         }, remainingTime);
         
-        this.timers.set(meetingId, timerId);
-        this.updateMeetingStatusIndicator(meetingId, 'pending');
+        this.timers.set(mid, timerId);
+        this.updateMeetingStatusIndicator(mid, 'pending');
       }
     }
   }
@@ -320,8 +328,7 @@ class ActionExtractionService {
 
   // Extract actions for a meeting
   async extractActions(meetingId, options = {}) {
-    // Dexie auto-increment keys are numbers; coerce string IDs from chrome.storage
-    meetingId = typeof meetingId === 'string' && /^\d+$/.test(meetingId) ? parseInt(meetingId, 10) : meetingId;
+    meetingId = coerceMeetingId(meetingId);
     if (DEBUG) console.log(`[ActionExtraction] extractActions called for meeting ${meetingId}`);
     if (await this.isInterviewMeeting(meetingId)) {
       if (DEBUG) console.log('[ActionExtraction] Skipping extract — interview meeting');
@@ -736,36 +743,40 @@ class ActionExtractionService {
   async saveExtractedActions(meetingId, notesWithActions) {
     const processedNoteIds = [];
     const notesByDate = await getNotesByDate(meetingId);
-    const existingActions = await getActionItems(meetingId);
-    const existingTexts = new Set(existingActions.map(a => a.text));
     let created = 0;
     let skipped = 0;
 
-    for (const noteWithActions of notesWithActions) {
-      const noteId = this.getNoteId(noteWithActions.note);
-      processedNoteIds.push(noteId);
+    await db.transaction('rw', db.actionItems, async () => {
+      const existingActions = await db.actionItems.where('seriesId').equals(meetingId).toArray();
+      const existingNormalized = new Set(
+        existingActions.map((a) => normalizeActionTextForDedup(a.text))
+      );
 
-      // Find the instanceId for this note
-      let instanceId = null;
-      for (const dateGroup of notesByDate) {
-        const note = dateGroup.notes.find(n => this.getNoteId(n) === noteId);
-        if (note) {
-          instanceId = dateGroup.instanceId;
-          break;
+      for (const noteWithActions of notesWithActions) {
+        const noteId = this.getNoteId(noteWithActions.note);
+        processedNoteIds.push(noteId);
+
+        let instanceId = null;
+        for (const dateGroup of notesByDate) {
+          const note = dateGroup.notes.find((n) => this.getNoteId(n) === noteId);
+          if (note) {
+            instanceId = dateGroup.instanceId;
+            break;
+          }
+        }
+
+        for (const actionItem of noteWithActions.action_items) {
+          const norm = normalizeActionTextForDedup(actionItem.text);
+          if (!norm || existingNormalized.has(norm)) {
+            skipped++;
+            continue;
+          }
+          await createActionItem(meetingId, instanceId, actionItem.text);
+          existingNormalized.add(norm);
+          created++;
         }
       }
-
-      for (const actionItem of noteWithActions.action_items) {
-        // Skip if an action item with the exact same text already exists
-        if (existingTexts.has(actionItem.text)) {
-          skipped++;
-          continue;
-        }
-        await createActionItem(meetingId, instanceId, actionItem.text);
-        existingTexts.add(actionItem.text);
-        created++;
-      }
-    }
+    });
 
     if (DEBUG) console.log(`[ActionExtraction] Saved actions: created=${created}, skipped=${skipped} (duplicates)`);
 

@@ -1,6 +1,22 @@
 // Meeting series and instances management
 import { db } from './db.js';
 
+/**
+ * Series ids are often fractional (timestamp + fraction). Never use parseInt on keys like
+ * "1775911683834.206" — it truncates to 1775911683834 and causes wrong meeting lookups and
+ * duplicate action items when applying pending extraction results.
+ */
+export function coerceMeetingId(id) {
+  if (id == null) return id;
+  if (typeof id === 'number' && Number.isFinite(id)) return id;
+  const s = String(id).trim();
+  if (/^-?\d+(\.\d+)?$/.test(s)) {
+    const n = Number(s);
+    return Number.isFinite(n) ? n : id;
+  }
+  return id;
+}
+
 const MeetingType = {
   ONE_ON_ONE: '1:1s',
   INTERVIEWS: 'interviews',
