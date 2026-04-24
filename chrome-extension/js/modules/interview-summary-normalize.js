@@ -23,6 +23,12 @@ function normalizeSection(section) {
  * @param {Record<string, unknown>} raw
  * @returns {object}
  */
+function normalizeVerdict(raw) {
+  if (raw == null) return null;
+  const s = String(raw).trim();
+  return s || null;
+}
+
 export function normalizeInterviewSummaryPayload(raw) {
   if (!raw || typeof raw !== 'object') {
     return {
@@ -33,6 +39,7 @@ export function normalizeInterviewSummaryPayload(raw) {
       overview: { paragraph: null, bullets: [] },
       strengths: { paragraph: null, bullets: [] },
       concerns: { paragraph: null, bullets: [] },
+      verdict: null,
       evidence_level: 'sparse',
       security_flag: null
     };
@@ -57,6 +64,7 @@ export function normalizeInterviewSummaryPayload(raw) {
     overview: normalizeSection(raw.overview),
     strengths: normalizeSection(strengths),
     concerns: normalizeSection(concerns),
+    verdict: normalizeVerdict(raw.verdict),
     evidence_level: evidenceLevel,
     security_flag:
       raw.security_flag != null && String(raw.security_flag).trim()

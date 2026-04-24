@@ -14,6 +14,14 @@ import { createActionItem } from '../js/actions.js';
 import { db } from '../js/db.js';
 import { actionExtractionService } from '../js/modules/action-extraction.js';
 import { getConfig, getEnv, setEnv } from '../js/config.js';
+import {
+  getAllCustomMeetingTypes,
+  getMeetingTypeOrder,
+  setMeetingTypeOrder,
+  importCustomMeetingType,
+  getCustomTypeKey,
+  isCustomType,
+} from '../js/modules/custom-meeting-types.js';
 
 // Make state available globally for extraction service
 window.state = state;
@@ -59,6 +67,7 @@ function initializeElements() {
   elements.consolidatedActionsView = document.getElementById('consolidated-actions-view');
   elements.meetingTitle = document.getElementById('meeting-title');
   elements.meetingTitleEdit = document.getElementById('meeting-title-edit');
+  elements.meetingTitleDelete = document.getElementById('meeting-title-delete');
   elements.meetingLastDate = document.getElementById('meeting-last-date');
   
   elements.meetingTabs = document.querySelectorAll('.meeting-tab');
@@ -625,6 +634,27 @@ function setupDeferredEventListeners() {
       await startEditingMeetingTitle();
     });
   }
+
+  // Meeting title delete functionality
+  if (elements.meetingTitleDelete) {
+    elements.meetingTitleDelete.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!state.currentMeetingId) return;
+      const meetingName = elements.meetingTitle?.textContent?.trim() || 'this meeting';
+      const { showDeleteConfirm } = await import('../js/modules/sidebar.js');
+      const confirmed = await showDeleteConfirm(meetingName);
+      if (confirmed) {
+        const meetingId = state.currentMeetingId;
+        state.currentMeetingId = null;
+        if (elements.emptyState) elements.emptyState.style.display = 'flex';
+        if (elements.meetingDetail) elements.meetingDetail.style.display = 'none';
+        const { deleteMeetingSeries } = await import('../js/meetings.js');
+        await deleteMeetingSeries(meetingId);
+        await loadMeetings(elements);
+        await updateCounts(elements);
+      }
+    });
+  }
 }
 
 // Start editing meeting title
@@ -739,6 +769,7 @@ async function showSettingsView() {
     onExport: () => handleExportData(),
     onImportClick: () => handleImportDataClick(),
     onImportFileSelected: () => handleImportDataFileSelected(),
+    onMeetingTypesChanged: async () => await loadMeetings(elements),
   });
 }
 
@@ -799,10 +830,17 @@ async function handleExportData() {
 
     const interviewSummaryCount = meetingSeries.filter((s) => s && s.interviewSummary != null).length;
 
+    const [customMeetingTypes, meetingTypeOrder] = await Promise.all([
+      getAllCustomMeetingTypes(),
+      getMeetingTypeOrder(),
+    ]);
+
     const payload = {
-      schemaVersion: 2,
+      schemaVersion: 3,
       exportedAt: new Date().toISOString(),
       source: 'popouts-sidepanel',
+      customMeetingTypes,
+      meetingTypeOrder,
       data: {
         meetingSeries,
         meetingInstances,
@@ -918,6 +956,27 @@ async function importDataPayload(payload) {
   const agendaItems = Array.isArray(data.agendaItems) ? data.agendaItems : [];
   const actionItems = Array.isArray(data.actionItems) ? data.actionItems : [];
 
+  // ── Restore custom meeting types and build a type-key remap ──────────────
+  const typeKeyMap = new Map(); // oldTypeKey → newTypeKey
+  const importedCustomTypes = Array.isArray(payload?.customMeetingTypes) ? payload.customMeetingTypes : [];
+  for (const ct of importedCustomTypes) {
+    if (!ct || !ct.name) continue;
+    const oldKey = getCustomTypeKey(ct.id);
+    await new Promise(r => setTimeout(r, 2));
+    const newType = await importCustomMeetingType(ct.name, ct.color);
+    typeKeyMap.set(oldKey, getCustomTypeKey(newType.id));
+  }
+
+  if (Array.isArray(payload?.meetingTypeOrder) && typeKeyMap.size > 0) {
+    const currentOrder = await getMeetingTypeOrder();
+    const remappedExportOrder = payload.meetingTypeOrder.map(k => typeKeyMap.get(k) || k);
+    const merged = [...currentOrder];
+    for (const k of remappedExportOrder) {
+      if (!merged.includes(k)) merged.push(k);
+    }
+    await setMeetingTypeOrder(merged);
+  }
+
   const seriesIdMap = new Map();
   const instanceIdMap = new Map();
   const importedCounts = {
@@ -932,6 +991,9 @@ async function importDataPayload(payload) {
   await db.transaction('rw', db.meetingSeries, db.meetingInstances, db.agendaItems, db.actionItems, async () => {
     for (const rawSeries of meetingSeries) {
       const { id: originalSeriesId, ...seriesWithoutId } = rawSeries || {};
+      if (isCustomType(seriesWithoutId.type) && typeKeyMap.has(seriesWithoutId.type)) {
+        seriesWithoutId.type = typeKeyMap.get(seriesWithoutId.type);
+      }
       const seriesToInsert = normalizeRecordDates(seriesWithoutId, ['createdAt', 'interviewSummaryUpdatedAt']);
       const newSeriesId = await db.meetingSeries.add(seriesToInsert);
       if (originalSeriesId !== undefined && originalSeriesId !== null) {

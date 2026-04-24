@@ -22,7 +22,34 @@
 
 /* Popup scaling - adjust for larger/smaller feel (1.15 = 15% larger) */
 :root {
-  --popup-scale: 1.15;
+  --popup-scale: 1.05;
+
+  /* Typography tokens (scaled) */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --weight-regular: 400;
+  --weight-medium: 500;
+
+  /* Type scale: keep small, consistent set */
+  --text-xxs-size: calc(8px * var(--popup-scale));
+  --text-xxs-line: calc(12px * var(--popup-scale));
+  --text-2xs-size: calc(9px * var(--popup-scale));
+  --text-2xs-line: calc(13.5px * var(--popup-scale));
+  --text-xs-size: calc(10px * var(--popup-scale));
+  --text-xs-line: calc(15px * var(--popup-scale));
+  --text-sm-size: calc(11px * var(--popup-scale));
+  --text-sm-line: calc(16px * var(--popup-scale));
+  --text-md-size: calc(12px * var(--popup-scale));
+  --text-md-line: calc(16.5px * var(--popup-scale));
+  --text-lg-size: calc(13px * var(--popup-scale));
+  --text-lg-line: calc(19.5px * var(--popup-scale));
+  --text-xl-size: calc(14px * var(--popup-scale));
+  --text-xl-line: calc(21px * var(--popup-scale));
+
+  /* Common colors */
+  --text-primary: #0A0A0A;
+  --text-muted: rgba(113, 113, 130, 0.6);
+  --text-muted-strong: rgba(113, 113, 130, 0.85);
 }
 
 /* Prevent scrollbars on popup window - content scrolls within its areas only */
@@ -34,11 +61,12 @@ html {
 
 /* Popup window dimensions and layout */
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-sans);
   font-style: normal;
-  font-weight: 400;
-  font-size: calc(13px * var(--popup-scale));
-  color: #0A0A0A;
+  font-weight: var(--weight-regular);
+  font-size: var(--text-lg-size);
+  line-height: var(--text-lg-line);
+  color: var(--text-primary);
   background: #FFFFFF;
   width: 800px;
   height: 600px;
@@ -116,7 +144,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 13px;
+  font-size: var(--text-lg-size);
   line-height: 20px;
   letter-spacing: -0.401172px;
   color: #0A0A0A;
@@ -151,8 +179,8 @@ body {
   font-style: normal;
   font-weight: 500;
   padding: 0 12px;
-  font-size: 11px;
-  line-height: 16px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
   text-align: center;
   letter-spacing: 0.0644531px;
   color: #717182;
@@ -194,8 +222,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 11px;
-  line-height: 16px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
   text-align: center;
   letter-spacing: 0.0644531px;
   height: 17px;
@@ -217,8 +245,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 8px;
-  line-height: 12px;
+  font-size: var(--text-xxs-size);
+  line-height: var(--text-xxs-line);
   text-align: center;
   letter-spacing: 0.205729px;
   display: flex;
@@ -364,8 +392,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
   color: #717182;
 }
@@ -399,7 +427,7 @@ body {
   outline: none;
   font-family: 'Inter';
   font-weight: 400;
-  font-size: 11px;
+  font-size: var(--text-sm-size);
   line-height: normal;
   letter-spacing: 0.0645px;
   color: #0A0A0A;
@@ -412,6 +440,8 @@ body {
 }
 
 .meeting-categories {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   overflow-y: auto;
 }
@@ -439,7 +469,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 12px;
+  font-size: var(--text-md-size);
   line-height: 18px;
   color: #0A0A0A;
   text-align: left;
@@ -474,7 +504,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 12px;
+  font-size: var(--text-md-size);
   line-height: 18px;
   color: #0A0A0A;
   height: 19px;
@@ -493,8 +523,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 9px;
-  line-height: 13.5px;
+  font-size: var(--text-2xs-size);
+  line-height: var(--text-2xs-line);
   letter-spacing: 0.167px;
   color: #717182;
 }
@@ -508,8 +538,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: #030213;
   height: 19px;
@@ -558,8 +588,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
   letter-spacing: 0.0644531px;
   color: #0A0A0A;
   padding: 0;
@@ -578,7 +608,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
+  font-size: var(--text-sm-size);
   line-height: 13px;
   letter-spacing: 0.0644531px;
   color: rgba(113, 113, 130, 0.4);
@@ -603,8 +633,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 8px;
-  line-height: 12px;
+  font-size: var(--text-xxs-size);
+  line-height: var(--text-xxs-line);
   letter-spacing: 0.205729px;
   color: rgba(113, 113, 130, 0.4);
   height: 12px;
@@ -658,40 +688,41 @@ body {
   background: rgba(0, 0, 0, 0.03) !important;
 }
 
-.meeting-item-delete {
+/* Drag handle — shown on hover, initiates mouse-based drag */
+.meeting-item-drag-handle {
   display: none;
   position: absolute;
-  right: 12px;
-  top: 8px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 20px;
-  height: 20px;
-  border: none;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-  cursor: pointer;
+  height: 30px;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  color: rgba(113, 113, 130, 0.4);
+  cursor: grab;
   flex-shrink: 0;
   z-index: 10;
+  transition: color 0.15s;
+  user-select: none;
 }
 
-.meeting-item-delete svg {
-  width: 12px;
-  height: 12px;
-  color: #717182;
-}
-
-.meeting-item:hover .meeting-item-delete {
+.meeting-item:hover .meeting-item-drag-handle {
   display: flex;
 }
 
-.meeting-item-delete:hover {
-  background: rgba(220, 38, 38, 0.1);
+.meeting-item-drag-handle:hover {
+  color: rgba(113, 113, 130, 0.9);
 }
 
-.meeting-item-delete:hover svg {
-  color: #dc2626;
+.meeting-item-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Applied to body while a meeting card is being dragged */
+body.is-dragging-meeting,
+body.is-dragging-meeting * {
+  cursor: grabbing !important;
 }
 
 .meeting-item.selected {
@@ -731,8 +762,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
   letter-spacing: 0.0644531px;
   color: #0A0A0A;
   min-height: 16px;
@@ -751,7 +782,7 @@ body {
   width: 177px;
   min-height: 16px;
   max-height: 32px;
-  line-height: 16px;
+  line-height: var(--text-sm-line);
   color: #030213;
 }
 
@@ -824,7 +855,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 9px;
+  font-size: var(--text-2xs-size);
   line-height: 14px;
   letter-spacing: 0.166992px;
   color: #717182;
@@ -845,8 +876,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 8px;
-  line-height: 12px;
+  font-size: var(--text-xxs-size);
+  line-height: var(--text-xxs-line);
   letter-spacing: 0.205729px;
   color: #030213;
   position: relative;
@@ -866,8 +897,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 8px;
-  line-height: 12px;
+  font-size: var(--text-xxs-size);
+  line-height: var(--text-xxs-line);
   letter-spacing: 0.205729px;
   color: rgba(113, 113, 130, 0.5);
   position: relative;
@@ -965,8 +996,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--text-md-size);
+  line-height: var(--text-sm-line);
   color: #0A0A0A;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
@@ -1026,8 +1057,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 13px;
-  line-height: 19.5px;
+  font-size: var(--text-lg-size);
+  line-height: var(--text-lg-line);
   letter-spacing: -0.0762px;
   color: #717182;
   margin: 0 0 8px 0;
@@ -1037,8 +1068,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: rgba(113, 113, 130, 0.5);
   margin: 0;
@@ -1070,8 +1101,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 14px;
-  line-height: 21px;
+  font-size: var(--text-xl-size);
+  line-height: var(--text-xl-line);
   letter-spacing: -0.1504px;
   color: #0A0A0A;
   margin-bottom: 2px;
@@ -1095,8 +1126,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 14px;
-  line-height: 21px;
+  font-size: var(--text-xl-size);
+  line-height: var(--text-xl-line);
   letter-spacing: -0.1504px;
   color: #0A0A0A;
   min-height: 21px;
@@ -1104,30 +1135,46 @@ body {
   overflow-y: auto;
 }
 
-.meeting-title-edit {
+.meeting-title-actions {
   display: none;
   align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.meeting-title-container:hover .meeting-title-actions {
+  display: flex;
+}
+
+.meeting-title-edit,
+.meeting-title-delete {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border: none;
   background: transparent;
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
+  border-radius: 5px;
   color: rgba(113, 113, 130, 0.6);
-  transition: color 0.2s;
-}
-
-.meeting-title-container:hover .meeting-title-edit {
-  display: flex;
+  transition: color 0.15s, background 0.15s;
 }
 
 .meeting-title-edit:hover {
   color: rgba(3, 2, 19, 0.8);
+  background: rgba(0, 0, 0, 0.06);
 }
 
-.meeting-title-edit svg {
+.meeting-title-delete:hover {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.meeting-title-edit svg,
+.meeting-title-delete svg {
   width: 14px;
   height: 14px;
 }
@@ -1139,8 +1186,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: #717182;
 }
@@ -1178,8 +1225,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   color: #717182;
   height: 35px;
   position: relative;
@@ -1241,8 +1288,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
 }
 
@@ -1268,8 +1315,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 8px;
-  line-height: 12px;
+  font-size: var(--text-xxs-size);
+  line-height: var(--text-xxs-line);
   letter-spacing: 0.2057px;
   color: #030213;
   flex-shrink: 0;
@@ -1356,7 +1403,7 @@ body {
 .interview-summary-empty-hint {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  font-size: 10px;
+  font-size: var(--text-xs-size);
   line-height: 1.4;
   font-weight: 400;
   color: #717182;
@@ -1373,7 +1420,7 @@ body {
   padding: 8px 10px;
   border-radius: 8px;
   font-family: 'Inter', sans-serif;
-  font-size: 10px;
+  font-size: var(--text-xs-size);
   line-height: 1.4;
   color: #b42318;
   background: rgba(180, 35, 24, 0.08);
@@ -1388,7 +1435,7 @@ body {
   gap: 8px 10px;
   margin-bottom: 10px;
   font-family: 'Inter', sans-serif;
-  font-size: 10px;
+  font-size: var(--text-xs-size);
   line-height: 1.4;
   color: #47475c;
 }
@@ -1402,7 +1449,7 @@ body {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 6px;
-  font-size: 9px;
+  font-size: var(--text-2xs-size);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1417,7 +1464,7 @@ body {
   padding: 8px 10px;
   border-radius: 8px;
   font-family: 'Inter', sans-serif;
-  font-size: 10px;
+  font-size: var(--text-xs-size);
   line-height: 1.45;
   color: #7c2d12;
   background: rgba(234, 88, 12, 0.1);
@@ -1430,9 +1477,9 @@ body {
   border-radius: 8px;
   background: #fff;
   font-family: 'Inter', sans-serif;
-  font-size: 10px;
+  font-size: var(--text-xs-size);
   font-weight: 500;
-  line-height: 15px;
+  line-height: var(--text-xs-line);
   letter-spacing: 0.06px;
   color: #030213;
   cursor: pointer;
@@ -1504,7 +1551,7 @@ body {
   border: 1px solid rgba(3, 2, 19, 0.1);
   border-radius: 8px;
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: var(--text-sm-size);
   line-height: 1.45;
   color: #030213;
   box-sizing: border-box;
@@ -1522,7 +1569,7 @@ body {
 .interview-summary-heading {
   margin: 14px 0 6px;
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: var(--text-sm-size);
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: 0.02em;
@@ -1536,7 +1583,7 @@ body {
 .interview-summary-para {
   margin: 0 0 8px;
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: var(--text-sm-size);
   line-height: 1.5;
   color: #1a1a22;
   white-space: pre-wrap;
@@ -1546,7 +1593,7 @@ body {
   margin: 0 0 10px;
   padding-left: 18px;
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: var(--text-sm-size);
   line-height: 1.45;
   color: #1a1a22;
 }
@@ -1558,7 +1605,7 @@ body {
 .interview-summary-muted {
   margin: 0 0 8px;
   font-family: 'Inter', sans-serif;
-  font-size: 10px;
+  font-size: var(--text-xs-size);
   line-height: 1.4;
   color: #717182;
   font-style: italic;
@@ -1597,8 +1644,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: #030213;
   height: 19px;
@@ -1654,8 +1701,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--text-md-size);
+  line-height: var(--text-sm-line);
   color: #0A0A0A;
   box-sizing: border-box;
   min-width: 0;
@@ -1675,8 +1722,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 15px;
+  font-size: var(--text-md-size);
+  line-height: var(--text-xs-line);
   color: rgba(113, 113, 130, 0.3);
 }
 
@@ -1729,7 +1776,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
+  font-size: var(--text-md-size);
   line-height: 18px;
   text-align: center;
   color: #717182;
@@ -1746,8 +1793,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   text-align: center;
   letter-spacing: 0.117188px;
   color: rgba(113, 113, 130, 0.6);
@@ -1819,8 +1866,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--text-md-size);
+  line-height: var(--text-sm-line);
   color: #0A0A0A;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -1908,8 +1955,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
   color: #717182;
   position: absolute;
@@ -1925,8 +1972,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 9px;
-  line-height: 13.5px;
+  font-size: var(--text-2xs-size);
+  line-height: var(--text-2xs-line);
   letter-spacing: 0.167px;
   color: rgba(113, 113, 130, 0.5);
   position: absolute;
@@ -1952,15 +1999,15 @@ body {
   gap: 8px;
   align-items: flex-start;
   padding: 4px 0;
-  min-height: 25.5px;
+  min-height: 22px;
 }
 
 .notes-note-bullet {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
   color: rgba(113, 113, 130, 0.4);
   width: 16px;
@@ -1974,9 +2021,9 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 16.5px;
-  color: rgba(10, 10, 10, 0.85);
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
+  color: #0A0A0A;
   word-wrap: break-word;
   white-space: pre-wrap;
   min-height: 17.5px;
@@ -2014,8 +2061,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
   color: rgba(113, 113, 130, 0.25);
   width: 16px;
@@ -2032,9 +2079,9 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 16.5px;
-  color: rgba(10, 10, 10, 0.85);
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
+  color: #0A0A0A;
   padding: 0;
   min-height: 19px;
   resize: none;
@@ -2097,8 +2144,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
   color: #030213;
   position: absolute;
@@ -2110,8 +2157,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 9px;
-  line-height: 13.5px;
+  font-size: var(--text-2xs-size);
+  line-height: var(--text-2xs-line);
   letter-spacing: 0.167px;
   color: rgba(3, 2, 19, 0.6);
   position: absolute;
@@ -2159,8 +2206,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--text-md-size);
+  line-height: var(--text-sm-line);
   color: #0A0A0A;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
@@ -2192,8 +2239,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--text-md-size);
+  line-height: var(--text-sm-line);
   color: #0A0A0A;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
@@ -2225,8 +2272,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--text-md-size);
+  line-height: var(--text-sm-line);
   color: #0A0A0A;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
@@ -2241,13 +2288,72 @@ body {
   background: rgba(0, 0, 0, 0.08);
 }
 
+/* ── Action date dividers ── */
+
+.action-date-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px 4px;
+  margin-top: 4px;
+}
+
+.action-date-divider:first-child {
+  margin-top: 0;
+}
+
+.action-date-divider-text {
+  font-size: var(--text-xs-size);
+  font-weight: 500;
+  color: #717182;
+  white-space: nowrap;
+}
+
+.action-date-divider-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.action-date-divider-count {
+  font-size: var(--text-2xs-size);
+  color: rgba(113, 113, 130, 0.5);
+}
+
+/* ── Action age tags ── */
+
+.action-age-tag {
+  font-size: var(--text-2xs-size);
+  font-weight: 500;
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.action-age-tag-fresh {
+  color: #16A34A;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.action-age-tag-medium {
+  color: #D97706;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.action-age-tag-old {
+  color: #DC2626;
+  background: rgba(239, 68, 68, 0.1);
+}
+
 .notes-empty-bullet {
   /* Match .notes-input-bullet / .notes-note-bullet (avoid flex centering vs textarea baseline) */
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
   color: rgba(113, 113, 130, 0.25);
   width: 16px;
@@ -2260,7 +2366,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
+  font-size: var(--text-md-size);
   line-height: normal;
   color: rgba(113, 113, 130, 0.3);
   flex: 1;
@@ -2271,7 +2377,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
+  font-size: var(--text-md-size);
   color: rgba(113, 113, 130, 0.5);
 }
 
@@ -2323,8 +2429,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 13px;
-  line-height: 19.5px;
+  font-size: var(--text-lg-size);
+  line-height: var(--text-lg-line);
   letter-spacing: -0.0762px;
   color: #0a0a0a;
 }
@@ -2352,8 +2458,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: white;
 }
@@ -2407,8 +2513,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--text-md-size);
+  line-height: var(--text-sm-line);
   color: #0A0A0A;
   box-sizing: border-box;
   min-width: 0;
@@ -2428,8 +2534,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 15px;
+  font-size: var(--text-md-size);
+  line-height: var(--text-xs-line);
   color: rgba(113, 113, 130, 0.3);
 }
 
@@ -2468,7 +2574,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
+  font-size: var(--text-sm-size);
   line-height: normal;
   letter-spacing: 0.0645px;
   color: rgba(113, 113, 130, 0.5);
@@ -2530,8 +2636,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 18px;
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
   color: #0a0a0a;
   outline: none;
   height: 18px;
@@ -2560,8 +2666,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
   letter-spacing: 0.0644531px;
   color: #030213;
   flex: 1;
@@ -2604,8 +2710,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
   letter-spacing: 0.0644531px;
   color: #030213;
 }
@@ -2676,7 +2782,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
+  font-size: var(--text-md-size);
   line-height: 18px;
   text-align: center;
   color: #717182;
@@ -2693,8 +2799,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   text-align: center;
   letter-spacing: 0.117188px;
   color: rgba(113, 113, 130, 0.6);
@@ -2771,7 +2877,8 @@ body {
   flex-shrink: 0;
 }
 
-.action-item-checkbox:checked {
+.action-item-checkbox:checked,
+.action-item-meeting-specific .action-item-checkbox:checked {
   background-image: url('../icons/icon-circle-green.png');
 }
 
@@ -2792,8 +2899,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 16.5px;
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
   color: #0A0A0A;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -2809,12 +2916,12 @@ body {
   padding: 1px 0px 0px 30px;
   margin-left: 0;
   border-radius: 0px;
-  font-family: 'Inter';
+  font-family: var(--font-sans);
   font-style: normal;
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
-  color: #0A0A0A;
+  font-weight: var(--weight-regular);
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
+  color: var(--text-primary);
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -2867,12 +2974,12 @@ body {
   padding: 1px 0px 0px 30px;
   margin-left: 0;
   border-radius: 0px;
-  font-family: 'Inter';
+  font-family: var(--font-sans);
   font-style: normal;
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
-  color: #0A0A0A;
+  font-weight: var(--weight-regular);
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
+  color: var(--text-primary);
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -2899,8 +3006,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 9px;
-  line-height: 13.5px;
+  font-size: var(--text-2xs-size);
+  line-height: var(--text-2xs-line);
   letter-spacing: 0.167px;
   color: #717182;
   height: 17.5px;
@@ -2912,8 +3019,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 9px;
-  line-height: 13.5px;
+  font-size: var(--text-2xs-size);
+  line-height: var(--text-2xs-line);
   letter-spacing: 0.167px;
   color: rgba(113, 113, 130, 0.5);
   height: 13.5px;
@@ -2925,8 +3032,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 9px;
-  line-height: 13.5px;
+  font-size: var(--text-2xs-size);
+  line-height: var(--text-2xs-line);
   letter-spacing: 0.167px;
   height: 17.5px;
   display: flex;
@@ -2974,7 +3081,7 @@ body {
 }
 .delete-modal-message {
   font-family: 'Inter';
-  font-size: 14px;
+  font-size: var(--text-xl-size);
   line-height: 1.5;
   color: #3f3f46;
   margin: 0 0 20px 0;
@@ -3016,8 +3123,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 13px;
-  line-height: 19.5px;
+  font-size: var(--text-lg-size);
+  line-height: var(--text-lg-line);
   letter-spacing: -0.0762px;
   color: #0A0A0A;
 }
@@ -3059,7 +3166,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
+  font-size: var(--text-md-size);
   line-height: normal;
   color: #0A0A0A;
   outline: none;
@@ -3070,7 +3177,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
+  font-size: var(--text-md-size);
   color: rgba(113, 113, 130, 0.6);
 }
 
@@ -3093,8 +3200,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
   height: 28.5px;
 }
@@ -3216,8 +3323,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 14px;
-  line-height: 21px;
+  font-size: var(--text-xl-size);
+  line-height: var(--text-xl-line);
   letter-spacing: -0.1504px;
   color: #0A0A0A;
   margin: 0;
@@ -3228,8 +3335,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
   color: rgba(113, 113, 130, 0.6);
   margin: 0 0 24px 28px;
@@ -3249,8 +3356,8 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
   color: #717182;
 }
@@ -3271,7 +3378,7 @@ body {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
+  font-size: var(--text-md-size);
   line-height: normal;
   color: #0A0A0A;
   outline: none;
@@ -3304,8 +3411,8 @@ select.settings-input {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: rgba(113, 113, 130, 0.5);
   margin: 0;
@@ -3383,8 +3490,8 @@ select.settings-input {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
   color: #008236;
   margin: 0;
@@ -3410,8 +3517,8 @@ select.settings-input {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: rgba(0, 166, 62, 0.8);
 }
@@ -3420,8 +3527,8 @@ select.settings-input {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: rgba(231, 0, 11, 0.8);
 }
@@ -3437,8 +3544,8 @@ select.settings-input {
   border-radius: 8px;
   font-family: 'Inter';
   font-weight: 500;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: white;
   cursor: pointer;
@@ -3470,7 +3577,7 @@ select.settings-input {
 .license-request-form-title {
   font-family: 'Inter';
   font-weight: 400;
-  font-size: 12px;
+  font-size: var(--text-md-size);
   line-height: 18px;
   color: #c10007;
   margin: 0 0 6px 0;
@@ -3479,8 +3586,8 @@ select.settings-input {
 .license-request-form-desc {
   font-family: 'Inter';
   font-weight: 400;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: rgba(231, 0, 11, 0.7);
   margin: 0 0 12px 0;
@@ -3498,8 +3605,8 @@ select.settings-input {
   gap: 6px;
   font-family: 'Inter';
   font-weight: 500;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: rgba(193, 0, 7, 0.7);
   cursor: default;
@@ -3526,7 +3633,7 @@ select.settings-input {
   border: 1px solid #ffc9c9;
   border-radius: 8px;
   font-family: 'Inter';
-  font-size: 11px;
+  font-size: var(--text-sm-size);
   color: #0a0a0a;
 }
 
@@ -3543,8 +3650,8 @@ select.settings-input {
   border-radius: 8px;
   font-family: 'Inter';
   font-weight: 500;
-  font-size: 10px;
-  line-height: 15px;
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
   letter-spacing: 0.1172px;
   color: white;
   cursor: pointer;
@@ -3565,8 +3672,8 @@ select.settings-input {
   padding: 0;
   font-family: 'Inter';
   font-weight: 500;
-  font-size: 9px;
-  line-height: 13.5px;
+  font-size: var(--text-2xs-size);
+  line-height: var(--text-2xs-line);
   letter-spacing: 0.167px;
   color: rgba(251, 44, 54, 0.6);
   cursor: pointer;
@@ -3580,8 +3687,8 @@ select.settings-input {
 .license-request-success {
   font-family: 'Inter';
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
   color: rgba(0, 130, 54, 0.9);
   margin: 0;
 }
@@ -3596,8 +3703,8 @@ select.settings-input {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
   color: #c10007;
 }
 
@@ -3613,8 +3720,8 @@ select.settings-input {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-size: 11px;
-  line-height: 16.5px;
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
   letter-spacing: 0.0645px;
   flex-shrink: 0;
   z-index: 10;
@@ -3737,119 +3844,53 @@ select.settings-input {
   }
 }
 
-/* Popup: scaled fonts and spacing (--popup-scale: 1.15) */
+/* Popup: scaled spacing and dimensions (--popup-scale: 1.15) */
+/* Font sizes/line-heights now use CSS variables directly in source declarations. */
 .header {
   height: calc(49.5px * var(--popup-scale));
 }
 .header-content {
   padding: 0 calc(16px * var(--popup-scale));
 }
-.logo-text {
-  font-size: calc(13px * var(--popup-scale));
-  line-height: calc(20px * var(--popup-scale));
-}
 .tab-button {
-  font-size: calc(11px * var(--popup-scale));
-  line-height: calc(16px * var(--popup-scale));
   padding: 0 calc(12px * var(--popup-scale));
 }
 .sidebar-header {
   padding: calc(10px * var(--popup-scale)) calc(12px * var(--popup-scale));
 }
-.sidebar-title {
-  font-size: calc(11px * var(--popup-scale));
-  line-height: calc(16.5px * var(--popup-scale));
-}
 .sidebar-search-container {
   padding: calc(8px * var(--popup-scale)) calc(10px * var(--popup-scale));
-}
-.sidebar-search-input {
-  font-size: calc(11px * var(--popup-scale));
-  line-height: calc(16px * var(--popup-scale));
 }
 .category-header {
   padding: 0 calc(12px * var(--popup-scale));
   height: calc(35px * var(--popup-scale));
 }
-.category-name {
-  font-size: calc(12px * var(--popup-scale));
-  line-height: calc(18px * var(--popup-scale));
-}
 .add-button {
-  font-size: calc(10px * var(--popup-scale));
   padding: 0 calc(6px * var(--popup-scale));
 }
 .meeting-item {
   padding: calc(8px * var(--popup-scale)) calc(12px * var(--popup-scale));
 }
-.meeting-item-name {
-  font-size: calc(11px * var(--popup-scale));
-  line-height: calc(16px * var(--popup-scale));
-}
 .meeting-header {
   padding: calc(12px * var(--popup-scale)) calc(16px * var(--popup-scale));
-}
-.meeting-title {
-  font-size: calc(14px * var(--popup-scale));
-  line-height: calc(21px * var(--popup-scale));
 }
 .meeting-tabs {
   height: calc(35px * var(--popup-scale));
 }
 .meeting-tab {
   padding: 0 calc(16px * var(--popup-scale));
-  font-size: calc(11px * var(--popup-scale));
   height: calc(35px * var(--popup-scale));
-}
-.agenda-input,
-.actions-input,
-.add-meeting-input {
-  font-size: calc(12px * var(--popup-scale));
-  line-height: calc(16px * var(--popup-scale));
 }
 .agenda-input,
 .actions-input {
   padding: calc(5px * var(--popup-scale)) calc(6px * var(--popup-scale)) calc(5px * var(--popup-scale)) calc(30px * var(--popup-scale));
 }
-.add-meeting-input {
-  padding: 0;
-}
 .agenda-item,
 .action-item {
   padding: calc(8px * var(--popup-scale)) calc(10px * var(--popup-scale));
 }
-.agenda-item-text,
-.action-item-text {
-  font-size: calc(12px * var(--popup-scale));
-  line-height: calc(16px * var(--popup-scale));
-}
 .filter-button {
-  font-size: calc(10px * var(--popup-scale));
   padding: calc(2px * var(--popup-scale)) calc(8px * var(--popup-scale));
-}
-.empty-state-title {
-  font-size: calc(13px * var(--popup-scale));
-  line-height: calc(19.5px * var(--popup-scale));
-}
-.empty-state-description {
-  font-size: calc(10px * var(--popup-scale));
-  line-height: calc(15px * var(--popup-scale));
-}
-.actions-add-button span {
-  font-size: calc(10px * var(--popup-scale));
-  line-height: calc(15px * var(--popup-scale));
-}
-.actions-header-text {
-  font-size: calc(13px * var(--popup-scale));
-  line-height: calc(19.5px * var(--popup-scale));
-}
-.notes-empty-card-date,
-.notes-empty-placeholder {
-  font-size: calc(12px * var(--popup-scale));
-}
-.add-meeting-helper-text {
-  font-size: calc(8px * var(--popup-scale));
-  line-height: calc(12px * var(--popup-scale));
 }
 
 .settings-view {
@@ -3874,21 +3915,27 @@ select.settings-input {
 /* Force Agenda to match meeting-specific Actions (more-specific selectors). */
 #agenda-view .agenda-input,
 #actions-view .actions-input {
-  font-family: 'Inter';
+  font-family: var(--font-sans);
   font-style: normal;
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
-  color: #0A0A0A;
+  font-weight: var(--weight-regular);
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
+  color: var(--text-primary);
 }
 
 #agenda-view .agenda-item-text {
-  font-family: 'Inter';
+  font-family: var(--font-sans);
   font-style: normal;
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
-  color: #0A0A0A;
+  font-weight: var(--weight-regular);
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
+  color: var(--text-primary);
+}
+
+#agenda-view .agenda-item.closed .agenda-item-text {
+  text-decoration: line-through;
+  text-decoration-skip-ink: none;
+  color: rgba(113, 113, 130, 0.6);
 }
 
 /* Match Notes row density (tighter vertical rhythm). */
@@ -3902,4 +3949,289 @@ select.settings-input {
   padding-top: 4px;
   padding-bottom: 4px;
   min-height: 25.5px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Typography normalization (use shared tokens; last-wins overrides)            */
+/* -------------------------------------------------------------------------- */
+
+.logo-text {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-lg-size);
+  line-height: var(--text-lg-line);
+}
+
+.tab-button,
+.meeting-tab,
+.sidebar-title,
+.meeting-item-name,
+.actions-header-text {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+}
+
+.meeting-title {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-xl-size);
+  line-height: var(--text-xl-line);
+}
+
+.category-name,
+.actions-search-input,
+.sidebar-search-input {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-sm-line);
+}
+
+.filter-button,
+.settings-label,
+.settings-field-help,
+.actions-add-button span {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-xs-size);
+  line-height: var(--text-xs-line);
+}
+
+.settings-field-help,
+.actions-empty-description,
+.agenda-empty-description {
+  font-weight: var(--weight-regular);
+  color: var(--text-muted);
+}
+
+.agenda-input,
+.actions-input,
+.notes-input,
+.add-meeting-input {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
+  color: var(--text-primary);
+}
+
+.agenda-item-text,
+.action-item-text,
+.notes-note-text {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-md-size);
+  line-height: var(--text-md-line);
+}
+
+.notes-note-bullet,
+.notes-input-bullet {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-sm-size);
+  line-height: var(--text-md-line);
+}
+
+/* Notes color normalization (line-height handled by token block above). */
+.notes-note-text,
+.notes-input {
+  color: var(--text-primary);
+}
+
+.notes-date-card-content {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Settings — Meeting Types section
+   ───────────────────────────────────────────────────────────────── */
+
+.settings-meeting-types-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.settings-type-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 4px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: var(--text-xs-size);
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1;
+  user-select: none;
+}
+
+.settings-type-chip--dragging {
+  opacity: 0.3;
+}
+
+.settings-type-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: rgba(113, 113, 130, 0.4);
+  padding: 0 1px;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.settings-type-drag-handle:active {
+  cursor: grabbing;
+}
+
+.settings-type-drag-handle:hover {
+  color: rgba(113, 113, 130, 0.8);
+}
+
+.settings-type-drop-indicator {
+  display: inline-block;
+  width: 2px;
+  height: 22px;
+  background: #2b7fff;
+  border-radius: 2px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.settings-type-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.settings-type-name {
+  white-space: nowrap;
+}
+
+.settings-type-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 1px;
+  margin-left: 1px;
+  border-radius: 3px;
+  color: rgba(113, 113, 130, 0.45);
+  transition: color 0.15s, background 0.15s;
+  line-height: 0;
+}
+
+.settings-type-delete:hover {
+  color: #c10007;
+  background: rgba(193, 0, 7, 0.08);
+}
+
+.settings-add-type-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.settings-add-type-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-add-type-btn {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  background: rgba(43, 127, 255, 0.1);
+  color: #2b7fff;
+  border: 1px solid rgba(43, 127, 255, 0.25);
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: var(--text-xs-size);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.settings-add-type-btn:hover {
+  background: rgba(43, 127, 255, 0.18);
+  border-color: rgba(43, 127, 255, 0.4);
+}
+
+.settings-add-type-error {
+  color: #c10007;
+  margin-top: 4px;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Delete custom type button (in category header)
+   ───────────────────────────────────────────────────────────────── */
+
+.delete-type-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 4px;
+  color: rgba(113, 113, 130, 0.5);
+  flex-shrink: 0;
+  margin-right: 2px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.category-header:hover .delete-type-button {
+  display: flex;
+}
+
+.delete-type-button:hover {
+  color: #c10007;
+  background: rgba(193, 0, 7, 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Drag-and-drop styles
+   ───────────────────────────────────────────────────────────────── */
+
+.meeting-item.dragging {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Valid drop target — entire category section lights up blue */
+.category-section.drag-over {
+  background: rgba(43, 127, 255, 0.06);
+  border-radius: 8px;
+  outline: 2px dashed rgba(43, 127, 255, 0.4);
+  outline-offset: -2px;
+}
+
+.category-section.drag-over .category-header {
+  background: rgba(43, 127, 255, 0.08);
+  border-radius: 6px 6px 0 0;
+}
+
+/* Forbidden drop target (Interviews) — red tint */
+.category-section.drag-over--forbidden {
+  background: rgba(220, 38, 38, 0.05);
+  border-radius: 8px;
+  outline: 2px dashed rgba(220, 38, 38, 0.35);
+  outline-offset: -2px;
+  cursor: no-drop;
+}
+
+.category-section.drag-over--forbidden .category-header {
+  background: rgba(220, 38, 38, 0.08);
+  border-radius: 6px 6px 0 0;
 }

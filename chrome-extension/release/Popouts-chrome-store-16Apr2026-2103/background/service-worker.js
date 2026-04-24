@@ -1,0 +1,143 @@
+// Background service worker
+// Handles extraction API calls so they complete even when the popup closes.
+// When the popup closes before the API returns, we store the result for the next load.
+
+import { normalizeInterviewSummaryPayload } from '../js/modules/interview-summary-normalize.js';
+
+const PENDING_EXTRACTION_RESULTS_KEY = 'pending_extraction_results';
+const LICENSE_STORAGE_KEY = 'user_license';
+const INSTALLATION_ID_KEY = 'installation_id';
+
+const DEBUG = false;
+
+chrome.runtime.onInstalled.addListener(() => {
+  if (DEBUG) console.log('Popouts extension installed');
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'EXTRACT_ACTIONS') {
+    handleExtractActions(message, sendResponse);
+    return true; // Keep channel open for async sendResponse
+  }
+  if (message.type === 'SUMMARIZE_INTERVIEW') {
+    handleSummarizeInterview(message, sendResponse);
+    return true;
+  }
+});
+
+const FETCH_TIMEOUT_MS = 115000; // Slightly less than client timeout (2 min)
+
+async function handleExtractActions(message, sendResponse) {
+  const { meetingId, meetingDetails, apiUrl } = message;
+  if (DEBUG) console.log('[Background] handleExtractActions: received', { meetingId, apiUrl: typeof apiUrl === 'string' ? apiUrl.slice(0, 80) : '(bad url)' });
+  let timeoutId;
+  try {
+    const stored = await chrome.storage.local.get([LICENSE_STORAGE_KEY, INSTALLATION_ID_KEY]);
+    const license = stored[LICENSE_STORAGE_KEY];
+    const installationId = stored[INSTALLATION_ID_KEY];
+    if (DEBUG) console.log('[Background] Storage: has_license_key=', !!license?.license_key, 'has_installation_id=', !!installationId);
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (license?.license_key) headers['X-License-Key'] = license.license_key;
+    if (installationId) headers['X-Installation-Id'] = installationId;
+
+    if (DEBUG) console.log('[Background] Starting fetch to', typeof apiUrl === 'string' ? apiUrl.slice(0, 80) : apiUrl);
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => {
+      if (DEBUG) console.log('[Background] Fetch TIMEOUT - aborting');
+      controller.abort();
+    }, FETCH_TIMEOUT_MS);
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ meeting_details: meetingDetails }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (DEBUG) console.log('[Background] Fetch completed, status=', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      sendResponse({ success: false, error: `API error: ${response.status} ${errorText}` });
+      return;
+    }
+
+    const data = await response.json();
+    const result = {
+      success: true,
+      data: {
+        notes_with_actions: data.notes_with_actions || [],
+        series_id: data.series_id,
+        meeting_id: data.meeting_id
+      }
+    };
+
+    // Store result so it can be applied even if popup closed (no one to receive sendResponse)
+    const pendingStored = await chrome.storage.local.get(PENDING_EXTRACTION_RESULTS_KEY);
+    const pending = pendingStored[PENDING_EXTRACTION_RESULTS_KEY] || {};
+    pending[String(meetingId)] = {
+      result,
+      timestamp: Date.now()
+    };
+    await chrome.storage.local.set({ [PENDING_EXTRACTION_RESULTS_KEY]: pending });
+
+    if (DEBUG) console.log('[Background] Sending success response');
+    sendResponse(result);
+  } catch (error) {
+    if (timeoutId) clearTimeout(timeoutId);
+    console.error('[Background] Extraction error:', error?.name, error?.message, error);
+    const isTimeout = error?.name === 'AbortError';
+    const errorMsg = isTimeout
+      ? `Request timed out after ${FETCH_TIMEOUT_MS / 1000} seconds. The LLM service may be slow or unavailable.`
+      : (error?.message || String(error));
+    if (DEBUG) console.log('[Background] Sending error response:', errorMsg);
+    sendResponse({ success: false, error: errorMsg });
+  }
+}
+
+async function handleSummarizeInterview(message, sendResponse) {
+  const { meetingDetails, apiUrl } = message;
+  if (DEBUG) console.log('[Background] handleSummarizeInterview:', { apiUrl: typeof apiUrl === 'string' ? apiUrl.slice(0, 80) : '(bad url)' });
+  let timeoutId;
+  try {
+    const stored = await chrome.storage.local.get([LICENSE_STORAGE_KEY, INSTALLATION_ID_KEY]);
+    const license = stored[LICENSE_STORAGE_KEY];
+    const installationId = stored[INSTALLATION_ID_KEY];
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (license?.license_key) headers['X-License-Key'] = license.license_key;
+    if (installationId) headers['X-Installation-Id'] = installationId;
+
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ meeting_details: meetingDetails }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      sendResponse({ success: false, error: `API error: ${response.status} ${errorText}` });
+      return;
+    }
+
+    const data = await response.json();
+    sendResponse({
+      success: true,
+      data: normalizeInterviewSummaryPayload(data)
+    });
+  } catch (error) {
+    if (timeoutId) clearTimeout(timeoutId);
+    console.error('[Background] summarize interview error:', error?.name, error?.message);
+    const isTimeout = error?.name === 'AbortError';
+    const errorMsg = isTimeout
+      ? `Request timed out after ${FETCH_TIMEOUT_MS / 1000} seconds. The LLM service may be slow or unavailable.`
+      : (error?.message || String(error));
+    sendResponse({ success: false, error: errorMsg });
+  }
+}

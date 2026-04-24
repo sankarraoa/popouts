@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Action Item Grouping - Design Options</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #f5f5f7;
+      padding: 32px;
+      color: #0A0A0A;
+    }
+    h1 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: #717182; margin-bottom: 32px; }
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 1100px;
+    }
+    .option {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .option-header {
+      padding: 14px 16px;
+      background: rgba(236, 236, 240, 0.4);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .option-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0A0A0A;
+    }
+    .option-desc {
+      font-size: 11px;
+      color: #717182;
+      margin-top: 4px;
+    }
+    .option-body {
+      padding: 12px 0;
+    }
+    .recommended {
+      border: 2px solid #4F46E5;
+    }
+    .recommended .option-header {
+      background: rgba(79, 70, 229, 0.06);
+    }
+    .rec-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 600;
+      color: #4F46E5;
+      background: rgba(79, 70, 229, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* Shared action item styles */
+    .action-row {
+      display: flex;
+      align-items: flex-start;
+      padding: 6px 16px;
+      gap: 8px;
+      font-size: 12px;
+      line-height: 16.5px;
+      color: #0A0A0A;
+    }
+    .action-row:hover { background: rgba(0,0,0,0.02); }
+    .checkbox {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid rgba(113,113,130,0.3);
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .action-text { flex: 1; }
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      margin-bottom: 4px;
+    }
+    .filter-pill {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(236, 236, 240, 0.5);
+      color: #717182;
+    }
+    .filter-pill.active {
+      background: #0A0A0A;
+      color: #fff;
+    }
+
+    /* Option A: Inline Date Chip */
+    .date-chip {
+      font-size: 9px;
+      color: #717182;
+      background: rgba(236, 236, 240, 0.6);
+      padding: 1px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Option B: Sticky Date Dividers */
+    .date-divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px 4px;
+      margin-top: 4px;
+    }
+    .date-divider:first-child { margin-top: 0; }
+    .date-divider-text {
+      font-size: 10px;
+      font-weight: 500;
+      color: #717182;
+      white-space: nowrap;
+    }
+    .date-divider-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(0,0,0,0.06);
+    }
+    .date-divider-count {
+      font-size: 9px;
+      color: rgba(113,113,130,0.5);
+    }
+
+    /* Option C: Age Indicator */
+    .age-bar {
+      width: 3px;
+      border-radius: 2px;
+      align-self: stretch;
+      flex-shrink: 0;
+      min-height: 16px;
+    }
+    .age-green { background: #22C55E; }
+    .age-yellow { background: #F59E0B; }
+    .age-red { background: #EF4444; }
+    .age-legend {
+      display: flex;
+      gap: 12px;
+      padding: 6px 16px 8px;
+      font-size: 9px;
+      color: #717182;
+    }
+    .age-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .age-legend-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    /* Option D: Relative Age Tag */
+    .age-tag {
+      font-size: 9px;
+      font-weight: 500;
+      padding: 1px 5px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .age-tag-fresh { color: #16A34A; background: rgba(34,197,94,0.1); }
+    .age-tag-medium { color: #D97706; background: rgba(245,158,11,0.1); }
+    .age-tag-old { color: #DC2626; background: rgba(239,68,68,0.1); }
+
+    /* Option E: Section Headers */
+    .section-header {
+      font-size: 11px;
+      font-weight: 500;
+      color: #717182;
+      padding: 10px 16px 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .section-header:first-child { padding-top: 4px; }
+    .section-count {
+      font-size: 9px;
+      font-weight: 400;
+      color: rgba(113,113,130,0.5);
+    }
+
+    /* Option F: Combined (recommended) */
+    .combo-divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px 4px;
+      margin-top: 2px;
+    }
+    .combo-divider:first-child { margin-top: 0; }
+    .combo-divider-text {
+      font-size: 10px;
+      font-weight: 500;
+      color: #717182;
+      white-space: nowrap;
+    }
+    .combo-divider-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(0,0,0,0.06);
+    }
+    .combo-divider-count {
+      font-size: 9px;
+      color: rgba(113,113,130,0.5);
+    }
+  </style>
+</head>
+<body>
+  <h1>Action Item Grouping Options</h1>
+  <p class="subtitle">How to show when action items were created so users can prioritize by age</p>
+
+  <div class="options-grid">
+
+    <!-- Option A: Inline Date Chip -->
+    <div class="option">
+      <div class="option-header">
+        <div class="option-title">Option A: Inline Date Chip</div>
+        <div class="option-desc">Small date label next to each action item</div>
+      </div>
+      <div class="option-body">
+        <div class="filter-bar">
+          <span class="filter-pill">All 10</span>
+          <span class="filter-pill active">Open 8</span>
+          <span class="filter-pill">Closed 2</span>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Provide the new design for the wait step and other items in the workflow</div>
+          <div class="date-chip">Apr 9</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Determine whether spend owners should see notifications for every comment</div>
+          <div class="date-chip">Apr 9</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Share the export spreadsheet related changes</div>
+          <div class="date-chip">Apr 1</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Create designs for entry points in tasks</div>
+          <div class="date-chip">Apr 1</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Use LangFuse to create the prompts</div>
+          <div class="date-chip">Mar 25</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option B: Date Dividers -->
+    <div class="option">
+      <div class="option-header">
+        <div class="option-title">Option B: Date Dividers</div>
+        <div class="option-desc">Thin separator lines with date labels between groups</div>
+      </div>
+      <div class="option-body">
+        <div class="filter-bar">
+          <span class="filter-pill">All 10</span>
+          <span class="filter-pill active">Open 8</span>
+          <span class="filter-pill">Closed 2</span>
+        </div>
+        <div class="date-divider">
+          <span class="date-divider-text">Wed, Apr 9</span>
+          <div class="date-divider-line"></div>
+          <span class="date-divider-count">3 items</span>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Provide the new design for the wait step and other items in the workflow</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Determine whether spend owners should see notifications for every comment</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Provide the mapping for invoice to bill and bills to bill payments</div>
+        </div>
+        <div class="date-divider">
+          <span class="date-divider-text">Tue, Apr 1</span>
+          <div class="date-divider-line"></div>
+          <span class="date-divider-count">3 items</span>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Share the export spreadsheet related changes</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Create designs for entry points in tasks</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option C: Age Indicator Bars -->
+    <div class="option">
+      <div class="option-header">
+        <div class="option-title">Option C: Age Color Bars</div>
+        <div class="option-desc">Color-coded left border based on age (green/yellow/red)</div>
+      </div>
+      <div class="option-body">
+        <div class="age-legend">
+          <div class="age-legend-item"><div class="age-legend-dot age-green"></div> &lt; 3 days</div>
+          <div class="age-legend-item"><div class="age-legend-dot age-yellow"></div> 3-7 days</div>
+          <div class="age-legend-item"><div class="age-legend-dot age-red"></div> &gt; 7 days</div>
+        </div>
+        <div class="filter-bar">
+          <span class="filter-pill">All 10</span>
+          <span class="filter-pill active">Open 8</span>
+          <span class="filter-pill">Closed 2</span>
+        </div>
+        <div class="action-row">
+          <div class="age-bar age-yellow"></div>
+          <div class="checkbox"></div>
+          <div class="action-text">Provide the new design for the wait step and other items in the workflow</div>
+        </div>
+        <div class="action-row">
+          <div class="age-bar age-yellow"></div>
+          <div class="checkbox"></div>
+          <div class="action-text">Determine whether spend owners should see notifications</div>
+        </div>
+        <div class="action-row">
+          <div class="age-bar age-red"></div>
+          <div class="checkbox"></div>
+          <div class="action-text">Share the export spreadsheet related changes</div>
+        </div>
+        <div class="action-row">
+          <div class="age-bar age-red"></div>
+          <div class="checkbox"></div>
+          <div class="action-text">Create designs for entry points in tasks</div>
+        </div>
+        <div class="action-row">
+          <div class="age-bar age-red"></div>
+          <div class="checkbox"></div>
+          <div class="action-text">Use LangFuse to create the prompts</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option D: Relative Age Tags -->
+    <div class="option">
+      <div class="option-header">
+        <div class="option-title">Option D: Relative Age Tags</div>
+        <div class="option-desc">Compact "2d", "1w", "3w" badges color-coded by urgency</div>
+      </div>
+      <div class="option-body">
+        <div class="filter-bar">
+          <span class="filter-pill">All 10</span>
+          <span class="filter-pill active">Open 8</span>
+          <span class="filter-pill">Closed 2</span>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Provide the new design for the wait step and other items in the workflow</div>
+          <div class="age-tag age-tag-medium">7d</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Determine whether spend owners should see notifications for every comment</div>
+          <div class="age-tag age-tag-medium">7d</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Share the export spreadsheet related changes</div>
+          <div class="age-tag age-tag-old">2w</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Create designs for entry points in tasks</div>
+          <div class="age-tag age-tag-old">2w</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Use LangFuse to create the prompts</div>
+          <div class="age-tag age-tag-old">3w</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option E: Section Headers -->
+    <div class="option">
+      <div class="option-header">
+        <div class="option-title">Option E: Time Bucket Sections</div>
+        <div class="option-desc">Group by "Today", "This Week", "Older" with minimal headers</div>
+      </div>
+      <div class="option-body">
+        <div class="filter-bar">
+          <span class="filter-pill">All 10</span>
+          <span class="filter-pill active">Open 8</span>
+          <span class="filter-pill">Closed 2</span>
+        </div>
+        <div class="section-header">
+          <span>This Week</span>
+          <span class="section-count">3</span>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Determine how to handle sensitive messages in email</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Provide the new design for the wait step and other items</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Provide the mapping for invoice to bill and bills to bill payments</div>
+        </div>
+        <div class="section-header">
+          <span>Last Week</span>
+          <span class="section-count">3</span>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Share the export spreadsheet related changes</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Create designs for entry points in tasks</div>
+        </div>
+        <div class="section-header">
+          <span>Older</span>
+          <span class="section-count">2</span>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Use LangFuse to create the prompts</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Create designs for new record tasks for bill and invoice</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option F: Combined (Recommended) -->
+    <div class="option recommended">
+      <div class="option-header">
+        <div class="option-title">Option F: Dividers + Age Tags <span class="rec-badge">RECOMMENDED</span></div>
+        <div class="option-desc">Date dividers for grouping + color-coded age tags for at-a-glance priority</div>
+      </div>
+      <div class="option-body">
+        <div class="filter-bar">
+          <span class="filter-pill">All 10</span>
+          <span class="filter-pill active">Open 8</span>
+          <span class="filter-pill">Closed 2</span>
+        </div>
+        <div class="combo-divider">
+          <span class="combo-divider-text">Wed, Apr 9</span>
+          <div class="combo-divider-line"></div>
+          <span class="combo-divider-count">3 items</span>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Provide the new design for the wait step and other items in the workflow</div>
+          <div class="age-tag age-tag-medium">7d</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Determine whether spend owners should see notifications for every comment</div>
+          <div class="age-tag age-tag-medium">7d</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Provide the mapping for invoice to bill and bills to bill payments</div>
+          <div class="age-tag age-tag-medium">7d</div>
+        </div>
+        <div class="combo-divider">
+          <span class="combo-divider-text">Tue, Apr 1</span>
+          <div class="combo-divider-line"></div>
+          <span class="combo-divider-count">3 items</span>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Share the export spreadsheet related changes</div>
+          <div class="age-tag age-tag-old">2w</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Create designs for entry points in tasks</div>
+          <div class="age-tag age-tag-old">2w</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Create designs for new record tasks for bill, bill payments, and invoice</div>
+          <div class="age-tag age-tag-old">2w</div>
+        </div>
+        <div class="combo-divider">
+          <span class="combo-divider-text">Tue, Mar 25</span>
+          <div class="combo-divider-line"></div>
+          <span class="combo-divider-count">2 items</span>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Use LangFuse to create the prompts</div>
+          <div class="age-tag age-tag-old">3w</div>
+        </div>
+        <div class="action-row">
+          <div class="checkbox"></div>
+          <div class="action-text">Share the Epic of the product development</div>
+          <div class="age-tag age-tag-old">3w</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -4,13 +4,32 @@
  */
 import * as licenseManager from './license.js';
 import { getConfig, getEnv, setEnv } from '../config.js';
+import {
+  getAllCustomMeetingTypes,
+  createCustomMeetingType,
+  deleteCustomMeetingType,
+  getMeetingTypeOrder,
+  setMeetingTypeOrder,
+  getCustomTypeKey,
+} from './custom-meeting-types.js';
 
 // Environment selector (#settings-env-field) is hidden by default; popup.js / sidepanel.js reveal it
 // after five quick taps on the Settings title (developer-only local testing).
 
+const BUILT_IN_TYPES = [
+  { key: '1:1s',       name: '1:1s',       color: '#2b7fff' },
+  { key: 'interviews', name: 'Interviews', color: '#0d9488' },
+  { key: 'recurring',  name: 'Recurring',  color: '#8e51ff' },
+  { key: 'adhoc',      name: 'Ad Hoc',     color: '#fe9a00' },
+];
+
 let _hydrated = false;
+let _meetingTypesCallbacks = {};
+let _chipDrag = null;
 
 export async function displaySettingsView(elements, callbacks = {}) {
+  _meetingTypesCallbacks = callbacks;
+
   if (!_hydrated) {
     await hydrateSettingsView(elements, callbacks);
     _hydrated = true;
@@ -30,6 +49,7 @@ export async function displaySettingsView(elements, callbacks = {}) {
     if (selectedIcon) selectedIcon.style.display = 'block';
   }
 
+  await refreshMeetingTypesList();
   await updateLicenseStatusDisplay(elements);
 }
 
@@ -92,6 +112,260 @@ export async function hydrateSettingsView(elements, callbacks = {}) {
   }
 
   setupLicenseRequestHandlers();
+  hydrateAddMeetingTypeRow();
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Meeting Types section
+// ─────────────────────────────────────────────────────────────────
+
+function hydrateAddMeetingTypeRow() {
+  const input = document.getElementById('settings-add-type-input');
+  const btn   = document.getElementById('settings-add-type-btn');
+  if (!input || !btn) return;
+
+  const submit = () => handleAddMeetingType(input);
+
+  btn.addEventListener('click', submit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submit(); }
+    if (e.key === 'Escape') { input.value = ''; hideAddTypeError(); }
+  });
+}
+
+async function refreshMeetingTypesList() {
+  const list = document.getElementById('settings-meeting-types-list');
+  if (!list) return;
+
+  const [typeOrder, customTypes] = await Promise.all([
+    getMeetingTypeOrder(),
+    getAllCustomMeetingTypes(),
+  ]);
+
+  const builtInByKey = {};
+  BUILT_IN_TYPES.forEach(t => { builtInByKey[t.key] = t; });
+  const customByKey = {};
+  customTypes.forEach(ct => { customByKey[getCustomTypeKey(ct.id)] = ct; });
+
+  list.innerHTML = '';
+
+  for (const typeKey of typeOrder) {
+    const builtIn = builtInByKey[typeKey];
+    if (builtIn) {
+      list.appendChild(buildTypeChip(builtIn.name, builtIn.color, null, builtIn.key));
+    } else if (customByKey[typeKey]) {
+      const ct = customByKey[typeKey];
+      list.appendChild(buildTypeChip(ct.name, ct.color, ct.id, typeKey));
+    }
+  }
+
+  hydrateChipDragReorder();
+}
+
+function buildTypeChip(name, color, customId, typeKey) {
+  const chip = document.createElement('span');
+  chip.className = 'settings-type-chip' + (customId != null ? ' settings-type-chip--custom' : '');
+  chip.dataset.typeKey = typeKey;
+
+  const handle = document.createElement('span');
+  handle.className = 'settings-type-drag-handle';
+  handle.title = 'Drag to reorder';
+  handle.innerHTML = `<svg width="8" height="10" viewBox="0 0 8 10" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="2.5" cy="2" r="1" fill="currentColor"/><circle cx="5.5" cy="2" r="1" fill="currentColor"/><circle cx="2.5" cy="5" r="1" fill="currentColor"/><circle cx="5.5" cy="5" r="1" fill="currentColor"/><circle cx="2.5" cy="8" r="1" fill="currentColor"/><circle cx="5.5" cy="8" r="1" fill="currentColor"/></svg>`;
+
+  const dot = document.createElement('span');
+  dot.className = 'settings-type-dot';
+  dot.style.backgroundColor = color;
+
+  const label = document.createElement('span');
+  label.className = 'settings-type-name';
+  label.textContent = name;
+
+  chip.appendChild(handle);
+  chip.appendChild(dot);
+  chip.appendChild(label);
+
+  if (customId != null) {
+    const del = document.createElement('button');
+    del.className = 'settings-type-delete';
+    del.type = 'button';
+    del.title = `Remove ${name}`;
+    del.setAttribute('aria-label', `Remove ${name}`);
+    del.innerHTML = `<svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5L6.5 6.5M6.5 1.5L1.5 6.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>`;
+    del.addEventListener('click', () => handleDeleteMeetingType(customId, name));
+    chip.appendChild(del);
+  }
+
+  return chip;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Chip drag-to-reorder
+// ─────────────────────────────────────────────────────────────────
+
+function hydrateChipDragReorder() {
+  const list = document.getElementById('settings-meeting-types-list');
+  if (!list) return;
+
+  // Remove any previous listener by cloning; simpler than tracking refs.
+  const freshList = list.cloneNode(true);
+  list.parentNode.replaceChild(freshList, list);
+
+  // Re-attach static listeners (delete buttons were lost in the clone)
+  freshList.querySelectorAll('.settings-type-chip').forEach(chip => {
+    const delBtn = chip.querySelector('.settings-type-delete');
+    if (delBtn) {
+      const customId = Number(chip.dataset.typeKey?.replace('custom_', ''));
+      const name = chip.querySelector('.settings-type-name')?.textContent || '';
+      delBtn.addEventListener('click', () => handleDeleteMeetingType(customId, name));
+    }
+  });
+
+  freshList.addEventListener('mousedown', (e) => {
+    const handle = e.target.closest('.settings-type-drag-handle');
+    if (!handle || e.button !== 0) return;
+    const chip = handle.closest('.settings-type-chip');
+    if (!chip) return;
+
+    e.preventDefault();
+    const rect = chip.getBoundingClientRect();
+
+    const ghost = chip.cloneNode(true);
+    Object.assign(ghost.style, {
+      position: 'fixed',
+      top: `${rect.top}px`,
+      left: `${rect.left}px`,
+      width: `${rect.width}px`,
+      margin: '0',
+      zIndex: '99999',
+      pointerEvents: 'none',
+      opacity: '0.85',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+      transition: 'none',
+    });
+    document.body.appendChild(ghost);
+    chip.classList.add('settings-type-chip--dragging');
+
+    _chipDrag = {
+      chip,
+      ghost,
+      typeKey: chip.dataset.typeKey,
+      startX: e.clientX,
+      startY: e.clientY,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      active: false,
+      indicator: null,
+    };
+
+    document.addEventListener('mousemove', _onChipDragMove);
+    document.addEventListener('mouseup', _onChipDragUp);
+  });
+}
+
+function _onChipDragMove(e) {
+  if (!_chipDrag) return;
+  const dx = e.clientX - _chipDrag.startX;
+  const dy = e.clientY - _chipDrag.startY;
+  if (!_chipDrag.active && Math.sqrt(dx * dx + dy * dy) < 4) return;
+  _chipDrag.active = true;
+
+  _chipDrag.ghost.style.left = `${e.clientX - _chipDrag.offsetX}px`;
+  _chipDrag.ghost.style.top  = `${e.clientY - _chipDrag.offsetY}px`;
+
+  // Detect which chip is under the cursor
+  _chipDrag.ghost.style.display = 'none';
+  const elUnder = document.elementFromPoint(e.clientX, e.clientY);
+  _chipDrag.ghost.style.display = '';
+
+  document.querySelectorAll('.settings-type-drop-indicator').forEach(el => el.remove());
+  _chipDrag.indicator = null;
+
+  const chipUnder = elUnder?.closest('.settings-type-chip');
+  if (chipUnder && chipUnder !== _chipDrag.chip) {
+    const rect = chipUnder.getBoundingClientRect();
+    const insertBefore = e.clientX < rect.left + rect.width / 2;
+    const ind = document.createElement('span');
+    ind.className = 'settings-type-drop-indicator';
+    chipUnder.insertAdjacentElement(insertBefore ? 'beforebegin' : 'afterend', ind);
+    _chipDrag.indicator = { chipUnder, insertBefore };
+  }
+}
+
+async function _onChipDragUp() {
+  if (!_chipDrag) return;
+  document.removeEventListener('mousemove', _onChipDragMove);
+  document.removeEventListener('mouseup', _onChipDragUp);
+
+  const { chip, ghost, typeKey, active, indicator } = _chipDrag;
+  _chipDrag = null;
+
+  ghost.remove();
+  chip.classList.remove('settings-type-chip--dragging');
+  document.querySelectorAll('.settings-type-drop-indicator').forEach(el => el.remove());
+
+  if (!active || !indicator) return;
+
+  const { chipUnder, insertBefore } = indicator;
+  const targetTypeKey = chipUnder.dataset.typeKey;
+  if (!targetTypeKey || targetTypeKey === typeKey) return;
+
+  // Read DOM order and compute the new sequence
+  const list = document.getElementById('settings-meeting-types-list');
+  if (!list) return;
+  let currentOrder = [...list.querySelectorAll('.settings-type-chip[data-type-key]')]
+    .map(c => c.dataset.typeKey);
+
+  const fromIdx = currentOrder.indexOf(typeKey);
+  if (fromIdx >= 0) currentOrder.splice(fromIdx, 1);
+
+  const toIdx = currentOrder.indexOf(targetTypeKey);
+  if (toIdx < 0) return;
+  currentOrder.splice(insertBefore ? toIdx : toIdx + 1, 0, typeKey);
+
+  await setMeetingTypeOrder(currentOrder);
+  await refreshMeetingTypesList();
+  _meetingTypesCallbacks.onMeetingTypesChanged?.();
+}
+
+async function handleAddMeetingType(input) {
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+
+  const existing = await getAllCustomMeetingTypes();
+  const allNames = [
+    ...BUILT_IN_TYPES.map(t => t.name.toLowerCase()),
+    ...existing.map(t => t.name.toLowerCase()),
+  ];
+  if (allNames.includes(name.toLowerCase())) {
+    showAddTypeError('A meeting type with that name already exists.');
+    input.focus();
+    return;
+  }
+
+  hideAddTypeError();
+  input.value = '';
+  await createCustomMeetingType(name);
+  await refreshMeetingTypesList();
+  _meetingTypesCallbacks.onMeetingTypesChanged?.();
+}
+
+async function handleDeleteMeetingType(id, name) {
+  if (!confirm(`Remove "${name}"? Meetings in this category will be moved to Ad Hoc.`)) return;
+  await deleteCustomMeetingType(id);
+  await refreshMeetingTypesList();
+  _meetingTypesCallbacks.onMeetingTypesChanged?.();
+}
+
+function showAddTypeError(msg) {
+  const el = document.getElementById('settings-add-type-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideAddTypeError() {
+  const el = document.getElementById('settings-add-type-error');
+  if (el) el.style.display = 'none';
 }
 
 async function handleLicenseKeyChange(elements) {

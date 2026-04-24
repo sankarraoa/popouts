@@ -67,6 +67,7 @@ zip -r "$OUTPUT_ZIP" . \
   -x "icons/icon*-1.png" \
   -x "js/modules/README.md" \
   -x "release/*" \
+  -x "mockups/*" \
   -x "sidepanel/*" \
   -x "manifest.json.bak" \
   -x "js/config.js.bak" \

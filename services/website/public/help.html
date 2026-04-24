@@ -85,6 +85,14 @@
                 "@type": "Answer",
                 "text": "All Popouts data is stored locally in your browser. Export and import are the ways to back up and restore your data."
               }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I create my own meeting types?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. In Settings → Meeting Types (at the bottom, below License Key) you can add custom categories beyond the four built-in ones (1:1s, Interviews, Recurring, Ad Hoc). Each chip has a drag handle on the left — drag to reorder any type, and the sidebar updates to match. Removing a custom type moves its meetings to Ad Hoc so nothing is lost. Custom meeting types and their order are included when you export, and restored when you import."
+              }
             }
           ]
         }
@@ -216,6 +224,7 @@
             <a href="#settings" class="help-nav-item">Settings</a>
             <a href="#trial-license" class="help-nav-item sub">Trial and license</a>
             <a href="#requires-license" class="help-nav-item sub">What requires a license</a>
+            <a href="#meeting-types-settings" class="help-nav-item sub">Meeting types</a>
             <a href="#export-data" class="help-nav-item sub">Export your data</a>
             <a href="#import-data" class="help-nav-item sub">Import your data</a>
             <a href="#data-stored-locally" class="help-nav-item sub">Important: Data is stored locally</a>
@@ -305,13 +314,14 @@
                 <div class="help-subsection-header"><span class="help-subsection-num">2.1</span></div>
                 <h3>Meeting categories</h3>
                 <div class="block">
-                  <p>When you create a meeting, you choose a type:</p>
+                  <p>When you create a meeting, you choose a type. Popouts ships with four built-in types:</p>
                   <ul>
                     <li><strong>1:1s</strong> — meetings with your manager, team members, or peers</li>
                     <li><strong>Recurring meetings</strong> — regular meetings like weekly reviews or project syncs</li>
                     <li><strong>Adhoc meetings</strong> — one-off or unplanned meetings</li>
                     <li><strong>Interviews</strong> — hiring and candidate conversations; includes a <strong>Summary</strong> tab for AI-generated interview summaries (see below)</li>
                   </ul>
+                  <p>You can also create your own <strong>custom types</strong> (for example "Customer calls" or "Board") from <a href="#meeting-types-settings">Settings → Meeting Types</a>. Every type — built-in or custom — can be dragged to reorder how categories appear in the sidebar.</p>
                   <p>No tags, labels, or extra setup beyond picking the type.</p>
                 </div>
               </div>
@@ -623,8 +633,35 @@
                 </div>
               </div>
 
-              <div class="help-subsection" id="export-data">
+              <div class="help-subsection" id="meeting-types-settings">
                 <div class="help-subsection-header"><span class="help-subsection-num">5.3</span></div>
+                <h3>Meeting types</h3>
+                <div class="block">
+                  <p>The <strong>Meeting Types</strong> section lives at the bottom of Settings, just below License Key. It controls the categories you see when creating a meeting and in the sidebar.</p>
+
+                  <p class="bold">Built-in and custom types</p>
+                  <p>Popouts comes with four built-in types: <strong>1:1s</strong>, <strong>Interviews</strong>, <strong>Recurring</strong>, and <strong>Ad Hoc</strong>. Built-in types can be reordered, but not renamed or deleted.</p>
+                  <p>On top of those, you can add your own <strong>custom types</strong> — useful when the four defaults don't match how you think about your meetings (for example "Customer calls", "Board", or "Design reviews").</p>
+
+                  <p class="bold">Add a custom type</p>
+                  <ol>
+                    <li>Open <strong>Settings</strong></li>
+                    <li>Scroll to <strong>Meeting Types</strong> at the bottom</li>
+                    <li>Type a name in the input</li>
+                    <li>Press <strong>Enter</strong> (or click <strong>Add</strong>)</li>
+                  </ol>
+                  <p>Each custom type is automatically given a color so it's easy to tell categories apart. Custom types show up in the sidebar alongside the built-in ones, and new meetings can be assigned to them.</p>
+
+                  <p class="bold">Reorder types</p>
+                  <p>Every chip has a 6-dot drag handle on the left. Grab the handle and drag a chip to a new position — the order is saved automatically, and the sidebar categories update to match. This works for both built-in and custom types, so you can put the categories you use most at the top.</p>
+
+                  <p class="bold">Remove a custom type</p>
+                  <p>Click the <strong>×</strong> on a custom type's chip to remove it. Any meetings that were in that type are safely moved to <strong>Ad Hoc</strong> so nothing is lost. Built-in types don't have a remove button.</p>
+                </div>
+              </div>
+
+              <div class="help-subsection" id="export-data">
+                <div class="help-subsection-header"><span class="help-subsection-num">5.4</span></div>
                 <h3>Export your data</h3>
                 <div class="block">
                   <p>Export allows you to download all your Popouts data in JSON format.</p>
@@ -635,6 +672,7 @@
                     <li>All notes</li>
                     <li>All action items and their status</li>
                     <li>Saved <strong>AI interview summaries</strong>, when you have generated them for Interview meetings</li>
+                    <li>Your <strong>custom meeting types</strong> (names and colors) and the current order of all meeting types</li>
                   </ul>
                   <p>To export:</p>
                   <ol>
@@ -647,7 +685,7 @@
               </div>
 
               <div class="help-subsection" id="import-data">
-                <div class="help-subsection-header"><span class="help-subsection-num">5.4</span></div>
+                <div class="help-subsection-header"><span class="help-subsection-num">5.5</span></div>
                 <h3>Import your data</h3>
                 <div class="block">
                   <p>Import allows you to restore or add data from a previously exported file.</p>
@@ -657,6 +695,8 @@
                     <li>It will not remove or replace existing data</li>
                     <li>Importing the same file multiple times will create duplicate entries</li>
                     <li>Import does not automatically merge duplicates</li>
+                    <li>Any <strong>custom meeting types</strong> in the file are re-created on your device (with fresh internal IDs). Meetings that belonged to them are automatically reassigned to the restored types, so nothing ends up orphaned.</li>
+                    <li>The saved <strong>meeting type order</strong> from the file is merged with your current order — existing types keep their position, and any newly restored custom types are appended to the end so you can reorder them in Settings if you like</li>
                   </ul>
                   <p>To import:</p>
                   <ol>
@@ -669,7 +709,7 @@
               </div>
 
               <div class="help-subsection" id="data-stored-locally">
-                <div class="help-subsection-header"><span class="help-subsection-num">5.5</span></div>
+                <div class="help-subsection-header"><span class="help-subsection-num">5.6</span></div>
                 <h3>Important: Data is stored locally</h3>
                 <div class="block">
                   <p>All Popouts data is stored locally in your browser.</p>

@@ -174,6 +174,9 @@ function renderSummaryIntoOutput(data) {
   appendSection(output, 'Overview', data.overview);
   appendSection(output, 'Strengths', data.strengths);
   appendSection(output, 'Concerns', data.concerns);
+
+  const verdictText = data.verdict && String(data.verdict).trim();
+  appendSection(output, 'Verdict', { paragraph: verdictText || null, bullets: [] });
 }
 
 function toPlainText(data) {
@@ -208,6 +211,8 @@ function toPlainText(data) {
   block('Overview', data.overview);
   block('Strengths', data.strengths);
   block('Concerns', data.concerns);
+  const verdictText = data.verdict && String(data.verdict).trim();
+  block('Verdict', { paragraph: verdictText || null, bullets: [] });
   return lines.join('\n').trim();
 }
 

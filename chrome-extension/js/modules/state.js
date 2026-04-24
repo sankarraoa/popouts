@@ -17,9 +17,9 @@ export const state = {
 // State persistence functions
 export async function saveState(elements) {
   try {
-    // Get expanded categories
+    // Get expanded categories — use live query to include dynamically added custom types
     const expandedCategories = [];
-    elements.categoryToggles.forEach(toggle => {
+    document.querySelectorAll('.category-toggle').forEach(toggle => {
       if (toggle.classList.contains('active')) {
         expandedCategories.push(toggle.dataset.category);
       }
@@ -139,9 +139,9 @@ export async function restoreState(elements) {
     
     if (DEBUG) console.log('Restoring state:', savedState);
     
-    // Restore expanded categories
+    // Restore expanded categories — live query includes dynamically added custom types
     if (savedState.expandedCategories && Array.isArray(savedState.expandedCategories)) {
-      elements.categoryToggles.forEach(toggle => {
+      document.querySelectorAll('.category-toggle').forEach(toggle => {
         const category = toggle.dataset.category;
         const list = document.querySelector(`.meeting-list[data-category="${category}"]`);
         const icon = toggle.querySelector('.category-icon');

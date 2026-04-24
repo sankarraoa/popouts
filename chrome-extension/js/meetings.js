@@ -51,7 +51,7 @@ export async function getMeetingSeries(id) {
 }
 
 // Update meeting series
-async function updateMeetingSeries(id, updates) {
+export async function updateMeetingSeries(id, updates) {
   await db.meetingSeries.update(id, updates);
 }
 

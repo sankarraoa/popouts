@@ -85,6 +85,14 @@ class InterviewSummaryCore(BaseModel):
     overview: SummarySection = Field(..., description="Role, background, context")
     strengths: SummarySection = Field(..., description="Strengths and positive signals")
     concerns: SummarySection = Field(..., description="Gaps, risks, or concerns")
+    verdict: Optional[str] = Field(
+        default=None,
+        description=(
+            "One or two sentences with the interviewer's read. Should begin with one of "
+            "'Strong yes —', 'Hire —', 'Needs another round —', or 'No hire —' followed "
+            "by a short justification."
+        ),
+    )
     evidence_level: Literal["rich", "moderate", "sparse"] = Field(
         default="sparse",
         description="Density of detail in the notes",
